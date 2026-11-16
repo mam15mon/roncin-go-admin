@@ -153,6 +153,22 @@ const routes: UmiRoute[] = [
         component: './orders/list',
       },
       {
+        path: '/orders/air-import',
+        organizationSwitch: { keep: true },
+        name: '空运进口',
+        pageTitle: '空运进口订单列表',
+        access: 'canReadAIOrders',
+        component: './orders/list',
+      },
+      {
+        path: '/orders/air-import/masters/:masterId',
+        organizationSwitch: { list: '/orders/air-import' },
+        name: '进口航空共享主单',
+        access: 'canReadAIOrders',
+        hideInMenu: true,
+        component: './orders/air-master',
+      },
+      {
         path: '/orders/air-export/masters/:masterId',
         organizationSwitch: { list: '/orders/air-export' },
         name: '航空共享主单',
@@ -171,7 +187,9 @@ const routes: UmiRoute[] = [
               ? 'SI 新建订单'
               : kind === 'air-export'
                 ? 'AE 新建订单'
-                : '订单管理',
+                : kind === 'air-import'
+                  ? 'AI 新建订单'
+                  : '订单管理',
         access: 'canCreateAnyOrders',
         hideInMenu: true,
         component: './orders/new',

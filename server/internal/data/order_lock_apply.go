@@ -95,7 +95,7 @@ func applyOrderLockCore(ctx context.Context, tx *ent.Tx, organizationID uuid.UUI
 			SetTransportExecutionID(seaSnapshot.TransportExecutionID).
 			SetTransportExecutionVersionID(seaSnapshot.TransportExecutionVersionID)
 	}
-	if businessType == access.OrderBusinessAE {
+	if businessType == access.OrderBusinessAE || businessType == access.OrderBusinessAI {
 		snapshot, e := airOrderLockDocumentSnapshot(ctx, tx, organizationID, order.ID)
 		if e != nil {
 			return nil, nil, e
@@ -140,11 +140,8 @@ func (r *orderLockRepo) LockOrder(ctx context.Context, caller *biz.Principal, or
 		if err := lockFeeAuthorizationParents(ctx, tx.Client(), caller.UserID); err != nil {
 			return err
 		}
-		// 1. 锁序 1: Order FOR UPDATE，并以数据库中的权威业务类型解析权限。
-		order, queryErr := tx.Order.Query().
-			Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).
-			ForUpdate().
-			Only(ctx)
+		// 航空先锁完整Order集合，再锁MAWB/Link；不能持有目标Order后追加未知成员。
+		order, _, queryErr := lockAirLifecycleTarget(ctx, tx, organizationID, orderID)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
 		}

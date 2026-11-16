@@ -32,7 +32,7 @@ func NewSessionPolicy(security *conf.Security) (*biz.SessionPolicy, error) {
 	return &biz.SessionPolicy{CookieName: session.GetCookieName(), TTL: session.GetTtl().AsDuration(), Secure: session.GetSecure(), SameSite: session.GetSameSite()}, nil
 }
 
-func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy, orderUsecase *biz.OrderUsecase, partnerUsecase *biz.PartnerUsecase) middleware.Middleware {
+func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy, orderUsecase *biz.OrderUsecase, partnerUsecase *biz.PartnerUsecase, airUsecase *biz.AirExportUsecase) middleware.Middleware {
 	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, request any) (any, error) {
 			tr, ok := transport.FromServerContext(ctx)
@@ -55,9 +55,18 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy, orderUse
 			directOrderRequest := false
 			directPartnerRequest := false
 			if rule.mode == accessModeOrderPermission {
+				airTarget, isAirTarget := requestAirTarget(request)
+				if isAirTarget {
+					if !authorizeAirTarget(ctx, principal, airUsecase, airTarget, rule.orderOperation) {
+						return nil, biz.ErrPermissionDenied
+					}
+					directOrderRequest = true
+				}
 				var order *biz.Order
-				order, directOrderRequest = requestOrder(ctx, request, orderUsecase, orderOrganizationScopes(principal, rule.orderOperation, orderOperationWrites(rule.orderOperation)))
-				if directOrderRequest {
+				if !isAirTarget {
+					order, directOrderRequest = requestOrder(ctx, request, orderUsecase, orderOrganizationScopes(principal, rule.orderOperation, orderOperationWrites(rule.orderOperation)))
+				}
+				if directOrderRequest && !isAirTarget {
 					if order == nil {
 						return nil, biz.ErrPermissionDenied
 					}
@@ -173,7 +182,7 @@ func partnerOrganizationIDs(principal *biz.Principal, permission string, writabl
 func requestOrder(ctx context.Context, request any, orderUsecase *biz.OrderUsecase, scopes []biz.OrderOrganizationScope) (*biz.Order, bool) {
 	var orderID string
 	switch value := request.(type) {
-	case *orderv1.ListOrdersRequest, *orderv1.CreateOrderRequest, *orderv1.CheckOrderReferenceRequest, *orderv1.ListPersonnelOptionsRequest:
+	case *orderv1.ListOrdersRequest, *orderv1.CreateOrderRequest, *orderv1.CheckOrderReferenceRequest, *orderv1.ListPersonnelOptionsRequest, *orderv1.ListAirMasterWaybillsRequest:
 		return nil, false
 	case interface{ GetOrderId() string }:
 		orderID = value.GetOrderId()
@@ -330,6 +339,9 @@ func requestOrderBusinessType(request any) (access.OrderBusinessType, bool) {
 		return orderBusinessTypeFromAPI(value.GetBusinessType())
 	case *orderv1.ListPersonnelOptionsRequest:
 		return orderBusinessTypeFromAPI(value.GetBusinessType())
+	case *orderv1.ListAirMasterWaybillsRequest:
+		businessType := access.OrderBusinessType(value.GetBusinessType())
+		return businessType, businessType == access.OrderBusinessAE || businessType == access.OrderBusinessAI
 	case *orderv1.MatchSeaMasterBillCandidateRequest:
 		businessType := access.OrderBusinessType(value.GetBusinessType())
 		return businessType, businessType == access.OrderBusinessSE || businessType == access.OrderBusinessSI
@@ -421,4 +433,52 @@ func cookieValue(rawHeader, name string) string {
 		return ""
 	}
 	return cookie.Value
+}
+
+// 航空目标统一在路由层解析：候选用显式类型，单据及重量用目标自身身份。
+type airAuthorizationTarget struct {
+	scope, id  string
+	transition bool
+}
+
+func requestAirTarget(request any) (airAuthorizationTarget, bool) {
+	switch v := request.(type) {
+	case *orderv1.GetAirMasterWaybillRequest:
+		return airAuthorizationTarget{scope: "MASTER", id: v.GetId()}, true
+	case *orderv1.PreviewAirMasterWaybillUpdateRequest:
+		return airAuthorizationTarget{scope: "MASTER", id: v.GetId()}, true
+	case *orderv1.UpdateAirMasterWaybillRequest:
+		return airAuthorizationTarget{scope: "MASTER", id: v.GetId()}, true
+	case *orderv1.LinkAirMasterWaybillRequest:
+		return airAuthorizationTarget{scope: "MASTER", id: v.GetId(), transition: true}, true
+	case *orderv1.ListAirLinkCandidatesRequest:
+		return airAuthorizationTarget{scope: "MASTER", id: v.GetId()}, true
+	case *orderv1.ListAirHouseWaybillVersionsRequest:
+		return airAuthorizationTarget{scope: "ORDER", id: v.GetOrderId()}, true
+	case *orderv1.PreviewAirWeightRequest:
+		return airAuthorizationTarget{scope: v.GetScope(), id: v.GetTargetId()}, true
+	case *orderv1.ConfirmAirWeightRequest:
+		return airAuthorizationTarget{scope: v.GetScope(), id: v.GetTargetId()}, true
+	case *orderv1.ListAirWeightConfirmationsRequest:
+		return airAuthorizationTarget{scope: v.GetScope(), id: v.GetTargetId()}, true
+	default:
+		return airAuthorizationTarget{}, false
+	}
+}
+func authorizeAirTarget(ctx context.Context, p *biz.Principal, uc *biz.AirExportUsecase, target airAuthorizationTarget, op access.OrderOperation) bool {
+	if p == nil || uc == nil {
+		return false
+	}
+	id, err := uuid.Parse(target.id)
+	if err != nil {
+		return false
+	}
+	kind, err := uc.BusinessType(ctx, p.Organization.ID, target.scope, id)
+	if err != nil || !kind.IsAir() {
+		return false
+	}
+	if !currentOrganizationInOrderScope(p, access.OrderBusinessType(kind), op, orderOperationWrites(op)) {
+		return false
+	}
+	return !target.transition || currentOrganizationInOrderScope(p, access.OrderBusinessType(kind), access.OrderTransition, true)
 }

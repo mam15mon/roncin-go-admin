@@ -41,6 +41,8 @@ func (v OrderBusinessType) DisplayName() string {
 	}
 }
 
+func (v OrderBusinessType) IsAir() bool { return v == OrderBusinessAE || v == OrderBusinessAI }
+
 func (v OrderBusinessType) IsSea() bool    { return v == OrderBusinessSE || v == OrderBusinessSI }
 func (v OrderBusinessType) IsImport() bool { return v == OrderBusinessSI || v == OrderBusinessAI }
 

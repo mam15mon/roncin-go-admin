@@ -56,7 +56,7 @@ func newNotificationHTTPFixture() (*kratoshttp.Server, *biz.Principal, *notifica
 	p := &biz.Principal{UserID: user, Organization: biz.Organization{ID: org, Kind: biz.OrganizationKindSystem}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: org, Kind: biz.OrganizationKindSystem}}, RoleGrants: []biz.RoleGrant{serverRoleGrant("administrator", biz.DataScopeOrganization, []string{access.PlatformAccess, access.NotificationPreview, access.NotificationTestSend})}}
 	policy := &biz.SessionPolicy{CookieName: "sid", TTL: time.Hour, SameSite: "lax"}
 	authUC := biz.NewAuthUsecase(&middlewareAuthRepoStub{session: &biz.Session{UserID: user, OrganizationID: org, ExpiresAt: time.Now().Add(time.Hour)}, principal: p}, policy, nil, nil)
-	srv := kratoshttp.NewServer(kratoshttp.ResponseEncoder(encodeResponse), kratoshttp.ErrorEncoder(encodeError), kratoshttp.Middleware(Authorization(authUC, policy, nil, nil), RequiredFieldsValidator()))
+	srv := kratoshttp.NewServer(kratoshttp.ResponseEncoder(encodeResponse), kratoshttp.ErrorEncoder(encodeError), kratoshttp.Middleware(Authorization(authUC, policy, nil, nil, nil), RequiredFieldsValidator()))
 	authv1.RegisterAuthServiceHTTPServer(srv, service.NewAuthService(authUC, policy, nil))
 	adminv1.RegisterAdminServiceHTTPServer(srv, service.NewAdminService(nil, nil, biz.NewNotificationTestUsecase(repo, nil, sender, sender)))
 	return srv, p, repo, sender

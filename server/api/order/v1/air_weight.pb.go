@@ -924,11 +924,13 @@ const file_order_v1_air_weight_proto_rawDesc = "" +
 	"\x05total\x18\x05 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\x06 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\a \x01(\x05R\bpageSize\x12\x19\n" +
-	"\btrace_id\x18\b \x01(\tR\atraceId2\x9b\x04\n" +
-	"\x10AirWeightService\x12\xa1\x01\n" +
-	"\x10PreviewAirWeight\x12!.order.v1.PreviewAirWeightRequest\x1a\".order.v1.PreviewAirWeightResponse\"F\x82\xb5\x18\x1c\b\x03\x12\x16business.order.ae.read \x02\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/v1/air-weights/preview\x12\xa3\x01\n" +
-	"\x10ConfirmAirWeight\x12!.order.v1.ConfirmAirWeightRequest\x1a\".order.v1.ConfirmAirWeightResponse\"H\x82\xb5\x18\x1e\b\x03\x12\x18business.order.ae.update \x02\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/v1/air-weights/confirm\x12\xbc\x01\n" +
-	"\x1aListAirWeightConfirmations\x12+.order.v1.ListAirWeightConfirmationsRequest\x1a,.order.v1.ListAirWeightConfirmationsResponse\"C\x82\xb5\x18\x1c\b\x03\x12\x16business.order.ae.read \x02\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/air-weights/historyB:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
+	"\btrace_id\x18\b \x01(\tR\atraceId2\xe5\x03\n" +
+	"\x10AirWeightService\x12\x8f\x01\n" +
+	"\x10PreviewAirWeight\x12!.order.v1.PreviewAirWeightRequest\x1a\".order.v1.PreviewAirWeightResponse\"4\x82\xb5\x18\n" +
+	"\b\x04\x1a\x04read \x02\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/v1/air-weights/preview\x12\x91\x01\n" +
+	"\x10ConfirmAirWeight\x12!.order.v1.ConfirmAirWeightRequest\x1a\".order.v1.ConfirmAirWeightResponse\"6\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/v1/air-weights/confirm\x12\xaa\x01\n" +
+	"\x1aListAirWeightConfirmations\x12+.order.v1.ListAirWeightConfirmationsRequest\x1a,.order.v1.ListAirWeightConfirmationsResponse\"1\x82\xb5\x18\n" +
+	"\b\x04\x1a\x04read \x02\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/air-weights/historyB:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
 	file_order_v1_air_weight_proto_rawDescOnce sync.Once

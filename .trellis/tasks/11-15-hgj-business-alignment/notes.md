@@ -164,3 +164,21 @@
 - browser agent sea_import_browser仍运行并独占web/tests/e2e/sea-import.e2e.ts及/tmp私有harness/research。现在已放行最终新build轮。真实已达：SI两模式、共同航程enabled、直单保存刷新、HOUSE2/5子集并行完成、服务保存保主表dirty且其后主表提交200、撤回缺原因拦截/有原因保存与前后历史、外部版本变动保输入禁提交、外部HBL长文85行货描60箱保存重读、真实PDF预览字体200+iframe/blob及下载打印同href。尚无完整PASS；此前轮次日期清除/图标前缀accessible name/exact locator残留等测试定位问题均清理所有自建DB/role/process后重跑，不算产品失败/整例通过。最新轮/tmp/roncin-si-browser-bWwK5L/，需等真实下载/生产同域/逐页图/最终cleanup报告。
 - Root新增research/sea-import-root-validation.md草稿、父research/implementation-acceptance-progress.md并更新validation-matrix标题；准确记录失败/剩余父验收。规范order-import-handling已同步精度、transport.update权限、指纹与页脚。后续AI任务research/entrypoints.md已有定位并加入implement/check JSONL；尚未start，代码未实施。已修后续文档两已归档前置路径。
 - 下一步：等check:web与完整browser真实PASS（必要修产品需重build；仅tests无需），更新root报告/PRD与implement勾选、确认全部改动属本组，按已获授权同组中文Conventional Commit后archive SI，父完成3/6；再start AI，按Trellis派server/非生成web两个实现代理（责任隔离、不可派子/不可commit），Root协调spec/最终门禁。之后AWB PDF→横切/CSV/四类全财务验收。父goal仍active，不停止或误标complete。
+
+### 02:09 UTC 更新
+
+- 上述SI待办已全部完成：最终check:web exit0（504files2704tests、既有11skip），browser实际整例1PASS1.4m且PDF4页完整/生产同域/cleanup都PASS。Root独立看真实下载PDF末页末箱和保存版本清晰。SI提交74f86b3e（216files）、归档299fb32a、会话209日志8d833b98。父3/6，开发库迁移到1600仍保持数据已核验。
+- 当前已start `.trellis/tasks/11-15-hgj-air-import` in_progress；根只改规范/任务元数据。AIR三代理现在运行：air_import_server（trellis-implement）独占server/所有生成物；air_import_web（trellis-implement）独占非生成web排除e2e；sea_import_browser复用旧代理准备air-import.e2e.ts/research及/tmp私有AI harness，尚不准运行长轮，等产品/生成稳定。均不commit/派子代理，Root所有spec/任务主文档/最终门禁。
+- 浏览器计划仅AI业务权限+必要公共候选（无AE能力），DIRECT真实UI建票，HOUSE/API共享真实票，主单/重量ORDER-MASTER/进口服务与版本输入保护。后端共享API沿用/api/v1/air-export名称（协议不为命名美化复制），前端新/orders/air-import/masters/:id。server若必要签名变动须早发前端；当前暂无新生成ready。
+- Root发现旧order-lock-and-document-version头部仍“非SE不可海运快照”矛盾，已仅改SE/SI真实海运适用、恢复/审核和验证措辞，未改产品。待本组AI真实实现后同步AE/AI与入口/权威日期/权限合同，不能提前将AI产品断言写成已验。
+
+### 02:31 UTC AI实施检查点（同窗口）
+
+- 本组AI所有实现/两独立check均完成释放产品和tests/生成写权。air_import_server报告research/air-import-server-validation.md：无新Schema/迁移；Proto航空权限改动态ORDER_PERMISSION，HTTP/gRPC+Wire加入航空真实目标身份解析；repo候选AE/AI显式、ID/ORDER-MASTER按实体类型授权、双模式/成员/恢复/审核/重量/权威ETA/费用日。最终补审核LockOrder完整集合锁序与HOUSE恢复HAWB公司。PG54.826s0SKIP航空全相邻；22.721s0SKIP AI五服务/完结锁恢复/跨身份/ETA午夜周率缺率回滚；广43.686s仅SI旧to_regclass误命public同名表FAIL，其余PASS，改精确current_schema断言后单例2.590s0SKIPPASS。120场真实HTTP中间件/Service/Usecase矩阵（repo stub）PASS、四包Go/cmd编译/vet/buf/91临时生成幂等PASS。
+- web实现报告research/air-import-web-validation.md：AI全路由/adapter/主单/候选/重量费用分支/五服务航空基线；37suite317tests PASS29.54s、47文件Biome、tsc、3antd0/diffPASS。主单探测owner已加身份A→B→A/同ID重进保护。
+- 独立webchecker报告air-import-web-review.md：修主单编辑/恢复modal官方onFinish迟到关新稿风险，serial+revision+存活每await复验，恢复固定打开master版本/模式，写响应严格identity；旧测试invalidate错误air-export key→真air-orders并断言二次读取。5files26testsPASS12.7s、最终tsc/Biome49files/architecture18checks560files/antd0通过。产品冻结已通知后才最终browser。
+- 独立serverchecker报告air-import-server-review.md：全scope实码/锁序/权限/ETA复核无确认缺陷，无产品自修/生成；独立全vet/buf/diff/120HTTP矩阵定向PASS。未无因重跑已过PG，报告准确来源。
+- browser最终稳定真实轮PASS（所有产品冻结后）：RONCIN_ACCEPTANCE_WEB_PORT=8002 node /tmp/roncin-ai-browser-acceptance/run.mjs exit0，Playwright1PASS1.3m；onlyAI角色/auth/me无AE+AE候选403，DIRECT真实UI提交AI/IMPORT无HAWB+私有改刷新，真实货物+ORDER计划150/实际180、MASTER210独立，fee quantity来源150/180（没造费用不声称汇率）、HOUSE2票共享候选/主单ETA中国午夜/完整汇总/继续建票AI路由，五服务2/5+主表draft随后提交，真实15s轮询和回焦各有输入保护/pageerror空。证据/tmp/roncin-ai-browser-5xhpwo，独立DB/role0/ports8010/9010/8002清理通过；Root独立看polling输入保护截图。报告air-import-browser-validation.md完整，e2e代理已final释放。中间operator必填/选择竞态/更多菜单定位失败都tests问题，未算整例通过。
+- 正在运行本组最终pnpm run check:fast exec session42621（/tmp/hgj-air-import-check-fast.log），约02:29:05启动，未结束。产品已冻结可等结果；若仅旧测试合同漂移由checker最小修，server已过不无因重跑；必要prod改需相应重新browser/build（本组无build/PDF声明）。
+- Root写新spec air-import-contract.md7节并挂索引/导航、同步air-export-contract AE/AI、air-waybill scope、air-order-commercial-fields、主单候选类型、锁spec AE/AI完整Order集合、finance-reports权威日期。AI implement/check及后续PDF/横切JSONL已加入新spec。Root在后续两task research分别加PDF entrypoints与最终acceptance-entrypoints，只定位未start/未编码。
+- 当前仍AI in_progress、父3/6；下一步等check:fast真实结果，补root report/PRD/implementation勾选、同组中文feat提交后archive+日志（已有持久提交授权勿重复问），再start PDF任务。PDF建议双实现责任拆分：core负责制作页/编辑保存/必要后端输出元数据+生成与routes；renderer负责AWB版式/中立PDF共用字体工具及必要HBL同步；需先共同锁模型shape和真实主体（不为PDF引入重平台）。browser随后只e2e私有harness。不把当前航空正文存在当PDF可用，父目标仍active，之后还有横切/CSV/四类完整财务链。

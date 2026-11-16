@@ -20,7 +20,7 @@ type AirExportService struct {
 func NewAirExportService(uc *biz.AirExportUsecase) *AirExportService {
 	return &AirExportService{usecase: uc}
 }
-func airPrincipal(ctx context.Context, writable bool) (*biz.Principal, error) {
+func airPrincipal(ctx context.Context, businessType biz.OrderBusinessType, writable bool) (*biz.Principal, error) {
 	p, e := biz.RequirePrincipal(ctx)
 	if e != nil {
 		return nil, e
@@ -29,7 +29,7 @@ func airPrincipal(ctx context.Context, writable bool) (*biz.Principal, error) {
 	if writable {
 		op = access.OrderUpdate
 	}
-	if !canOperateOrderInCurrentOrganization(p, biz.OrderBusinessAE, op, writable) {
+	if !canOperateOrderInCurrentOrganization(p, businessType, op, writable) {
 		return nil, biz.ErrPermissionDenied
 	}
 	return p, nil
@@ -44,16 +44,16 @@ func airPagination(page, size int32) biz.SelectorListOptions {
 	return biz.SelectorListOptions{Page: int(page), PageSize: int(size)}
 }
 func (s *AirExportService) ListAirMasterWaybills(ctx context.Context, req *v1.ListAirMasterWaybillsRequest) (*v1.ListAirMasterWaybillsResponse, error) {
-	if req.GetBusinessType() != "AE" {
+	if !biz.OrderBusinessType(req.GetBusinessType()).IsAir() {
 		return nil, biz.ErrAirWaybillInvalid
 	}
-	p, e := airPrincipal(ctx, false)
+	p, e := airPrincipal(ctx, biz.OrderBusinessType(req.GetBusinessType()), false)
 	if e != nil {
 		return nil, e
 	}
 	o := airPagination(req.GetPage(), req.GetPageSize())
 	o.Keyword = req.GetKeyword()
-	rows, total, e := s.usecase.List(ctx, p.Organization.ID, o)
+	rows, total, e := s.usecase.List(ctx, p.Organization.ID, biz.OrderBusinessType(req.GetBusinessType()), o)
 	if e != nil {
 		return nil, e
 	}
@@ -64,7 +64,7 @@ func (s *AirExportService) ListAirMasterWaybills(ctx context.Context, req *v1.Li
 	return ok(ctx, out), nil
 }
 func (s *AirExportService) GetAirMasterWaybill(ctx context.Context, req *v1.GetAirMasterWaybillRequest) (*v1.GetAirMasterWaybillResponse, error) {
-	p, e := airPrincipal(ctx, false)
+	p, e := s.targetPrincipal(ctx, "MASTER", req.GetId(), false)
 	if e != nil {
 		return nil, e
 	}
@@ -79,7 +79,7 @@ func (s *AirExportService) GetAirMasterWaybill(ctx context.Context, req *v1.GetA
 	return ok(ctx, airDetailToAPI(result)), nil
 }
 func (s *AirExportService) PreviewAirMasterWaybillUpdate(ctx context.Context, req *v1.PreviewAirMasterWaybillUpdateRequest) (*v1.PreviewAirMasterWaybillUpdateResponse, error) {
-	p, e := airPrincipal(ctx, true)
+	p, e := s.targetPrincipal(ctx, "MASTER", req.GetId(), true)
 	if e != nil {
 		return nil, e
 	}
@@ -102,7 +102,7 @@ func (s *AirExportService) PreviewAirMasterWaybillUpdate(ctx context.Context, re
 	return ok(ctx, out), nil
 }
 func (s *AirExportService) UpdateAirMasterWaybill(ctx context.Context, req *v1.UpdateAirMasterWaybillRequest) (*v1.UpdateAirMasterWaybillResponse, error) {
-	p, e := airPrincipal(ctx, true)
+	p, e := s.targetPrincipal(ctx, "MASTER", req.GetId(), true)
 	if e != nil {
 		return nil, e
 	}
@@ -125,11 +125,11 @@ func (s *AirExportService) UpdateAirMasterWaybill(ctx context.Context, req *v1.U
 	return ok(ctx, &v1.UpdateAirMasterWaybillResponse{Data: v.Data, Members: v.Members, Total: v.Total, Totals: v.Totals, History: v.History, BlockedReasons: v.BlockedReasons, HistoryTotal: v.HistoryTotal}), nil
 }
 func (s *AirExportService) LinkAirMasterWaybill(ctx context.Context, req *v1.LinkAirMasterWaybillRequest) (*v1.LinkAirMasterWaybillResponse, error) {
-	p, e := airPrincipal(ctx, true)
+	p, e := s.targetPrincipal(ctx, "MASTER", req.GetId(), true)
 	if e != nil {
 		return nil, e
 	}
-	if !canOperateOrderInCurrentOrganization(p, biz.OrderBusinessAE, access.OrderTransition, true) {
+	if !s.canTransitionTarget(ctx, p, req.GetId()) {
 		return nil, biz.ErrPermissionDenied
 	}
 	id, e := uuid.Parse(req.GetId())
@@ -237,7 +237,7 @@ func airOrderToAPI(in *biz.AirOrderInfo) *v1.AirOrderInfo {
 }
 
 func (s *AirExportService) ListAirLinkCandidates(ctx context.Context, req *v1.ListAirLinkCandidatesRequest) (*v1.ListAirLinkCandidatesResponse, error) {
-	p, e := airPrincipal(ctx, true)
+	p, e := s.targetPrincipal(ctx, "MASTER", req.GetId(), true)
 	if e != nil {
 		return nil, e
 	}
@@ -259,7 +259,7 @@ func (s *AirExportService) ListAirLinkCandidates(ctx context.Context, req *v1.Li
 }
 
 func (s *AirExportService) ListAirHouseWaybillVersions(ctx context.Context, req *v1.ListAirHouseWaybillVersionsRequest) (*v1.ListAirHouseWaybillVersionsResponse, error) {
-	p, e := airPrincipal(ctx, false)
+	p, e := s.targetPrincipal(ctx, "ORDER", req.GetOrderId(), false)
 	if e != nil {
 		return nil, e
 	}
@@ -276,4 +276,28 @@ func (s *AirExportService) ListAirHouseWaybillVersions(ctx context.Context, req 
 		out.Data = append(out.Data, &v1.AirHouseWaybillVersion{Id: v.ID.String(), Version: v.Version, HouseNo: v.HouseNo, Status: v.Status, Content: airContentToAPI(v.Content), ContentHash: v.ContentHash, ActorId: v.ActorID.String(), Reason: v.Reason, OccurredAt: v.OccurredAt.Format(time.RFC3339)})
 	}
 	return ok(ctx, out), nil
+}
+
+func (s *AirExportService) targetPrincipal(ctx context.Context, scope, target string, writable bool) (*biz.Principal, error) {
+	p, err := biz.RequirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	id, err := uuid.Parse(target)
+	if err != nil {
+		return nil, biz.ErrAirWaybillNotFound
+	}
+	kind, err := s.usecase.BusinessType(ctx, p.Organization.ID, scope, id)
+	if err != nil {
+		return nil, err
+	}
+	return airPrincipal(ctx, kind, writable)
+}
+func (s *AirExportService) canTransitionTarget(ctx context.Context, p *biz.Principal, target string) bool {
+	id, err := uuid.Parse(target)
+	if err != nil {
+		return false
+	}
+	kind, err := s.usecase.BusinessType(ctx, p.Organization.ID, "MASTER", id)
+	return err == nil && canOperateOrderInCurrentOrganization(p, kind, access.OrderTransition, true)
 }

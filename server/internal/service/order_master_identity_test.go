@@ -18,7 +18,7 @@ func TestMasterCandidatesRequireExplicitBusinessIdentity(t *testing.T) {
 					t.Fatalf("海运候选未拒绝不适用类型 %q: %v", businessType, err)
 				}
 			}
-			if businessType != "AE" {
+			if businessType != "AE" && businessType != "AI" {
 				_, err := NewAirExportService(nil).ListAirMasterWaybills(context.Background(), &v1.ListAirMasterWaybillsRequest{BusinessType: businessType})
 				if !errors.Is(err, biz.ErrAirWaybillInvalid) {
 					t.Fatalf("空运候选未拒绝不适用类型 %q: %v", businessType, err)

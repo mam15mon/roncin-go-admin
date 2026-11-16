@@ -19,15 +19,15 @@ import (
 // 两类主单的关联表结构一致。集中构造关联子查询，使列表、详情和搜索遵循同一
 // 读取规则：活动订单取活动关系，终态仅取本次终止保留关系，不取旧改配单号。
 func feeLedgerReadableMasterLink(link *entsql.Selector, air bool) *entsql.Predicate {
-	business, endedReason := order.BusinessTypeSE, orderTerminationLinkEndedReason
+	business, endedReason := []any{order.BusinessTypeSE, order.BusinessTypeSI}, orderTerminationLinkEndedReason
 	if air {
-		business, endedReason = order.BusinessTypeAE, "订单终止"
+		business, endedReason = []any{order.BusinessTypeAE, order.BusinessTypeAI}, "订单终止"
 	}
 	o := entsql.Table(order.Table).As("ledger_master_order")
 	return entsql.Exists(entsql.Select(o.C(order.FieldID)).From(o).Where(entsql.And(
 		entsql.ColumnsEQ(o.C(order.FieldID), link.C("order_id")),
 		entsql.ColumnsEQ(o.C(order.FieldOrganizationID), link.C("organization_id")),
-		entsql.EQ(o.C(order.FieldBusinessType), business),
+		entsql.In(o.C(order.FieldBusinessType), business...),
 		entsql.Or(
 			entsql.And(entsql.NEQ(o.C(order.FieldTerminationStatus), order.TerminationStatusTERMINATED), entsql.EQ(link.C("status"), "ACTIVE")),
 			entsql.And(entsql.EQ(o.C(order.FieldTerminationStatus), order.TerminationStatusTERMINATED), entsql.EQ(link.C("status"), "ENDED"),

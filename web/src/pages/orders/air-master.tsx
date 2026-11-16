@@ -18,7 +18,7 @@ import {
   Tag,
 } from 'antd';
 import dayjs from 'dayjs';
-import { useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { useLocation, useParams } from 'react-router';
 import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
@@ -30,7 +30,6 @@ import {
   SectionCard,
 } from '@/components/ui';
 import { getOrderFlowStatusText } from '@/constants/statusMeta';
-import { OrderBusinessType } from '@/enums.generated';
 import { history } from '@/router/history';
 import {
   airExportServiceGetAirMasterWaybill,
@@ -45,6 +44,12 @@ import { useAirMasterChangeNotice } from './air-master-change-notice';
 import { searchOrderLocations } from './common';
 import AirWeightPanel from './order-kinds/air-export/AirWeightPanel';
 import { serializeAirMaster } from './order-kinds/air-export/form-adapter';
+import {
+  airBusinessTypeCode,
+  requireAirMasterIdentity,
+} from './order-kinds/air-export/identity';
+import { getOrderKindDefinition } from './order-kinds/registry';
+import type { OrderKindDefinition } from './order-kinds/types';
 import { AirMasterFields } from './templates/components/air/AirMasterFields';
 import { AirWaybillFields } from './templates/components/air/AirWaybillFields';
 
@@ -58,19 +63,38 @@ function formatCargoSummary(value?: number): string {
 export default function AirMasterPage() {
   const { masterId = '' } = useParams<{ masterId: string }>();
   const { pathname } = useLocation();
+  const { initialState } = useInitialState();
+  const organizationId = initialState?.currentUser?.currentOrganization?.id;
+  const definition = getOrderKindDefinition(pathname);
+  if (definition?.transportMode !== 'air')
+    return <Result status="404" title="未开放的航空业务" />;
+  return (
+    <AirMasterContent
+      key={`${organizationId}:${definition.kind}:${masterId}`}
+      masterId={masterId}
+      definition={definition}
+    />
+  );
+}
+
+function AirMasterContent({
+  masterId,
+  definition,
+}: {
+  masterId: string;
+  definition: OrderKindDefinition;
+}) {
+  const { pathname } = useLocation();
+  const { kind, businessType } = definition;
+  const businessTypeCode = airBusinessTypeCode(businessType);
   const { modal } = App.useApp();
   const access = useAccess();
   const queryClient = useQueryClient();
   const { initialState } = useInitialState();
   const organizationId = initialState?.currentUser?.currentOrganization?.id;
-  const canRead = access.canOrder(OrderBusinessType.BUSINESS_TYPE_AE, 'read');
-  const canUpdate = access.canOrder(
-    OrderBusinessType.BUSINESS_TYPE_AE,
-    'update',
-  );
-  const canRestore =
-    canUpdate &&
-    access.canOrder(OrderBusinessType.BUSINESS_TYPE_AE, 'transition');
+  const canRead = access.canOrder(businessType, 'read');
+  const canUpdate = access.canOrder(businessType, 'update');
+  const canRestore = canUpdate && access.canOrder(businessType, 'transition');
   const [editOpen, setEditOpen] = useState(false);
   const [editSnapshot, setEditSnapshot] =
     useState<API.GetAirMasterWaybillResponse>();
@@ -80,10 +104,31 @@ export default function AirMasterPage() {
   const editRevision = useRef(0);
   const editingScope = useRef('');
   editingScope.current = `${organizationId}:${masterId}:${editOpen}`;
+  useLayoutEffect(
+    () => () => {
+      editingScope.current = '';
+      editSessionRef.current += 1;
+      editRevision.current += 1;
+    },
+    [],
+  );
   const [editDirty, setEditDirty] = useState(false);
   const [chooseModeOpen, setChooseModeOpen] = useState(false);
   const [createMode, setCreateMode] = useState<'DIRECT' | 'HOUSE'>();
-  const [linkOpen, setLinkOpen] = useState(false);
+  const [linkSnapshot, setLinkSnapshot] = useState<API.AirMasterWaybill>();
+  const [linkSession, setLinkSession] = useState(0);
+  const linkSessionRef = useRef(0);
+  const linkRevision = useRef(0);
+  const alive = useRef(true);
+  const canRestoreRef = useRef(canRestore);
+  canRestoreRef.current = canRestore;
+  useLayoutEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+      linkSessionRef.current += 1;
+    };
+  }, []);
   const [impact, setImpact] = useState<{
     values: MasterEditValues;
     response: API.PreviewAirMasterWaybillUpdateResponse;
@@ -99,19 +144,26 @@ export default function AirMasterPage() {
     | undefined
   >(undefined);
   const query = useQuery({
-    queryKey: ['air-export', 'master', masterId, { organizationId }],
+    queryKey: [
+      'air-orders',
+      'master',
+      masterId,
+      { organizationId, businessType },
+    ],
     enabled: Boolean(masterId && canRead && organizationId),
     queryFn: async ({ signal }) => {
       const response = await airExportServiceGetAirMasterWaybill(
         { id: masterId, page: 1, pageSize: 20 },
         { signal },
       );
-      if (
-        response?.success === false ||
-        response?.data?.id !== masterId ||
-        !response.data.version
-      )
+      if (response?.success === false || !response?.data)
         throw new Error('主单加载失败');
+      requireAirMasterIdentity(
+        response.data,
+        masterId,
+        organizationId,
+        businessType,
+      );
       return response;
     },
   });
@@ -132,10 +184,9 @@ export default function AirMasterPage() {
     baseline: editingMaster ? editSnapshot : undefined,
     session: editSession,
     organizationId,
+    businessType,
     enabled:
-      editOpen &&
-      canRead &&
-      pathname === `/orders/air-export/masters/${masterId}`,
+      editOpen && canRead && pathname === `/orders/${kind}/masters/${masterId}`,
   });
   const acceptEditSnapshot = (snapshot: API.GetAirMasterWaybillResponse) => {
     setEditSnapshot(structuredClone(snapshot));
@@ -203,7 +254,7 @@ export default function AirMasterPage() {
       <PageHeaderShell
         title={input?.masterNo || '共享航空主运单'}
         subTitle="共同运输事实、真实成员与计费重量"
-        onBack={() => history.push('/orders/air-export')}
+        onBack={() => history.push(`/orders/${kind}`)}
         tags={
           <Tag color="blue">
             MAWB
@@ -216,7 +267,7 @@ export default function AirMasterPage() {
         }
         actions={
           <Space>
-            {access.canOrder(OrderBusinessType.BUSINESS_TYPE_AE, 'create') && (
+            {access.canOrder(businessType, 'create') && (
               <Button
                 type="primary"
                 disabled={!canAttach}
@@ -225,7 +276,7 @@ export default function AirMasterPage() {
                   if (!canAttach) return;
                   if (attachMode) {
                     history.push(
-                      `/orders/air-export/new?masterId=${masterId}&documentMode=${attachMode}`,
+                      `/orders/${kind}/new?masterId=${masterId}&documentMode=${attachMode}`,
                     );
                     return;
                   }
@@ -239,7 +290,14 @@ export default function AirMasterPage() {
             {canUpdate && (
               <>
                 {canRestore && (
-                  <Button onClick={() => setLinkOpen(true)}>
+                  <Button
+                    onClick={() => {
+                      if (!master || !query.isSuccess) return;
+                      setLinkSnapshot(structuredClone(master));
+                      setLinkSession(++linkSessionRef.current);
+                      linkRevision.current += 1;
+                    }}
+                  >
                     恢复关联已终止订单
                   </Button>
                 )}
@@ -426,7 +484,14 @@ export default function AirMasterPage() {
                 page: page || 1,
                 pageSize: pageSize || 20,
               });
-              if (!response?.data) throw new Error('成员列表加载失败');
+              if (response?.success === false)
+                throw new Error('成员列表加载失败');
+              requireAirMasterIdentity(
+                response?.data,
+                masterId,
+                organizationId,
+                businessType,
+              );
               return {
                 data: response.members || [],
                 total: response.total || 0,
@@ -440,7 +505,7 @@ export default function AirMasterPage() {
                 render: (_, item) => (
                   <a
                     onClick={() =>
-                      history.push(`/orders/air-export/${item.orderId}`)
+                      history.push(`/orders/${kind}/${item.orderId}`)
                     }
                   >
                     {item.orderNo}
@@ -477,7 +542,7 @@ export default function AirMasterPage() {
               {
                 title: '状态',
                 render: (_, item) =>
-                  `${getOrderFlowStatusText(item.flowStatus, 'AE')} · ${item.locked ? '已锁定' : '未锁定'}`,
+                  `${getOrderFlowStatusText(item.flowStatus, businessTypeCode)} · ${item.locked ? '已锁定' : '未锁定'}`,
               },
               {
                 title: '分单单证',
@@ -497,6 +562,7 @@ export default function AirMasterPage() {
           key={masterId}
           scope="MASTER"
           targetId={masterId}
+          businessType={businessType}
           canUpdate={canUpdate && !current?.blockedReasons?.length}
           onConfirmed={() => {
             memberRef.current?.reload();
@@ -515,7 +581,14 @@ export default function AirMasterPage() {
                 page: page || 1,
                 pageSize: pageSize || 20,
               });
-              if (!response?.data) throw new Error('主单历史加载失败');
+              if (response?.success === false)
+                throw new Error('主单历史加载失败');
+              requireAirMasterIdentity(
+                response?.data,
+                masterId,
+                organizationId,
+                businessType,
+              );
               return {
                 data: response.history || [],
                 total: response.historyTotal || 0,
@@ -548,7 +621,7 @@ export default function AirMasterPage() {
           if (!createMode || !canAttach || attachMode) return;
           setChooseModeOpen(false);
           history.push(
-            `/orders/air-export/new?masterId=${masterId}&documentMode=${createMode}`,
+            `/orders/${kind}/new?masterId=${masterId}&documentMode=${createMode}`,
           );
         }}
       >
@@ -566,7 +639,11 @@ export default function AirMasterPage() {
           key={editSession}
           title="修改共享主单共同资料"
           open
-          onOpenChange={setEditOpen}
+          onOpenChange={(open) => {
+            if (editSession !== editSessionRef.current) return;
+            if (!open) editSessionRef.current += 1;
+            setEditOpen(open);
+          }}
           guardIdentity={editSession}
           width={1000}
           initialValues={{ input: structuredClone(editingMaster.content) }}
@@ -618,9 +695,14 @@ export default function AirMasterPage() {
             );
             if (!isWriteResponse(response, true)) return false;
             if (!stillCurrent()) return false;
-            setEditOpen(false);
+            requireAirMasterIdentity(
+              response.data,
+              masterId,
+              organizationId,
+              businessType,
+            );
             await reload();
-            return true;
+            return stillCurrent();
           }}
         >
           {masterChanged && (
@@ -682,21 +764,37 @@ export default function AirMasterPage() {
           )}
         </GuardedModalForm>
       )}
-      {linkOpen && master && canRestore && (
+      {linkSnapshot && canRestore && (
         <GuardedModalForm<{
           orderId: string;
           expectedOrderVersion: string;
           houseNo: string;
           reason: string;
         }>
+          key={linkSession}
           title="明确恢复关联已终止订单"
           formRef={linkForm}
           open
-          onOpenChange={setLinkOpen}
-          guardIdentity={masterId}
+          onOpenChange={(open) => {
+            if (linkSession !== linkSessionRef.current) return;
+            if (!open) {
+              linkSessionRef.current += 1;
+              setLinkSnapshot(undefined);
+            }
+          }}
+          onValuesChange={() => {
+            linkRevision.current += 1;
+          }}
+          guardIdentity={`${masterId}:${linkSession}`}
           modalProps={{ destroyOnHidden: true }}
           onFinish={async (values) => {
-            if (!canRestore) return false;
+            if (!canRestoreRef.current) return false;
+            const revision = linkRevision.current;
+            const stillCurrent = () =>
+              alive.current &&
+              canRestoreRef.current &&
+              linkSession === linkSessionRef.current &&
+              revision === linkRevision.current;
             const response = await airExportServiceLinkAirMasterWaybill(
               { id: masterId },
               {
@@ -704,16 +802,22 @@ export default function AirMasterPage() {
                 orderId: values.orderId,
                 expectedOrderVersion: values.expectedOrderVersion,
                 reason: values.reason,
-                ...(master.documentMode === 'HOUSE'
+                ...(linkSnapshot.documentMode === 'HOUSE'
                   ? { houseNo: values.houseNo }
                   : {}),
-                expectedMasterVersion: master.version,
+                expectedMasterVersion: linkSnapshot.version,
               },
             );
             if (!isWriteResponse(response, true)) return false;
-            setLinkOpen(false);
+            if (!stillCurrent()) return false;
+            requireAirMasterIdentity(
+              response.data,
+              masterId,
+              organizationId,
+              businessType,
+            );
             await reload();
-            return true;
+            return stillCurrent();
           }}
         >
           <Alert
@@ -736,6 +840,8 @@ export default function AirMasterPage() {
                 }),
                 '订单候选加载失败',
               );
+              if (!alive.current || linkSession !== linkSessionRef.current)
+                return [];
               return (response.data || []).map((item) => ({
                 value: item.orderId || '',
                 label: `${item.orderNo} · ${item.customerName || ''}`,
@@ -756,7 +862,7 @@ export default function AirMasterPage() {
             }}
           />
           <ProFormText name="expectedOrderVersion" hidden />
-          {master.documentMode === 'HOUSE' && (
+          {linkSnapshot.documentMode === 'HOUSE' && (
             <ProFormText
               name="houseNo"
               label="目标主单内分单号"

@@ -30,6 +30,7 @@ func newAirExportFixture(t *testing.T, d *Data) *airExportFixture {
 	o := d.db.Airport.Create().SetIataCode("A" + s[:2]).SetNameEn("AE Origin").SetCountryCode("CN").SaveX(ctx)
 	dest := d.db.Airport.Create().SetIataCode("B" + s[:2]).SetNameEn("AE Destination").SetCountryCode("US").SaveX(ctx)
 	t.Cleanup(func() {
+		d.db.OrderUnlockRequest.Delete().ExecX(ctx)
 		d.db.OrderLockRecord.Delete().ExecX(ctx)
 		d.db.AirHouseWaybillVersion.Delete().ExecX(ctx)
 		d.db.AirMasterWaybillHistory.Delete().ExecX(ctx)
@@ -70,17 +71,23 @@ func (f *airExportFixture) create(t *testing.T, in *biz.Order) *biz.Order {
 	return o
 }
 func TestAirExportSharedWaybillPostgres(t *testing.T) {
+	for _, businessType := range []biz.OrderBusinessType{biz.OrderBusinessAE, biz.OrderBusinessAI} {
+		t.Run(string(businessType), func(t *testing.T) { verifyAirExportSharedWaybillPostgres(t, businessType) })
+	}
+}
+
+func verifyAirExportSharedWaybillPostgres(t *testing.T, businessType biz.OrderBusinessType) {
 	d, cleanup := getIntegrationData(t)
 	t.Cleanup(cleanup)
 	f := newAirExportFixture(t, d)
 	ctx := context.Background()
 	uc := f.newUsecase()
 	air := biz.NewAirExportUsecase(NewAirExportRepo(d))
-	a := f.create(t, f.input("781-12345675", "H-001"))
+	a := f.create(t, airInputForBusiness(f, businessType, "781-12345675", "H-001"))
 	if a.AirExport == nil || a.AirExport.House.HouseNo != "H-001" {
 		t.Fatalf("建票读回缺航空关系: %#v", a)
 	}
-	input := f.input("78112345675", "H002")
+	input := airInputForBusiness(f, businessType, "78112345675", "H002")
 	id := a.AirExport.Master.ID
 	input.AirExportInput.MasterWaybillID = &id
 	input.AirExportInput.ExpectedMasterVersion = a.AirExport.Master.Version
@@ -92,7 +99,7 @@ func TestAirExportSharedWaybillPostgres(t *testing.T) {
 	if detail.Total != 2 || len(detail.Members) != 1 || detail.Totals.GrossWeightKg != 200 || detail.Totals.VolumeCbm != 2.4 {
 		t.Fatalf("服务端全量汇总错误: %#v", detail)
 	}
-	searched, e := uc.List(ctx, []biz.OrderOrganizationScope{{BusinessType: biz.OrderBusinessAE, OrganizationIDs: []uuid.UUID{f.organizationID}}}, biz.OrderListOptions{Page: 1, PageSize: 20, BusinessType: biz.OrderBusinessAE, Keyword: "H-001"})
+	searched, e := uc.List(ctx, []biz.OrderOrganizationScope{{BusinessType: businessType, OrganizationIDs: []uuid.UUID{f.organizationID}}}, biz.OrderListOptions{Page: 1, PageSize: 20, BusinessType: businessType, Keyword: "H-001"})
 	if e != nil || searched.Total != 1 {
 		t.Fatalf("合法连字符分单搜索失败 %#v %v", searched, e)
 	}

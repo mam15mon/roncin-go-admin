@@ -7,6 +7,7 @@ import AirMasterPage from './air-master';
 
 const masterServices = vi.hoisted(() => ({
   get: vi.fn(),
+  canOrder: vi.fn(),
   preview: vi.fn(),
   update: vi.fn(),
   link: vi.fn(),
@@ -24,7 +25,7 @@ vi.mock('@/services/roncin/airExportService', () => ({
   airExportServiceListAirLinkCandidates: masterServices.candidates,
 }));
 vi.mock('@/app/access', () => ({
-  useAccess: () => ({ canOrder: () => true }),
+  useAccess: () => ({ canOrder: masterServices.canOrder }),
 }));
 vi.mock('@/router/history', async (original) => ({
   ...(await original<typeof import('@/router/history')>()),
@@ -69,6 +70,8 @@ export function masterResponse(
   return {
     data: {
       id: 'master',
+      organizationId: 'org',
+      businessType: 'AE',
       version,
       documentMode: 'HOUSE',
       canAttach: true,
@@ -87,6 +90,7 @@ export function masterResponse(
 export function setupMasterTests() {
   beforeEach(() => {
     vi.clearAllMocks();
+    masterServices.canOrder.mockImplementation(() => true);
     vi.spyOn(document, 'hasFocus').mockReturnValue(false);
     vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('visible');
     masterServices.get.mockResolvedValue(masterResponse());
@@ -117,7 +121,7 @@ export function setupMasterTests() {
   });
 }
 
-export function renderMaster() {
+export function renderMaster(kind = 'air-export') {
   return renderWithApp(
     <ConfigProvider theme={{ token: { motion: false } }}>
       <App>
@@ -126,7 +130,7 @@ export function renderMaster() {
     </ConfigProvider>,
     {
       user: { id: 'user', currentOrganization: { id: 'org' } },
-      routerProps: { initialEntries: ['/orders/air-export/masters/master'] },
+      routerProps: { initialEntries: [`/orders/${kind}/masters/master`] },
     },
   );
 }

@@ -51,6 +51,7 @@ func TestBusinessTagRetirementRegistrations(t *testing.T) {
 		nil,                                     // authUsecase
 		nil,                                     // orderUsecase
 		nil,                                     // partnerUsecase
+		nil,                                     // airUsecase
 		nil,                                     // approvalUsecase
 		nil,                                     // policy
 		nil,                                     // readiness
@@ -106,6 +107,7 @@ func TestBusinessTagRetirementRegistrations(t *testing.T) {
 		nil,                                     // authUsecase
 		nil,                                     // orderUsecase
 		nil,                                     // partnerUsecase
+		nil,                                     // airUsecase
 		nil,                                     // policy
 		logger,                                  // logger
 	)

@@ -103,7 +103,10 @@ const CargoItemDrawer = forwardRef<CargoItemDrawerRef, CargoItemDrawerProps>(
     ): Promise<T> => {
       const response = await pending;
       if (isWriteResponse(response, requireId)) {
-        if (order.businessType === OrderBusinessType.BUSINESS_TYPE_AE)
+        if (
+          order.businessType === OrderBusinessType.BUSINESS_TYPE_AE ||
+          order.businessType === OrderBusinessType.BUSINESS_TYPE_AI
+        )
           await queryClient.invalidateQueries({ queryKey: ['air-weight'] });
         onChanged?.(order);
       }
@@ -243,7 +246,8 @@ const CargoItemDrawer = forwardRef<CargoItemDrawerRef, CargoItemDrawerProps>(
               placeholder="请输入体积"
               rules={[{ required: true, message: '请输入体积' }]}
             />
-            {order?.businessType === OrderBusinessType.BUSINESS_TYPE_AE && (
+            {(order?.businessType === OrderBusinessType.BUSINESS_TYPE_AE ||
+              order?.businessType === OrderBusinessType.BUSINESS_TYPE_AI) && (
               <AirCargoDimensionsAssist />
             )}
             <ProFormDigit

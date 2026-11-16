@@ -3,6 +3,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { act, cleanup, renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { OrderBusinessType } from '@/enums.generated';
 import { useAirMasterChangeNotice } from './air-master-change-notice';
 
 const getMaster = vi.hoisted(() => vi.fn());
@@ -11,7 +12,12 @@ vi.mock('@/services/roncin/airExportService', () => ({
 }));
 
 const baseline: API.GetAirMasterWaybillResponse = {
-  data: { id: 'master', version: '1' },
+  data: {
+    id: 'master',
+    organizationId: 'org',
+    businessType: 'AE',
+    version: '1',
+  },
 };
 
 function setup() {
@@ -21,7 +27,12 @@ function setup() {
       enabled: boolean;
       session: number;
       baseline: API.GetAirMasterWaybillResponse;
-    }) => useAirMasterChangeNotice({ ...props, organizationId: 'org' }),
+    }) =>
+      useAirMasterChangeNotice({
+        ...props,
+        organizationId: 'org',
+        businessType: OrderBusinessType.BUSINESS_TYPE_AE,
+      }),
     {
       initialProps: { enabled: true, session: 1, baseline },
       wrapper: ({ children }: { children: ReactNode }) => (
@@ -65,7 +76,14 @@ describe('航空主单前台变动检查', () => {
     act(() => document.dispatchEvent(new Event('visibilitychange')));
     await advance(45_000);
     expect(getMaster).toHaveBeenCalledTimes(1);
-    getMaster.mockResolvedValue({ data: { id: 'master', version: '2' } });
+    getMaster.mockResolvedValue({
+      data: {
+        id: 'master',
+        organizationId: 'org',
+        businessType: 'AE',
+        version: '2',
+      },
+    });
     vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('visible');
     act(() => document.dispatchEvent(new Event('visibilitychange')));
     await advance(0);
@@ -80,7 +98,14 @@ describe('航空主单前台变动检查', () => {
 
   it('检查失败仍保留提醒，仅新编辑基线成功采纳才清除', async () => {
     const view = setup();
-    getMaster.mockResolvedValue({ data: { id: 'master', version: '2' } });
+    getMaster.mockResolvedValue({
+      data: {
+        id: 'master',
+        organizationId: 'org',
+        businessType: 'AE',
+        version: '2',
+      },
+    });
     await advance(15_000);
     expect(view.result.current).toBe(true);
     getMaster.mockResolvedValue(undefined);
@@ -89,8 +114,84 @@ describe('航空主单前台变动检查', () => {
     view.rerender({
       enabled: true,
       session: 2,
-      baseline: { data: { id: 'master', version: '2' } },
+      baseline: {
+        data: {
+          id: 'master',
+          organizationId: 'org',
+          businessType: 'AE',
+          version: '2',
+        },
+      },
     });
     expect(view.result.current).toBe(false);
+  });
+  it('AI公司A→B→A往返的旧探测迟到不能影响新会话，也不读取AE探测缓存', async () => {
+    const queryClient = createTestQueryClient();
+    const snapshot = (
+      organizationId = 'org-a',
+      version = '1',
+    ): API.GetAirMasterWaybillResponse => ({
+      data: { id: 'master', organizationId, businessType: 'AI', version },
+    });
+    let finishOld!: (value: API.GetAirMasterWaybillResponse) => void;
+    getMaster.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finishOld = resolve;
+        }),
+    );
+    const view = renderHook(
+      (props: {
+        organizationId: string;
+        baseline: API.GetAirMasterWaybillResponse;
+      }) =>
+        useAirMasterChangeNotice({
+          ...props,
+          session: 1,
+          businessType: OrderBusinessType.BUSINESS_TYPE_AI,
+          enabled: true,
+        }),
+      {
+        initialProps: { organizationId: 'org-a', baseline: snapshot() },
+        wrapper: ({ children }: { children: ReactNode }) => (
+          <QueryClientProvider client={queryClient}>
+            {children}
+          </QueryClientProvider>
+        ),
+      },
+    );
+    await advance(15_000);
+    expect(getMaster).toHaveBeenCalledTimes(1);
+    view.rerender({ organizationId: 'org-b', baseline: snapshot('org-b') });
+    view.rerender({ organizationId: 'org-a', baseline: snapshot() });
+    await act(async () => finishOld(snapshot('org-a', '2')));
+    await advance(0);
+    expect(view.result.current).toBe(false);
+    getMaster.mockResolvedValue(snapshot('org-a', '3'));
+    await advance(15_000);
+    expect(view.result.current).toBe(true);
+    getMaster.mockResolvedValue({
+      data: {
+        id: 'master',
+        organizationId: 'org-a',
+        businessType: 'AE',
+        version: '4',
+      },
+    });
+    await advance(15_000);
+    expect(view.result.current).toBe(true);
+    expect(
+      queryClient
+        .getQueryCache()
+        .findAll({ queryKey: ['air-orders', 'master-change-notice'] })
+        .every(
+          (query) =>
+            query.queryKey[2] &&
+            typeof query.queryKey[2] === 'object' &&
+            'businessType' in query.queryKey[2] &&
+            query.queryKey[2].businessType ===
+              OrderBusinessType.BUSINESS_TYPE_AI,
+        ),
+    ).toBe(true);
   });
 });

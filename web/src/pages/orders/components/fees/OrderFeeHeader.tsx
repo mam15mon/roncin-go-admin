@@ -107,8 +107,13 @@ export default function OrderFeeHeader({
     shown(receivableSummary) ? receivableSummary : undefined,
     shown(payableSummary) ? payableSummary : undefined,
   );
-  const isAir = order.businessType === OrderBusinessType.BUSINESS_TYPE_AE;
+  const isAir =
+    order.businessType === OrderBusinessType.BUSINESS_TYPE_AE ||
+    order.businessType === OrderBusinessType.BUSINESS_TYPE_AI;
   const master = order.airExport?.master;
+  const isImport =
+    order.businessType === OrderBusinessType.BUSINESS_TYPE_SI ||
+    order.businessType === OrderBusinessType.BUSINESS_TYPE_AI;
   return (
     <>
       {/* 1. 基础信息卡片 */}
@@ -160,9 +165,25 @@ export default function OrderFeeHeader({
           <Descriptions.Item label="订舱代理">
             {order.bookingAgentName || '-'}
           </Descriptions.Item>
-          <Descriptions.Item label={isAir ? '计划起飞' : 'ETD'}>
+          <Descriptions.Item
+            label={
+              isImport
+                ? isAir
+                  ? '计划到达（经营日期）'
+                  : 'ETA（经营日期）'
+                : isAir
+                  ? '计划起飞'
+                  : 'ETD'
+            }
+          >
             {formatDate(
-              isAir ? master?.content?.etd : order.etd,
+              isImport
+                ? isAir
+                  ? master?.content?.eta
+                  : order.eta
+                : isAir
+                  ? master?.content?.etd
+                  : order.etd,
               isAir ? 'minute' : 'date',
             )}
           </Descriptions.Item>

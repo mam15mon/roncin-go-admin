@@ -58,6 +58,26 @@ describe('useOrderFeeOptions', () => {
     } as any);
   });
 
+  it.each([undefined, 0, OrderBusinessType.BUSINESS_TYPE_AE])(
+    'AI费用页拒绝缺失或借用AE身份%s',
+    async (businessType) => {
+      mockGetOrder.mockResolvedValueOnce({
+        data: { id: 'ai-order', organizationId: 'org-1', businessType },
+      });
+      const { result } = renderHook(
+        () =>
+          useOrderFeeOptions(
+            'ai-order',
+            OrderBusinessType.BUSINESS_TYPE_AI,
+            'org-1',
+          ),
+        { wrapper: createHookWrapper().wrapper },
+      );
+      await waitFor(() => expect(result.current.loading).toBe(false));
+      expect(result.current.order).toBeUndefined();
+    },
+  );
+
   it.each([undefined, 0, OrderBusinessType.BUSINESS_TYPE_SE])(
     'SI费用页拒绝缺失或错配真实类型%s',
     async (businessType) => {

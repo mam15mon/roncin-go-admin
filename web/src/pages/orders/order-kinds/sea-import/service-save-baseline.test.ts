@@ -1,7 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { SeaDocumentStructure } from '@/enums.generated';
+import { OrderBusinessType, SeaDocumentStructure } from '@/enums.generated';
 import type { OrderDetailFormValues } from '../form-values';
-import { acceptsImportServiceSaveBaseline as accepts } from './service-save-baseline';
+import { acceptsImportServiceSaveBaseline } from './service-save-baseline';
+
+const accepts = (
+  ...args: Parameters<typeof acceptsImportServiceSaveBaseline> extends [
+    ...infer P,
+    number,
+  ]
+    ? P
+    : never
+) =>
+  acceptsImportServiceSaveBaseline(...args, OrderBusinessType.BUSINESS_TYPE_SI);
 
 const HOUSE = SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE;
 const values: OrderDetailFormValues = {
@@ -31,6 +41,7 @@ const saved: API.OrderImportHandling = { orderId: 'order', orderVersion: '5' };
 const order: API.Order = {
   id: 'order',
   organizationId: 'org',
+  businessType: OrderBusinessType.BUSINESS_TYPE_SI,
   version: '5',
   seaMasterBill: values.seaMasterBill as API.SeaMasterBillSummary,
   seaDocumentLinkVersion: '3',

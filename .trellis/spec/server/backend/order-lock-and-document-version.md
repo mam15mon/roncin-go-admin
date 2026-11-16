@@ -1,11 +1,11 @@
-# 全业务订单锁、SE 单证快照与共享 MBL 写入
+# 全业务订单锁、海空单证快照与共享 MBL 写入
 
 ## 1. Scope / Trigger
 
 - 适用于 SE、SI、AE、AI、LAND、RAIL 六类订单的锁定、角色/管理员直接解锁、解锁申请事实，以及所有会修改订单业务资料或订单费用的 data 层写入口。
 - 订单“业务内容写入门禁”与“生命周期流转资格”分离：内容门禁只约束业务字段及子资源写入；终止、恢复、结案、反结案等生命周期命令在锁定订单行后执行专属状态校验，不得复用内容门禁。
-- SE 锁定额外覆盖不可变 MBL/HBL 版本和共享 MBL 写入口；非 SE 锁定不得创建或引用海运单证快照。
-- SE 订单最终流转到 `TERMINATED` 时，同一事务结束其活动 `SeaMasterBillOrderLink`；SE恢复订单须新建指向原MBL/TE的ACTIVE Link，旧历史Link不复活；本票及共享活动成员审核锁阻断重关联。
+- SE/SI 锁定额外覆盖不可变 MBL/HBL 版本和共享 MBL 写入口；非海运类型锁定不得创建或引用海运单证快照。
+- SE/SI 订单最终流转到 `TERMINATED` 时，同一事务结束其活动 `SeaMasterBillOrderLink`；恢复订单须新建指向原MBL/TE的ACTIVE Link，旧历史Link不复活；本票及共享活动成员审核锁阻断重关联。
 - 新增订单写入口、修改 MBL 身份/权威航程/内容、改变 MBL 活动成员关系时，必须复核本文的事务门禁与固定锁序。
 - 共享箱基础资料与撤销确认同样属于成员订单的业务内容写入；须校验锚点及全部分配成员。关联已有 MBL 加票不得写共享正文。具体载荷、锁序与改配占用规则见 [海运一致性契约](./sea-shared-write-consistency.md)。
 - 钉钉解锁审批已实现后台派发、加密签名回调入箱、上游权威状态查询及锁内本地生效。
@@ -60,9 +60,9 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 - bootstrap admin 显式具备锁单资格（`GetOrderLockState`/`LockOrder` 直接视为可锁），但不得进入普通审批候选池，回调也不得绕过候选快照。
 - 解锁固定分流：bootstrap admin → `ADMIN_EMERGENCY`；持有效 lock grant 的用户（含真实持锁权限的 `administrator` 角色）→ `ROLE_DIRECT`；普通订单编辑人 → `DINGTALK_APPROVAL`。
 - 审批候选人快照保存实际 `membership_id`、`role_id` 与 DingTalk UserID；同一用户有多个合格 grant 时按 RoleAssignment ID 升序取首个可追溯 grant；钉钉回调先校验审批人存在于快照，再以同一资格口径实时复核，权限或成员关系被撤销后旧候选回调稳定标记 `APPROVER_NOT_QUALIFIED`。
-- 所有类型的锁定事务原子创建锁定周期记录、更新订单锁状态与审计；SE 同一事务额外创建/复用完整 MBL/HBL 不可变版本与 HBL 快照，任何一步失败必须全部回滚。
-- AE 锁单按 Order → MAWB → Link → HAWB 固定顺序复核共享集合，
-  `OrderLockRecord.air_document_snapshot` 固化航空主单/分单及其版本，不能填写海运快照外键。
+- 所有类型的锁定事务原子创建锁定周期记录、更新订单锁状态与审计；SE/SI 同一事务额外创建/复用完整 MBL/HBL 不可变版本与 HBL 快照，任何一步失败必须全部回滚。
+- AE/AI 锁单按完整Order主键排序集合 → MAWB → Link → 可选HAWB固定顺序复核共享集合，
+  `OrderLockRecord.air_document_snapshot` 固化航空主单/分单及其版本，不能填写海运快照外键，DIRECT不虚构HAWB。
   空运历史通过专属主单及分单版本接口查询；完整边界见 [air-export-contract](./air-export-contract.md)。
 - 六种类型共用一个 `Security.DingTalk.approval_process_code`；OA 实例必须携带业务类型、订单号、申请人、原因和锁代次，不按类型复制模板配置。
 - `Security.DingTalk.approval_process_code/event_token/event_aes_key` 只接受环境注入；仓库配置仅保留空值或占位符。
@@ -131,7 +131,7 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 - Data/PostgreSQL 锁资格矩阵：同公司根/启用部门/团队成员的有效 lock grant、持有锁权限的 `administrator` 角色、无锁权限的同名角色、bootstrap（可锁、应急解锁、不进候选池）；
   系统或其他公司角色、停用成员/公司/角色和跨品类 grant 拒绝，撤权后旧候选回调 `APPROVER_NOT_QUALIFIED`。角色数据范围配置已退役，不再构造 ORG/TREE/ALL 授权分支。
 - Data 单元：内容门禁表驱动测试覆盖 TERMINATING/TERMINATED/已锁定阻断、终止原因优先于业务锁、ACTIVE+未锁定在 OPEN/CLOSED 下均放行。
-- Data/PostgreSQL：六类型锁定/解锁、跨类型权限隔离、每类订单资料与费用写阻断、非 SE 空快照、SE 版本快照、DIRECT 零 HBL、共享版本复用、审计失败回滚、普通写与锁定竞争、双锁/双直解竞争、活动请求唯一。
+- Data/PostgreSQL：六类型锁定/解锁、跨类型权限隔离、每类订单资料与费用写阻断、非海运类型不引用海运快照、SE/SI 真实海运版本快照、DIRECT 零 HBL、共享版本复用、审计失败回滚、普通写与锁定竞争、双锁/双直解竞争、活动请求唯一。
 - Data/PostgreSQL：代表性子资源（草稿、POD、货物等）在终止中、已终止、已审核锁定时写阻断且零部分写入，完结但未锁时允许写入；锁定 `DOCUMENT_RELEASED` 订单可完结，但反结案须先解锁；空原因反结案放行、锁内拒绝及并发锁定竞态均须覆盖；退关完成原子结束活动 Link（ENDED、ended_at、ended_reason、version+1、事件与审计），取消退关保留 Link，恢复新建原MBL/TE活动Link且旧Link不可变，写后详情可重开，审核锁/原单作废/结构或运输差异阻断且事务零部分提交，旧版本稳定冲突。
 - 自拼汇总：Link ACTIVE 且 Order ACTIVE 的 LCL 成员才计入件重尺/成员数；house numbers 来自当前活动 MBL 的有效 `SeaHouseBill`，旧 `OrderShippingDocument` 与 VOIDED HBL 不返回。
 - 共享 MBL：至少分别覆盖身份/权威航程和 `MasterBillContent` 两个入口；断言成员锁定时 Order、MBL、TransportExecution 均未部分更新。

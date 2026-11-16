@@ -62,8 +62,7 @@ export function useOrderDetailData(
   // 海运出口单证已迁移到海运单证体系，后端对 SE 订单直接拒绝旧提单接口；
   // 详情聚合不得再拉取旧列表，否则整个页面加载失败。
   const usesLegacyShippingDocuments =
-    transportMode !== 'sea' &&
-    businessType !== OrderBusinessType.BUSINESS_TYPE_AE;
+    transportMode !== 'sea' && transportMode !== 'air';
 
   const detailQuery = useQuery({
     queryKey: [

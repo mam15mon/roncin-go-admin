@@ -114,7 +114,11 @@ export function renderPanel(
   );
   const view = renderWithApp(ui(), {
     user: { id: 'user', currentOrganization: { id: 'company' } },
-    routerProps: { initialEntries: ['/orders/sea-import/order'] },
+    routerProps: {
+      initialEntries: [
+        `/orders/${extra.order?.businessType === OrderBusinessType.BUSINESS_TYPE_AI ? 'air-import' : 'sea-import'}/order`,
+      ],
+    },
   });
   return { ...view, onSaved, ui };
 }

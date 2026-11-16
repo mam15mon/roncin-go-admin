@@ -21,6 +21,7 @@
 | [HBL 制作与 PDF 输出](./sea-hbl-production.md) | 同一 HBL 印字、自签公司动态抬头、四版本独立于利润审核和完整分页输出 | ✅ |
 | [Air Export Contract](./air-export-contract.md) | 空运共享 MAWB、可选 HAWB、成员与单证历史、流程、重量确认和费用来源 | ✅ |
 | [航空直单与结构化正文](./air-waybill-content-and-mode.md) | DIRECT/HOUSE、独立主分正文/版本/哈希、正式全文迁移、审核指纹及编辑基线 | ✅ |
+| [空运进口闭环](./air-import-contract.md) | AI真实类型授权、双模式/重量、权威ETA/费用日和进口服务航空基线 | ✅ |
 | [进口订单与按票服务](./order-import-handling.md) | SI真实海运单证、固定五服务/事件、Order版本/派生进度、ETA费用及外部归档 | ✅ |
 | [海空主单进出口身份](./order-master-business-identity.md) | 不可变业务类型、方向唯一索引、候选与直接 ID 门禁、历史回填与异常回滚 | ✅ |
 | [Order Shared Enum Field](./order-shared-enum-field.md) | 订单共享契约新增可选枚举字段的五层配方、迁移列形与更新语义 | ✅ |

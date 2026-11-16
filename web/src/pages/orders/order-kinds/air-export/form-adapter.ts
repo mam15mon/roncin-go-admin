@@ -156,31 +156,17 @@ function commonFields(values: Partial<CommonValues>, clearEmpty = false) {
   };
 }
 
-export const airExportFormAdapter: OrderKindFormAdapter = {
-  buildSections: getAirTemplateSections,
-  buildCreateDefaults: ({ creator, cargoCategoryOptions }) => ({
-    orderDate: dayjs(),
-    paymentTerm: 1,
-    shipmentMode: ShipmentMode.SHIPMENT_MODE_TRADITIONAL_FORWARDING,
-    airMasterMode: 'NEW',
-    airDocumentMode: 'HOUSE',
-    creatorUserId: creator?.userId,
-    totalPackageUnit: 'CTNS',
-    cargoCategoryIds: cargoCategoryOptions.find(
-      (item) => item.code === 'GENERAL',
-    )?.value
-      ? [
-          String(
-            cargoCategoryOptions.find((item) => item.code === 'GENERAL')?.value,
-          ),
-        ]
-      : [],
-  }),
-  buildCreatePayload: (values) => ({
+/** AE/AI 共用经营与单证映射，方向只由品类注册项显式传入。 */
+export function buildAirCreatePayload(
+  values: CreateOrderFormValues,
+  businessType: OrderBusinessType,
+  tradeDirection: TradeDirection,
+): API.CreateOrderRequest {
+  return {
     ...commonFields(values),
     customerId: values.customerId,
-    businessType: OrderBusinessType.BUSINESS_TYPE_AE,
-    tradeDirection: TradeDirection.TRADE_DIRECTION_EXPORT,
+    businessType,
+    tradeDirection,
     orderDate: values.orderDate
       ? dayjs(values.orderDate).toISOString()
       : undefined,
@@ -210,7 +196,35 @@ export const airExportFormAdapter: OrderKindFormAdapter = {
             }
           : undefined,
     },
+  };
+}
+
+export const airExportFormAdapter: OrderKindFormAdapter = {
+  buildSections: getAirTemplateSections,
+  buildCreateDefaults: ({ creator, cargoCategoryOptions }) => ({
+    orderDate: dayjs(),
+    paymentTerm: 1,
+    shipmentMode: ShipmentMode.SHIPMENT_MODE_TRADITIONAL_FORWARDING,
+    airMasterMode: 'NEW',
+    airDocumentMode: 'HOUSE',
+    creatorUserId: creator?.userId,
+    totalPackageUnit: 'CTNS',
+    cargoCategoryIds: cargoCategoryOptions.find(
+      (item) => item.code === 'GENERAL',
+    )?.value
+      ? [
+          String(
+            cargoCategoryOptions.find((item) => item.code === 'GENERAL')?.value,
+          ),
+        ]
+      : [],
   }),
+  buildCreatePayload: (values) =>
+    buildAirCreatePayload(
+      values,
+      OrderBusinessType.BUSINESS_TYPE_AE,
+      TradeDirection.TRADE_DIRECTION_EXPORT,
+    ),
   buildDetailInitialValues: (order, _documents, personnel) => {
     if (!order) return {};
     const air = order.airExport;

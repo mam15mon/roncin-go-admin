@@ -122,9 +122,9 @@ describe('routeUtils', () => {
       expect(resolveRouteTitle('/orders/air-export/AE2026082600001/fees')).toBe(
         '订单费用录入',
       );
-      // 尚未注册的航空进口仍回落到订单管理中性标题。
-      expect(resolveRouteTitle('/orders/air-import')).toBe('订单管理');
-      expect(resolveRouteTitle('/orders/air-import/new')).toBe('订单管理');
+      // 航空进口标题继续由集中路由解析。
+      expect(resolveRouteTitle('/orders/air-import')).toBe('空运进口订单列表');
+      expect(resolveRouteTitle('/orders/air-import/new')).toBe('AI 新建订单');
       expect(resolveRouteTitle('/partners/customers')).toBe('客户');
       expect(resolveRouteTitle('/partners/customers/create')).toBe('新建客户');
       expect(resolveRouteTitle('/partners/customers/123')).toBe('客户详情');

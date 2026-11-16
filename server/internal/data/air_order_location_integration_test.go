@@ -10,12 +10,18 @@ import (
 )
 
 func TestAirOrderLocationFiltersFollowSharedMasterPostgres(t *testing.T) {
+	for _, businessType := range []biz.OrderBusinessType{biz.OrderBusinessAE, biz.OrderBusinessAI} {
+		t.Run(string(businessType), func(t *testing.T) { verifyAirOrderLocationFiltersFollowSharedMasterPostgres(t, businessType) })
+	}
+}
+
+func verifyAirOrderLocationFiltersFollowSharedMasterPostgres(t *testing.T, businessType biz.OrderBusinessType) {
 	d, cleanup := getIntegrationData(t)
 	t.Cleanup(cleanup)
 	f := newAirExportFixture(t, d)
 	ctx := context.Background()
-	a := f.create(t, f.input("78112345675", "LOCATION-A"))
-	input := f.input("78112345675", "LOCATION-B")
+	a := f.create(t, airInputForBusiness(f, businessType, "78112345675", "LOCATION-A"))
+	input := airInputForBusiness(f, businessType, "78112345675", "LOCATION-B")
 	master := a.AirExport.Master
 	input.AirExportInput.MasterWaybillID = &master.ID
 	input.AirExportInput.ExpectedMasterVersion = master.Version
@@ -40,7 +46,7 @@ func TestAirOrderLocationFiltersFollowSharedMasterPostgres(t *testing.T) {
 		t.Fatal("测试未构造旧订单地点投影")
 	}
 	repo := NewOrderRepo(d)
-	scopes := []biz.OrderOrganizationScope{{BusinessType: biz.OrderBusinessAE, OrganizationIDs: []uuid.UUID{f.organizationID}}}
+	scopes := []biz.OrderOrganizationScope{{BusinessType: businessType, OrganizationIDs: []uuid.UUID{f.organizationID}}}
 	for _, tc := range []struct {
 		name                string
 		origin, destination *uuid.UUID
@@ -53,7 +59,7 @@ func TestAirOrderLocationFiltersFollowSharedMasterPostgres(t *testing.T) {
 		{"新机场组合", &newOrigin.ID, &newDestination.ID, 2},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			list, err := repo.List(ctx, scopes, biz.OrderListOptions{BusinessType: biz.OrderBusinessAE, OriginLocationID: tc.origin, DestinationLocationID: tc.destination, Page: 1, PageSize: 1})
+			list, err := repo.List(ctx, scopes, biz.OrderListOptions{BusinessType: businessType, OriginLocationID: tc.origin, DestinationLocationID: tc.destination, Page: 1, PageSize: 1})
 			if err != nil || list.Total != tc.want {
 				t.Fatalf("机场筛选错误: list=%+v err=%v", list, err)
 			}
@@ -61,7 +67,7 @@ func TestAirOrderLocationFiltersFollowSharedMasterPostgres(t *testing.T) {
 				if len(list.Items) != 1 || *list.Items[0].OriginLocationID != newOrigin.ID || *list.Items[0].DestinationLocationID != newDestination.ID {
 					t.Fatalf("分页或返回投影错误: %+v", list)
 				}
-				second, err := repo.List(ctx, scopes, biz.OrderListOptions{BusinessType: biz.OrderBusinessAE, OriginLocationID: tc.origin, DestinationLocationID: tc.destination, Page: 2, PageSize: 1})
+				second, err := repo.List(ctx, scopes, biz.OrderListOptions{BusinessType: businessType, OriginLocationID: tc.origin, DestinationLocationID: tc.destination, Page: 2, PageSize: 1})
 				if err != nil || second.Total != 2 || len(second.Items) != 1 || second.Items[0].ID == list.Items[0].ID {
 					t.Fatalf("翻页丢失同主单成员: second=%+v err=%v", second, err)
 				}
@@ -82,14 +88,14 @@ func TestAirOrderLocationFiltersFollowSharedMasterPostgres(t *testing.T) {
 	if _, err := uc.TransitionTermination(ctx, f.organizationID, f.actorID, b.ID, current.Version, biz.OrderTerminationTerminated, &kind, "终止完成"); err != nil {
 		t.Fatal(err)
 	}
-	list, err := repo.List(ctx, scopes, biz.OrderListOptions{BusinessType: biz.OrderBusinessAE, OriginLocationID: &newOrigin.ID, Page: 1, PageSize: 20})
+	list, err := repo.List(ctx, scopes, biz.OrderListOptions{BusinessType: businessType, OriginLocationID: &newOrigin.ID, Page: 1, PageSize: 20})
 	if err != nil || list.Total != 2 {
 		t.Fatalf("终止订单的历史关联地点未命中: list=%+v err=%v", list, err)
 	}
 	// 没有关联的异常 AE 不能靠旧冗余字段在机场筛选下冒充有效主单。
-	missing := f.create(t, f.input("78112345686", "LOCATION-MISSING"))
+	missing := f.create(t, airInputForBusiness(f, businessType, "78112345686", "LOCATION-MISSING"))
 	d.db.AirMasterWaybillOrderLink.Delete().Where(airlink.OrderIDEQ(missing.ID)).ExecX(ctx)
-	list, err = repo.List(ctx, scopes, biz.OrderListOptions{BusinessType: biz.OrderBusinessAE, OriginLocationID: &f.originID, Page: 1, PageSize: 20})
+	list, err = repo.List(ctx, scopes, biz.OrderListOptions{BusinessType: businessType, OriginLocationID: &f.originID, Page: 1, PageSize: 20})
 	if err != nil || list.Total != 0 {
 		t.Fatalf("缺关联的 AE 不应回退旧订单机场: list=%+v err=%v", list, err)
 	}
@@ -105,8 +111,8 @@ func TestAirOrderLocationFiltersFollowSharedMasterPostgres(t *testing.T) {
 	if err != nil || list.Total != 1 || list.Items[0].ID != sea.ID {
 		t.Fatalf("海运地点筛选受到空运逻辑干扰: list=%+v err=%v", list, err)
 	}
-	otherScopes := []biz.OrderOrganizationScope{{BusinessType: biz.OrderBusinessAE, OrganizationIDs: []uuid.UUID{uuid.New()}}}
-	list, err = repo.List(ctx, otherScopes, biz.OrderListOptions{BusinessType: biz.OrderBusinessAE, OriginLocationID: &newOrigin.ID, Page: 1, PageSize: 20})
+	otherScopes := []biz.OrderOrganizationScope{{BusinessType: businessType, OrganizationIDs: []uuid.UUID{uuid.New()}}}
+	list, err = repo.List(ctx, otherScopes, biz.OrderListOptions{BusinessType: businessType, OriginLocationID: &newOrigin.ID, Page: 1, PageSize: 20})
 	if err != nil || list.Total != 0 {
 		t.Fatalf("地点筛选泄漏其他公司: list=%+v err=%v", list, err)
 	}

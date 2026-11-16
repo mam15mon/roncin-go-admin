@@ -318,11 +318,11 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	if input == nil || input.CustomerID == uuid.Nil || !input.BusinessType.Valid() || !input.TradeDirection.Valid() || (input.TradeTerm != "" && !input.TradeTerm.Valid()) || !input.PaymentTerm.Valid() {
 		return nil, ErrOrderInvalidArgument
 	}
-	if !((input.BusinessType == OrderBusinessSE || input.BusinessType == OrderBusinessAE) && input.TradeDirection == OrderTradeExport || input.BusinessType == OrderBusinessSI && input.TradeDirection == OrderTradeImport) {
+	if !((input.BusinessType == OrderBusinessSE || input.BusinessType == OrderBusinessAE) && input.TradeDirection == OrderTradeExport || input.BusinessType.IsImport() && input.TradeDirection == OrderTradeImport) {
 		return nil, ErrOrderBusinessUnsupported
 	}
 	output := *input
-	if output.BusinessType == OrderBusinessAE {
+	if output.BusinessType.IsAir() {
 		if err := normalizeAirOrder(&output, creating); err != nil {
 			return nil, err
 		}
@@ -422,7 +422,7 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 		return nil, ErrOrderInvalidArgument
 	}
 	// 已有航空主单的运输事实在仓储取得完整成员与主单锁后校验，不读取客户端副本。
-	deferredAirMaster := creating && output.BusinessType == OrderBusinessAE && output.AirExportInput != nil && output.AirExportInput.MasterWaybillID != nil && output.AirExportInput.Master == nil
+	deferredAirMaster := creating && output.BusinessType.IsAir() && output.AirExportInput != nil && output.AirExportInput.MasterWaybillID != nil && output.AirExportInput.Master == nil
 	if !deferredAirMaster {
 		if output.ETD == "" {
 			return nil, errors.BadRequest("ORDER_INVALID_ARGUMENT", "请填写 ETD（预计离港时间）")
@@ -532,7 +532,7 @@ func sameOrderCreateIntent(existing *Order, requested *Order) bool {
 	if existing == nil || requested == nil {
 		return false
 	}
-	if requested.BusinessType == OrderBusinessAE && requested.AirExportInput != nil && requested.AirExportInput.MasterWaybillID != nil {
+	if requested.BusinessType.IsAir() && requested.AirExportInput != nil && requested.AirExportInput.MasterWaybillID != nil {
 		if existing.AirExport == nil || existing.AirExport.Master == nil || existing.AirExport.Master.ID != *requested.AirExportInput.MasterWaybillID {
 			return false
 		}
@@ -612,7 +612,7 @@ func orderCreateIntentHash(order *Order) string {
 		masterNo = order.SeaMasterBill.MasterNo
 	}
 	part("master-no", masterNo)
-	if order.BusinessType == OrderBusinessAE {
+	if order.BusinessType.IsAir() {
 		var master *AirMasterWaybillInput
 		var content *AirWaybillContent
 		mode, no, status := "", "", ""

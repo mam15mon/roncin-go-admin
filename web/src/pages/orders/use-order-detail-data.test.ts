@@ -8,6 +8,7 @@ import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import { orderShippingDocumentServiceListShippingDocuments } from '@/services/roncin/orderShippingDocumentService';
 import { seaDocumentServiceGetSeaOrderDocuments } from '@/services/roncin/seaDocumentService';
 import { fetchOrderMasterData, searchOrderLocations } from './common';
+import { airImportDefinition } from './order-kinds/air-import/definition';
 import { seaExportDefinition } from './order-kinds/sea-export/definition';
 import { seaImportDefinition } from './order-kinds/sea-import/definition';
 import { useOrderDetailData } from './use-order-detail-data';
@@ -252,72 +253,54 @@ describe('useOrderDetailData', () => {
     expect(mockListShippingDocuments).not.toHaveBeenCalled();
   });
 
-  it('未开放的航空进口配置继续使用其旧提单分支', async () => {
+  it('AI加载真实航空结构且不请求旧提单或海运单证', async () => {
     mockGetOrder.mockResolvedValueOnce({
       data: {
         businessType: OrderBusinessType.BUSINESS_TYPE_AI,
         organizationId: 'org-1',
         id: 'ord-1',
-        orderNo: 'AE001',
+        orderNo: 'AI001',
         version: '1',
+        airExport: {
+          documentMode: 'DIRECT',
+          master: {
+            id: 'master-ai',
+            organizationId: 'org-1',
+            businessType: 'AI',
+            version: '2',
+          },
+        },
       },
-    } as any);
-    mockListShippingDocuments.mockResolvedValueOnce({
-      data: [{ id: 'doc-1', houseNo: 'HBL001' }],
-    } as any);
-
-    const legacyConfig = {
-      ...config,
-      transportMode: 'air' as const,
-      businessType: OrderBusinessType.BUSINESS_TYPE_AI,
-    };
+    });
     const { wrapper } = createHookWrapper();
     const { result } = renderHook(
-      () => useOrderDetailData('ord-1', legacyConfig),
+      () => useOrderDetailData('ord-1', airImportDefinition),
       { wrapper },
     );
-
     await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(mockListShippingDocuments).toHaveBeenCalledWith({
-      orderId: 'ord-1',
-    });
-    expect(result.current.shippingDocs).toEqual([
-      { id: 'doc-1', houseNo: 'HBL001' },
-    ]);
+    expect(result.current.order?.airExport?.documentMode).toBe('DIRECT');
+    expect(mockListShippingDocuments).not.toHaveBeenCalled();
+    expect(seaDocumentServiceGetSeaOrderDocuments).not.toHaveBeenCalled();
+    expect(result.current.shippingDocs).toEqual([]);
   });
 
-  it('单证列表请求 resolve undefined 时，抛出明确业务错误而非 TypeError', async () => {
-    mockGetOrder.mockResolvedValueOnce({
-      data: {
-        businessType: OrderBusinessType.BUSINESS_TYPE_AI,
-        organizationId: 'org-1',
-        id: 'ord-1',
-        orderNo: 'AE001',
-        version: '1',
-      },
-    } as any);
-    mockListShippingDocuments.mockResolvedValueOnce(
-      undefined as unknown as any,
-    );
-
-    // 海空运已使用真实专属单证；此处验证尚未开放航空进口的独立分支，后续AI任务将替换为真实航空实体。
-    const legacyConfig = {
-      ...config,
-      transportMode: 'air' as const,
-      businessType: OrderBusinessType.BUSINESS_TYPE_AI,
-    };
-    const { queryClient, wrapper } = createHookWrapper();
-    const { result } = renderHook(
-      () => useOrderDetailData('ord-1', legacyConfig),
-      { wrapper },
-    );
-
-    await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(result.current.order).toBeUndefined();
-    expect(queryClient.getQueryCache().getAll()[0]?.state.error?.message).toBe(
-      '订单单证加载失败，请稍后重试',
-    );
-  });
+  it.each([undefined, 0, OrderBusinessType.BUSINESS_TYPE_AE])(
+    'AI拒绝缺失或错误真实类型%s，不把另一类型当作当前订单',
+    async (businessType) => {
+      mockGetOrder.mockResolvedValueOnce({
+        data: { id: 'ord-ai', organizationId: 'org-1', businessType },
+      });
+      const { result } = renderHook(
+        () => useOrderDetailData('ord-ai', airImportDefinition),
+        { wrapper: createHookWrapper().wrapper },
+      );
+      await waitFor(() => expect(result.current.loading).toBe(false));
+      expect(result.current.order).toBeUndefined();
+      expect(result.current.error?.message).toContain(
+        '订单业务类型与当前页面不一致',
+      );
+    },
+  );
 
   it('从订单 A 快速切换到订单 B 时，立即进入 B 加载态且不得渲染 A 的旧数据', async () => {
     const deferA = deferred<any>();

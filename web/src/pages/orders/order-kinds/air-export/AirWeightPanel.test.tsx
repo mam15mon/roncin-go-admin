@@ -1,6 +1,7 @@
 import { renderWithApp } from '@root/tests/renderWithApp';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { OrderBusinessType } from '@/enums.generated';
 import {
   airWeightServiceConfirmAirWeight,
   airWeightServicePreviewAirWeight,
@@ -71,6 +72,57 @@ describe('空运重量参考与人工确认', () => {
       ),
     );
   });
+
+  it.each(['ORDER', 'MASTER'] as const)(
+    'AI %s参考与历史独立，只读不出现确认按钮，计划来源不自动确认',
+    async (scope) => {
+      const view = renderWithApp(
+        <AirWeightPanel
+          scope={scope}
+          targetId="ai-target"
+          businessType={OrderBusinessType.BUSINESS_TYPE_AI}
+          canUpdate={false}
+        />,
+      );
+      expect(await screen.findByText('确认依据已变化')).toBeVisible();
+      expect(preview).toHaveBeenCalledWith(
+        expect.objectContaining({
+          scope,
+          targetId: 'ai-target',
+          source: 'ACTUAL',
+        }),
+        expect.anything(),
+      );
+      expect(
+        screen.queryByRole('button', { name: '确认或调整计费重' }),
+      ).not.toBeInTheDocument();
+      fireEvent.click(screen.getByRole('radio', { name: '订单委托货量' }));
+      await waitFor(() =>
+        expect(preview).toHaveBeenCalledWith(
+          expect.objectContaining({
+            scope,
+            targetId: 'ai-target',
+            source: 'PLANNED',
+          }),
+          expect.anything(),
+        ),
+      );
+      expect(
+        view.queryClient
+          .getQueryCache()
+          .findAll({ queryKey: ['air-weight', 'preview'] })
+          .every(
+            (query) =>
+              query.queryKey[2] &&
+              typeof query.queryKey[2] === 'object' &&
+              'businessType' in query.queryKey[2] &&
+              query.queryKey[2].businessType ===
+                OrderBusinessType.BUSINESS_TYPE_AI,
+          ),
+      ).toBe(true);
+      expect(confirm).not.toHaveBeenCalled();
+    },
+  );
 
   it('重查失败隐藏旧参考，不能继续确认缓存结果', async () => {
     renderWithApp(<AirWeightPanel scope="ORDER" targetId="order" canUpdate />);

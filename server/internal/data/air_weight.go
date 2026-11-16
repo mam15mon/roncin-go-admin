@@ -21,8 +21,12 @@ type airWeightRepo struct{ data *Data }
 
 func NewAirWeightRepo(data *Data) biz.AirWeightRepo { return &airWeightRepo{data: data} }
 
-func airWeightPermission(ctx context.Context, org uuid.UUID, write bool) error {
+func airWeightPermission(ctx context.Context, client *ent.Client, org uuid.UUID, scope string, id uuid.UUID, write bool) error {
 	principal, err := biz.RequirePrincipal(ctx)
+	if err != nil {
+		return err
+	}
+	kind, err := airTargetBusinessType(ctx, client, org, scope, id)
 	if err != nil {
 		return err
 	}
@@ -30,7 +34,7 @@ func airWeightPermission(ctx context.Context, org uuid.UUID, write bool) error {
 	if write {
 		op = access.OrderUpdate
 	}
-	if !principal.CanAccessOrganizationForPermission(access.OrderPermission(access.OrderBusinessAE, op), org, write) {
+	if !principal.CanAccessOrganizationForPermission(access.OrderPermission(access.OrderBusinessType(kind), op), org, write) {
 		return biz.ErrPermissionDenied
 	}
 	return nil
@@ -56,30 +60,49 @@ func airCurrentWeight(ctx context.Context, client *ent.Client, org uuid.UUID, sc
 	return row, err
 }
 func airWeightFacts(ctx context.Context, client *ent.Client, org uuid.UUID, input *biz.AirWeightInput) (*biz.AirWeightFacts, error) {
+	kind, err := airTargetBusinessType(ctx, client, org, input.Scope, input.TargetID)
+	if err != nil {
+		return nil, err
+	}
 	ids := []uuid.UUID{input.TargetID}
 	identity := []any{}
 	if input.Scope == "MASTER" {
-		master, err := client.AirMasterWaybill.Query().Where(masterent.IDEQ(input.TargetID), masterent.OrganizationIDEQ(org), masterent.BusinessTypeEQ("AE")).Only(ctx)
+		master, err := client.AirMasterWaybill.Query().Where(masterent.IDEQ(input.TargetID), masterent.OrganizationIDEQ(org), masterent.BusinessTypeIn("AE", "AI")).Only(ctx)
 		if err != nil {
 			return nil, mapEntError(err, biz.ErrAirWeightNotFound, nil)
 		}
-		links, err := client.AirMasterWaybillOrderLink.Query().Where(linkent.OrganizationIDEQ(org), linkent.MasterWaybillIDEQ(input.TargetID), linkent.StatusEQ("ACTIVE")).Order(linkent.ByOrderID()).All(ctx)
+		links, err := client.AirMasterWaybillOrderLink.Query().Where(linkent.MasterWaybillIDEQ(input.TargetID), linkent.StatusEQ("ACTIVE")).Order(linkent.ByOrderID()).All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		ids = nil
 		identity = append(identity, master.ID.String())
 		for _, link := range links {
+			if link.OrganizationID != org {
+				return nil, biz.ErrAirWaybillConflict
+			}
 			ids = append(ids, link.OrderID)
 			identity = append(identity, link.ID.String(), link.DocumentMode)
 		}
 	} else {
-		exists, err := client.Order.Query().Where(orderent.IDEQ(input.TargetID), orderent.OrganizationIDEQ(org), orderent.BusinessTypeEQ(orderent.BusinessTypeAE)).Exist(ctx)
+		exists, err := client.Order.Query().Where(orderent.IDEQ(input.TargetID), orderent.OrganizationIDEQ(org), orderent.BusinessTypeIn(orderent.BusinessTypeAE, orderent.BusinessTypeAI)).Exist(ctx)
 		if err != nil {
 			return nil, err
 		}
 		if !exists {
 			return nil, biz.ErrAirWeightNotFound
+		}
+	}
+	orders, err := client.Order.Query().Where(orderent.IDIn(ids...), orderent.OrganizationIDEQ(org), orderent.BusinessTypeEQ(orderent.BusinessType(kind))).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if len(orders) != len(ids) {
+		return nil, biz.ErrAirWaybillConflict
+	}
+	for _, o := range orders {
+		if kind.IsImport() != (o.TradeDirection == orderent.TradeDirectionImport) {
+			return nil, biz.ErrAirWaybillConflict
 		}
 	}
 	facts := &biz.AirWeightFacts{GrossWeightKG: "0", VolumeCBM: "0"}
@@ -95,7 +118,7 @@ func airWeightFacts(ctx context.Context, client *ent.Client, org uuid.UUID, inpu
 			Weight *string   `json:"total_gross_weight_kg"`
 			Volume *string   `json:"total_volume_cbm"`
 		}
-		err := client.Order.Query().Where(orderent.OrganizationIDEQ(org), orderent.IDIn(ids...), orderent.BusinessTypeEQ(orderent.BusinessTypeAE)).Order(orderent.ByID()).Select(orderent.FieldID, orderent.FieldTotalGrossWeightKg, orderent.FieldTotalVolumeCbm).Scan(ctx, &rows)
+		err := client.Order.Query().Where(orderent.OrganizationIDEQ(org), orderent.IDIn(ids...), orderent.BusinessTypeIn(orderent.BusinessTypeAE, orderent.BusinessTypeAI)).Order(orderent.ByID()).Select(orderent.FieldID, orderent.FieldTotalGrossWeightKg, orderent.FieldTotalVolumeCbm).Scan(ctx, &rows)
 		if err != nil {
 			return nil, err
 		}
@@ -136,7 +159,7 @@ func airWeightFacts(ctx context.Context, client *ent.Client, org uuid.UUID, inpu
 		GrossWeightKG string    `json:"gross_weight_kg"`
 		VolumeCBM     string    `json:"volume_cbm"`
 	}
-	err := client.OrderCargoItem.Query().Where(cargoent.OrganizationIDEQ(org), cargoent.OrderIDIn(ids...)).Order(cargoent.ByID()).Select(cargoent.FieldID, cargoent.FieldOrderID, cargoent.FieldVersion, cargoent.FieldGrossWeightKg, cargoent.FieldVolumeCbm).Scan(ctx, &rows)
+	err = client.OrderCargoItem.Query().Where(cargoent.OrganizationIDEQ(org), cargoent.OrderIDIn(ids...)).Order(cargoent.ByID()).Select(cargoent.FieldID, cargoent.FieldOrderID, cargoent.FieldVersion, cargoent.FieldGrossWeightKg, cargoent.FieldVolumeCbm).Scan(ctx, &rows)
 	if err != nil {
 		return nil, err
 	}
@@ -164,11 +187,11 @@ func airWeightFacts(ctx context.Context, client *ent.Client, org uuid.UUID, inpu
 	return facts, nil
 }
 func (r *airWeightRepo) Preview(ctx context.Context, org uuid.UUID, input *biz.AirWeightInput) (*biz.AirWeightPreview, error) {
-	if err := airWeightPermission(ctx, org, false); err != nil {
-		return nil, err
-	}
 	client, err := r.data.client(ctx)
 	if err != nil {
+		return nil, err
+	}
+	if err := airWeightPermission(ctx, client, org, input.Scope, input.TargetID, false); err != nil {
 		return nil, err
 	}
 	facts, err := airWeightFacts(ctx, client, org, input)
@@ -182,11 +205,11 @@ func (r *airWeightRepo) Preview(ctx context.Context, org uuid.UUID, input *biz.A
 	return biz.BuildAirWeightPreview(input, facts, airWeightToBiz(row))
 }
 func (r *airWeightRepo) Confirm(ctx context.Context, org, actor uuid.UUID, input *biz.AirWeightInput) (*biz.AirWeightConfirmation, error) {
-	if err := airWeightPermission(ctx, org, true); err != nil {
-		return nil, err
-	}
 	var result *ent.AirWeightConfirmation
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if err := airWeightPermission(ctx, tx.Client(), org, input.Scope, input.TargetID, true); err != nil {
+			return err
+		}
 		if input.Scope == "MASTER" {
 			locked, err := lockAirMasterMembers(ctx, tx, org, input.TargetID, nil)
 			if err != nil {
@@ -201,13 +224,16 @@ func (r *airWeightRepo) Confirm(ctx context.Context, org, actor uuid.UUID, input
 				}
 			}
 		} else {
-			order, err := tx.Order.Query().Where(orderent.IDEQ(input.TargetID), orderent.OrganizationIDEQ(org), orderent.BusinessTypeEQ(orderent.BusinessTypeAE)).ForUpdate().Only(ctx)
+			order, err := tx.Order.Query().Where(orderent.IDEQ(input.TargetID), orderent.OrganizationIDEQ(org), orderent.BusinessTypeIn(orderent.BusinessTypeAE, orderent.BusinessTypeAI)).ForUpdate().Only(ctx)
 			if err != nil {
 				return mapEntError(err, biz.ErrAirWeightNotFound, nil)
 			}
 			if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
 				return err
 			}
+		}
+		if err := airWeightPermission(ctx, tx.Client(), org, input.Scope, input.TargetID, true); err != nil {
+			return err
 		}
 		facts, err := airWeightFacts(ctx, tx.Client(), org, input)
 		if err != nil {
@@ -254,11 +280,11 @@ func (r *airWeightRepo) Confirm(ctx context.Context, org, actor uuid.UUID, input
 	return airWeightToBiz(result), nil
 }
 func (r *airWeightRepo) List(ctx context.Context, org uuid.UUID, scope string, id uuid.UUID, page, size int) ([]*biz.AirWeightConfirmation, int, error) {
-	if err := airWeightPermission(ctx, org, false); err != nil {
-		return nil, 0, err
-	}
 	client, err := r.data.client(ctx)
 	if err != nil {
+		return nil, 0, err
+	}
+	if err := airWeightPermission(ctx, client, org, scope, id, false); err != nil {
 		return nil, 0, err
 	}
 	if _, err := airWeightFacts(ctx, client, org, &biz.AirWeightInput{Scope: scope, TargetID: id}); err != nil {

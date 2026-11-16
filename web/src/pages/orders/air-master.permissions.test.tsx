@@ -23,6 +23,8 @@ vi.mock('@/services/roncin/airExportService', () => ({
   airExportServiceGetAirMasterWaybill: vi.fn().mockResolvedValue({
     data: {
       id: 'master',
+      organizationId: 'org',
+      businessType: 'AE',
       version: '1',
       content: { masterNo: '78112345675', declaredVolumeCbm: 1.8 },
     },
@@ -37,6 +39,7 @@ describe('航空主单恢复关联权限', () => {
     permission.transition = false;
     const view = renderWithApp(<AirMasterPage />, {
       user: { id: 'user', currentOrganization: { id: 'org' } },
+      routerProps: { initialEntries: ['/orders/air-export/masters/master'] },
     });
     expect(
       await screen.findByRole('button', { name: '修改共同资料' }),

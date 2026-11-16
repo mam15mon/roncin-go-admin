@@ -3,6 +3,7 @@ import { renderWithApp } from '@root/tests/renderWithApp';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { Form, type FormInstance } from 'antd';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { OrderBusinessType } from '@/enums.generated';
 import { airExportServiceListAirMasterWaybills } from '@/services/roncin/airExportService';
 import { getAirTemplateSections } from './air-template';
 import type { TemplateProps } from './types';
@@ -18,6 +19,8 @@ vi.mock('@/services/roncin/airExportService', () => ({
 }));
 const search = async () => [];
 const props: TemplateProps = {
+  businessType: OrderBusinessType.BUSINESS_TYPE_AE,
+  orderKind: 'air-export',
   cargoCategoryOptions: [],
   locationOptions: [],
   searchLocations: search,
@@ -113,6 +116,8 @@ describe('航空直单与主分单表单', () => {
       data: [
         {
           id: 'master',
+          organizationId: 'company',
+          businessType: 'AE',
           documentMode: 'HOUSE',
           canAttach: true,
           memberCount: 0,
@@ -149,6 +154,9 @@ describe('航空直单与主分单表单', () => {
       airMasterId: 'blocked',
       airMasterSelection: {
         id: 'blocked',
+        organizationId: 'company',
+        businessType: 'AE',
+        version: '1',
         documentMode: 'DIRECT',
         attachBlockedReason: '直单已有当前操作票',
       },

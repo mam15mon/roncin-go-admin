@@ -880,7 +880,8 @@ export default function OrderFeesPage() {
       {/* 4. 费用录入/编辑 ModalForm */}
       <FeeFormModal
         allowChargeableQuantity={
-          order?.businessType === OrderBusinessType.BUSINESS_TYPE_AE
+          order?.businessType === OrderBusinessType.BUSINESS_TYPE_AE ||
+          order?.businessType === OrderBusinessType.BUSINESS_TYPE_AI
         }
         orderId={targetOrderId ?? ''}
         quantityAssistDisabled={feeWritesDisabled}

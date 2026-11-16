@@ -17,21 +17,27 @@ import (
 )
 
 func TestAirWeightConfirmationAndFeeSourcePostgres(t *testing.T) {
+	for _, businessType := range []biz.OrderBusinessType{biz.OrderBusinessAE, biz.OrderBusinessAI} {
+		t.Run(string(businessType), func(t *testing.T) { verifyAirWeightConfirmationAndFeeSourcePostgres(t, businessType) })
+	}
+}
+
+func verifyAirWeightConfirmationAndFeeSourcePostgres(t *testing.T, businessType biz.OrderBusinessType) {
 	f := newFeeSupplementFixture(t)
 	principal := f.requesterPrincipal()
-	principal.RoleGrants = []biz.RoleGrant{{DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{access.OrderPermission(access.OrderBusinessAE, access.OrderRead): {}, access.OrderPermission(access.OrderBusinessAE, access.OrderUpdate): {}}}}
+	principal.RoleGrants = []biz.RoleGrant{{DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{access.OrderPermission(access.OrderBusinessType(businessType), access.OrderRead): {}, access.OrderPermission(access.OrderBusinessType(businessType), access.OrderUpdate): {}}}}
 	ctx := biz.WithPrincipal(context.Background(), principal)
 	c := f.data.db
 	a := f.createOrder("AE-WEIGHT-A-" + f.suffix)
 	b := f.createOrder("AE-WEIGHT-B-" + f.suffix)
-	c.Order.UpdateOne(a).SetBusinessType(orderent.BusinessTypeAE).SaveX(ctx)
-	c.Order.UpdateOne(b).SetBusinessType(orderent.BusinessTypeAE).SaveX(ctx)
+	c.Order.UpdateOne(a).SetBusinessType(orderent.BusinessType(businessType)).SetTradeDirection(airTradeDirectionForBusiness(businessType)).SetFlowStatus(airInitialFlowForBusiness(businessType)).SaveX(ctx)
+	c.Order.UpdateOne(b).SetBusinessType(orderent.BusinessType(businessType)).SetTradeDirection(airTradeDirectionForBusiness(businessType)).SetFlowStatus(airInitialFlowForBusiness(businessType)).SaveX(ctx)
 	ca := c.OrderCargoItem.Create().SetOrganizationID(f.organizationID).SetOrderID(a.ID).SetCargoName("本票实际货物").SetPackageCount(1).SetGrossWeightKg(100).SetVolumeCbm(1.2).SaveX(ctx)
 	c.OrderCargoItem.Create().SetOrganizationID(f.organizationID).SetOrderID(b.ID).SetCargoName("其他成员实际货物").SetPackageCount(1).SetGrossWeightKg(300).SetVolumeCbm(0.6).SaveX(ctx)
 	airline := c.Airline.Create().SetIataCode("ZT").SetNameEn("Weight Test Air").SetCountryCode("CN").SaveX(ctx)
 	origin := c.Airport.Create().SetIataCode("ZTA").SetNameEn("Weight Origin").SetCountryCode("CN").SaveX(ctx)
 	destination := c.Airport.Create().SetIataCode("ZTB").SetNameEn("Weight Destination").SetCountryCode("CN").SaveX(ctx)
-	master := c.AirMasterWaybill.Create().SetBusinessType("AE").SetOrganizationID(f.organizationID).SetMasterNo("99912345678").SetAirlineID(airline.ID).SetOriginAirportID(origin.ID).SetDestinationAirportID(destination.ID).SaveX(ctx)
+	master := c.AirMasterWaybill.Create().SetBusinessType(string(businessType)).SetOrganizationID(f.organizationID).SetMasterNo("99912345678").SetAirlineID(airline.ID).SetOriginAirportID(origin.ID).SetDestinationAirportID(destination.ID).SaveX(ctx)
 	for _, o := range []*ent.Order{a, b} {
 		c.AirMasterWaybillOrderLink.Create().SetDocumentMode("HOUSE").SetOrganizationID(f.organizationID).SetMasterWaybillID(master.ID).SetOrderID(o.ID).SaveX(ctx)
 		c.AirHouseWaybill.Create().SetOrganizationID(f.organizationID).SetMasterWaybillID(master.ID).SetOrderID(o.ID).SetHouseNo(o.OrderNo).SaveX(ctx)
@@ -103,7 +109,7 @@ func TestAirWeightConfirmationAndFeeSourcePostgres(t *testing.T) {
 	if e != nil || gross.Quantity != "100" {
 		t.Fatalf("KG默认毛重不得改变: %+v %v", gross, e)
 	}
-	rateDay, e := orderRateDayOf(a)
+	rateDay, e := orderRateDayOf(c.Order.GetX(ctx, a.ID))
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -244,7 +250,7 @@ func TestAirWeightConfirmationAndFeeSourcePostgres(t *testing.T) {
 	if e != nil || total != 4 || len(history) != 4 {
 		t.Fatalf("确认历史: %d %v", total, e)
 	}
-	if _, e := uc.Preview(ctx, uuid.New(), input); !errors.Is(e, biz.ErrPermissionDenied) {
+	if _, e := uc.Preview(ctx, uuid.New(), input); !errors.Is(e, biz.ErrOrderNotFound) {
 		t.Fatalf("跨公司拒绝: %v", e)
 	}
 
@@ -253,7 +259,7 @@ func TestAirWeightConfirmationAndFeeSourcePostgres(t *testing.T) {
 	masterPreview := preview(masterActual)
 	masterConfirmed := confirm(masterActual, masterPreview.SuggestedChargeableWeightKG, "")
 	extra := f.createOrder("AE-WEIGHT-C-" + f.suffix)
-	c.Order.UpdateOneID(extra.ID).SetBusinessType(orderent.BusinessTypeAE).SaveX(ctx)
+	c.Order.UpdateOneID(extra.ID).SetBusinessType(orderent.BusinessType(businessType)).SetTradeDirection(airTradeDirectionForBusiness(businessType)).SetFlowStatus(airInitialFlowForBusiness(businessType)).SaveX(ctx)
 	c.AirHouseWaybill.Create().SetOrganizationID(f.organizationID).SetMasterWaybillID(master.ID).SetOrderID(extra.ID).SetHouseNo(extra.OrderNo).SaveX(ctx)
 	extraLink := c.AirMasterWaybillOrderLink.Create().SetDocumentMode("HOUSE").SetOrganizationID(f.organizationID).SetMasterWaybillID(master.ID).SetOrderID(extra.ID).SaveX(ctx)
 	c.AirMasterWaybill.UpdateOne(master).AddVersion(1).SaveX(ctx)

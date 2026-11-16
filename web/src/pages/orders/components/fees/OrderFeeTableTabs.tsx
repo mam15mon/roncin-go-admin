@@ -1307,7 +1307,9 @@ export default function OrderFeeTableTabs({
                 <FeeQuantityAssist
                   tabIndex={-1}
                   allowChargeable={
-                    order?.businessType === OrderBusinessType.BUSINESS_TYPE_AE
+                    order?.businessType ===
+                      OrderBusinessType.BUSINESS_TYPE_AE ||
+                    order?.businessType === OrderBusinessType.BUSINESS_TYPE_AI
                   }
                   orderId={orderId}
                   billingUnit={billingUnits?.find(

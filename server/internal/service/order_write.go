@@ -23,7 +23,7 @@ func (s *OrderService) CreateOrder(ctx context.Context, request *v1.CreateOrderR
 		return nil, err
 	}
 	input.IdempotencyKey = request.GetIdempotencyKey()
-	if input.BusinessType == biz.OrderBusinessAE && input.AirExportInput != nil && input.AirExportInput.MasterWaybillID != nil && !canOperateOrderInCurrentOrganization(principal, input.BusinessType, access.OrderUpdate, true) {
+	if input.BusinessType.IsAir() && input.AirExportInput != nil && input.AirExportInput.MasterWaybillID != nil && !canOperateOrderInCurrentOrganization(principal, input.BusinessType, access.OrderUpdate, true) {
 		return nil, biz.ErrPermissionDenied
 	}
 	if !canOperateOrderInCurrentOrganization(principal, input.BusinessType, access.OrderCreate, true) {
@@ -189,7 +189,7 @@ func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) 
 		UNNumber: request.GetUnNumber(), HazardClass: request.GetHazardClass(), FactoryName: request.GetFactoryName(), CargoReadyAt: request.GetCargoReadyAt(),
 		DeclarationCutoffAt: request.GetDeclarationCutoffAt(), ReceivedAt: request.GetReceivedAt(),
 		DangerousPackingGroup: orderDangerousPackingGroupFromAPI(request.DangerousPackingGroup),
-		BusinessType: orderBusinessTypeFromAPI(request.GetBusinessType()), TradeDirection: orderTradeDirectionFromAPI(request.GetTradeDirection()),
+		BusinessType:          orderBusinessTypeFromAPI(request.GetBusinessType()), TradeDirection: orderTradeDirectionFromAPI(request.GetTradeDirection()),
 		TradeTerm: orderTradeTermFromAPI(request.GetTradeTerm()), PaymentTerm: orderPaymentTermFromAPI(request.GetPaymentTerm()),
 		ShipmentType: orderShipmentTypeFromAPI(request.ShipmentType), ContainerOwnership: orderContainerOwnershipFromAPI(request.ContainerOwnership), ShipmentMode: orderShipmentModeFromAPI(request.ShipmentMode),
 		CargoCategoryIDs: cargoCategoryIDs,

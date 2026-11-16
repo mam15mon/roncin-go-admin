@@ -19,7 +19,7 @@
 | --- | --- | --- | --- |
 | 身份隔离 | `.trellis/tasks/archive/2026-11/11-15-hgj-order-direction` | 无 | 海空主单business_type/索引迁移、同类型候选和公共源合同 |
 | 航空内容/直单 | `.trellis/tasks/archive/2026-11/11-15-hgj-air-documents` | 身份隔离 | 真实可选HAWB、结构化内容/历史/锁/重量和AE字段 |
-| 海运进口 | `.trellis/tasks/11-15-hgj-sea-import` | 身份隔离 | SI真实单证/箱货/费用、固定进口服务与派生摘要 |
+| 海运进口 | `.trellis/tasks/archive/2026-11/11-15-hgj-sea-import` | 身份隔离 | SI真实单证/箱货/费用、固定进口服务与派生摘要 |
 | 空运进口 | `.trellis/tasks/11-15-hgj-air-import` | 航空内容/直单、海运进口服务 | AI双模式、货物重量/ETA及服务闭环 |
 | 航空PDF | `.trellis/tasks/11-15-hgj-air-waybill-pdf` | 航空内容/直单、空运进口 | 主分单制作、保存版本预览下载打印、完整分页 |
 | 横切/CSV/整体验收 | `.trellis/tasks/11-15-hgj-cross-module-acceptance` | 前五组全部 | 工作台/通知/台账/报表/完整CSV和四类整体验收 |

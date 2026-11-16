@@ -40,6 +40,7 @@ import {
   OrderClosureStatus,
   OrderPersonnelRole,
   OrderTerminationStatus,
+  TradeDirection,
 } from '@/enums.generated';
 import { searchShippingLineOptions } from '@/features/master-data/shipping-lines';
 import { history } from '@/router/history';
@@ -840,6 +841,7 @@ export default function OrderDetailPage() {
         acceptedBaseline = acceptsAirSaveBaseline(
           orderId,
           order?.organizationId,
+          definition.businessType,
           submittedAir,
           payload,
           saved,
@@ -1466,7 +1468,8 @@ export default function OrderDetailPage() {
                 revealSeaFormErrors(errorFields)
               }
               appendSections={[
-                ...(definition.kind === 'sea-import'
+                ...(definition.tradeDirection ===
+                TradeDirection.TRADE_DIRECTION_IMPORT
                   ? [
                       {
                         key: 'importHandling',
@@ -1511,6 +1514,7 @@ export default function OrderDetailPage() {
                                   bundle?.order,
                                   bundle?.seaDocuments,
                                   order.organizationId,
+                                  definition.businessType,
                                 ) &&
                                 bundle?.order
                               ) {

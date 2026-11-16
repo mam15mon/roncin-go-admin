@@ -319,7 +319,7 @@ func TestAuthorizationPartnerResourcesStayInWorkspace(t *testing.T) {
 				partnerUsecase := biz.NewPartnerUsecase(&authorizationPartnerRepoStub{partner: &biz.Partner{ID: partnerID, OrganizationID: target}})
 				called := false
 				ctx := transport.NewServerContext(t.Context(), &middlewareTransport{operation: "/partner.v1.PartnerService/" + test.operation, cookie: "sid=valid"})
-				_, err := Authorization(authUsecase, policy, nil, partnerUsecase)(func(ctx context.Context, _ any) (any, error) {
+				_, err := Authorization(authUsecase, policy, nil, partnerUsecase, nil)(func(ctx context.Context, _ any) (any, error) {
 					called = true
 					effective, requireErr := biz.RequirePrincipal(ctx)
 					if requireErr != nil {

@@ -42,7 +42,7 @@ func (passwordResetServiceSender) SendMessage(context.Context, string, biz.DingT
 func TestPasswordResetServiceNoStoreAndClearsCookie(t *testing.T) {
 	policy := &biz.SessionPolicy{CookieName: "roncin_session", Secure: true, SameSite: "lax"}
 	authService := service.NewAuthService(nil, policy, biz.NewPasswordResetUsecase(passwordResetServiceRepo{}, passwordResetServiceSender{}))
-	server := kratoshttp.NewServer(kratoshttp.ResponseEncoder(encodeResponse), kratoshttp.ErrorEncoder(encodeError), kratoshttp.Middleware(Authorization(nil, policy, nil, nil), RequiredFieldsValidator()))
+	server := kratoshttp.NewServer(kratoshttp.ResponseEncoder(encodeResponse), kratoshttp.ErrorEncoder(encodeError), kratoshttp.Middleware(Authorization(nil, policy, nil, nil, nil), RequiredFieldsValidator()))
 	v1.RegisterAuthServiceHTTPServer(server, authService)
 	response := httptest.NewRecorder()
 	request := httptest.NewRequest(http.MethodPost, "/api/v1/auth/password-reset/code", strings.NewReader(`{"mobile":"13800138000"}`))
@@ -94,7 +94,7 @@ func TestPasswordResetCooldownOnlyExposesRetryTimes(t *testing.T) {
 func TestPasswordResetRequiredFieldFailureIsPublicAndNotCached(t *testing.T) {
 	policy := &biz.SessionPolicy{CookieName: "roncin_session"}
 	authService := service.NewAuthService(nil, policy, biz.NewPasswordResetUsecase(passwordResetServiceRepo{}, passwordResetServiceSender{}))
-	server := kratoshttp.NewServer(kratoshttp.ErrorEncoder(encodeError), kratoshttp.Middleware(Authorization(nil, policy, nil, nil), RequiredFieldsValidator()))
+	server := kratoshttp.NewServer(kratoshttp.ErrorEncoder(encodeError), kratoshttp.Middleware(Authorization(nil, policy, nil, nil, nil), RequiredFieldsValidator()))
 	v1.RegisterAuthServiceHTTPServer(server, authService)
 	for _, path := range []string{"/api/v1/auth/password-reset/code", "/api/v1/auth/password-reset/confirm"} {
 		response := httptest.NewRecorder()

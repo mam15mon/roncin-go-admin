@@ -498,10 +498,13 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 	airline := data.db.Airline.Create().SetIataCode(aviationCode[:2]).SetNameEn("Lock AE " + suffix).SetCountryCode("CN").SaveX(ctx)
 	originAirport := data.db.Airport.Create().SetIataCode("A" + aviationCode[:2]).SetNameEn("Lock AE Origin").SetCountryCode("CN").SaveX(ctx)
 	destinationAirport := data.db.Airport.Create().SetIataCode("B" + aviationCode[:2]).SetNameEn("Lock AE Destination").SetCountryCode("US").SaveX(ctx)
-	airMaster := data.db.AirMasterWaybill.Create().SetBusinessType("AE").SetOrganizationID(org.ID).SetMasterNo("78112345675").SetAirlineID(airline.ID).SetOriginAirportID(originAirport.ID).SetDestinationAirportID(destinationAirport.ID).SaveX(ctx)
-	aeOrder := genericOrders[biz.OrderBusinessAE]
-	data.db.AirMasterWaybillOrderLink.Create().SetDocumentMode("HOUSE").SetOrganizationID(org.ID).SetOrderID(aeOrder.ID).SetMasterWaybillID(airMaster.ID).SaveX(ctx)
-	data.db.AirHouseWaybill.Create().SetOrganizationID(org.ID).SetOrderID(aeOrder.ID).SetMasterWaybillID(airMaster.ID).SetHouseNo("LOCK-AE-" + suffix).SaveX(ctx)
+	for _, kind := range []biz.OrderBusinessType{biz.OrderBusinessAE, biz.OrderBusinessAI} {
+		airMaster := data.db.AirMasterWaybill.Create().SetBusinessType(string(kind)).SetOrganizationID(org.ID).SetMasterNo("78112345675").SetAirlineID(airline.ID).SetOriginAirportID(originAirport.ID).SetDestinationAirportID(destinationAirport.ID).SaveX(ctx)
+		target := genericOrders[kind]
+		data.db.AirMasterWaybillOrderLink.Create().SetDocumentMode("HOUSE").SetOrganizationID(org.ID).SetOrderID(target.ID).SetMasterWaybillID(airMaster.ID).SaveX(ctx)
+		data.db.AirHouseWaybill.Create().SetOrganizationID(org.ID).SetOrderID(target.ID).SetMasterWaybillID(airMaster.ID).SetHouseNo("LOCK-" + string(kind) + "-" + suffix).SaveX(ctx)
+	}
+
 	t.Cleanup(func() {
 		for _, statement := range []string{"DELETE FROM air_master_waybill_order_links WHERE organization_id=$1", "DELETE FROM air_house_waybills WHERE organization_id=$1", "DELETE FROM air_master_waybills WHERE organization_id=$1"} {
 			if _, err := data.sqlDB.ExecContext(ctx, statement, org.ID); err != nil {
@@ -2181,7 +2184,7 @@ func lockTestReviewInput(t *testing.T, d *Data, ctx context.Context, orderID uui
 		t.Fatal(err)
 	}
 	review := biz.OrderLockReviewInput{ExpectedFeeContentVersion: o.FeeContentVersion, FeeContentFingerprint: fingerprint, Comment: "集成验证：已核对订单与费用"}
-	if o.BusinessType == orderent.BusinessTypeAE {
+	if biz.OrderBusinessType(o.BusinessType).IsAir() {
 		snapshot, e := readAirOrderDocumentSnapshot(ctx, d.db, o.OrganizationID, o.ID)
 		if e != nil {
 			t.Fatal(e)

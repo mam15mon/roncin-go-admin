@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  OrderBusinessType,
   OrderClosureStatus,
   OrderFlowStatus,
   OrderTerminationStatus,
@@ -7,6 +8,7 @@ import {
 } from '@/enums.generated';
 import { queryOrderList } from './list-query';
 import { airExportDefinition } from './order-kinds/air-export/definition';
+import { airImportDefinition } from './order-kinds/air-import/definition';
 import { seaExportDefinition } from './order-kinds/sea-export/definition';
 
 const listOrdersMock = vi.hoisted(() => vi.fn());
@@ -24,6 +26,48 @@ describe('queryOrderList', () => {
   beforeEach(() => {
     listOrdersMock.mockReset();
     masterOptionsMock.mockReset().mockResolvedValue([]);
+  });
+
+  it('AI列表查询携带真实类型并保留权威ETA/航空号码投影', async () => {
+    listOrdersMock.mockResolvedValue({
+      success: true,
+      total: 1,
+      data: [
+        {
+          id: 'order-ai',
+          businessType: OrderBusinessType.BUSINESS_TYPE_AI,
+          organizationId: 'org-1',
+          orderNo: 'AI001',
+          eta: '2026-11-16T16:30:00Z',
+          airExport: {
+            master: {
+              id: 'master-ai',
+              businessType: 'AI',
+              organizationId: 'org-1',
+              version: '2',
+              content: { masterNo: '78112345675' },
+              originAirportName: '洛杉矶 (LAX)',
+              destinationAirportName: '上海浦东 (PVG)',
+            },
+          },
+        },
+      ],
+    });
+    const result = await queryOrderList(
+      { page: 1, pageSize: 20 },
+      airImportDefinition,
+      { ports: [], airports: [], customerMap: {}, organizationId: 'org-1' },
+    );
+    expect(listOrdersMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        businessType: OrderBusinessType.BUSINESS_TYPE_AI,
+      }),
+    );
+    expect(result.data[0]).toMatchObject({
+      orderKind: 'air-import',
+      masterBlNo: '78112345675',
+      eta: '2026-11-16T16:30:00Z',
+    });
   });
 
   it.each([

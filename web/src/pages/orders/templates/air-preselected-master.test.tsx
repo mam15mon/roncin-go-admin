@@ -3,6 +3,7 @@ import { renderWithApp } from '@root/tests/renderWithApp';
 import { act, screen, waitFor } from '@testing-library/react';
 import { Form, type FormInstance } from 'antd';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { OrderBusinessType } from '@/enums.generated';
 import { airExportServiceGetAirMasterWaybill } from '@/services/roncin/airExportService';
 import { AirMasterTransportSection } from './components/air/AirMasterFields';
 import type { TemplateProps } from './types';
@@ -19,6 +20,8 @@ vi.mock('@/services/roncin/masterDataService', () => ({
 
 const search = async () => [];
 const props: TemplateProps = {
+  businessType: OrderBusinessType.BUSINESS_TYPE_AE,
+  orderKind: 'air-export',
   cargoCategoryOptions: [],
   locationOptions: [],
   searchLocations: search,
@@ -67,6 +70,8 @@ describe('航空主单预选与显式模式', () => {
     vi.mocked(airExportServiceGetAirMasterWaybill).mockResolvedValue({
       data: {
         id: 'master',
+        organizationId: 'company',
+        businessType: 'AE',
         version: '3',
         documentMode: 'HOUSE',
         canAttach: true,
@@ -99,6 +104,8 @@ describe('航空主单预选与显式模式', () => {
     vi.mocked(airExportServiceGetAirMasterWaybill).mockResolvedValue({
       data: {
         id: 'master',
+        organizationId: 'company',
+        businessType: 'AE',
         version: '3',
         documentMode: 'DIRECT',
         canAttach: true,
@@ -121,6 +128,8 @@ describe('航空主单预选与显式模式', () => {
     const cachedMaster: API.GetAirMasterWaybillResponse = {
       data: {
         id: 'master',
+        organizationId: 'company',
+        businessType: 'AE',
         version: '2',
         documentMode: 'HOUSE',
         canAttach: true,

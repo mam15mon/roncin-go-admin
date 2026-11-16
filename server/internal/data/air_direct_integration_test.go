@@ -26,23 +26,33 @@ func directAirInput(f *airExportFixture, no string) *biz.Order {
 }
 
 func TestAirDirectCreateEditRestoreWeightFeesAndReviewPostgres(t *testing.T) {
+	for _, businessType := range []biz.OrderBusinessType{biz.OrderBusinessAE, biz.OrderBusinessAI} {
+		t.Run(string(businessType), func(t *testing.T) { verifyAirDirectCreateEditRestoreWeightFeesAndReviewPostgres(t, businessType) })
+	}
+}
+
+func verifyAirDirectCreateEditRestoreWeightFeesAndReviewPostgres(t *testing.T, businessType biz.OrderBusinessType) {
 	d, cleanup := getIntegrationData(t)
 	t.Cleanup(cleanup)
 	f := newAirExportFixture(t, d)
-	p := airTestPrincipal(f)
+	p := airPrincipalForBusiness(f, businessType)
 	ctx := biz.WithPrincipal(context.Background(), p)
 	uc := f.newUsecase()
 	air := biz.NewAirExportUsecase(NewAirExportRepo(d))
-	in := directAirInput(f, "78112345675")
+	in := directAirInputForBusiness(f, businessType, "78112345675")
 	in.IdempotencyKey = uuid.NewString()
 	in.AirExportInput.Master.WaybillContent = &biz.AirWaybillContent{ShipperText: "直单发货人\n完整地址", Remarks: "主单正文"}
 	o := f.create(t, in)
 	if o.AirExport.DocumentMode != "DIRECT" || o.AirExport.House != nil || d.db.AirHouseWaybill.Query().Where(airhouse.OrderIDEQ(o.ID)).CountX(ctx) != 0 {
 		t.Fatal("直单不应存在HAWB")
 	}
-	// 本组不开放AI：同公司同号进口主单也不能借AE重量权限读取。
-	foreign := d.db.AirMasterWaybill.Create().SetBusinessType("AI").SetOrganizationID(f.organizationID).SetMasterNo("78112345675").SetAirlineID(f.airlineID).SetOriginAirportID(f.originID).SetDestinationAirportID(f.destinationID).SaveX(ctx)
-	if _, e := biz.NewAirWeightUsecase(NewAirWeightRepo(d)).Preview(ctx, f.organizationID, &biz.AirWeightInput{Scope: "MASTER", TargetID: foreign.ID, Source: "PLANNED"}); !errors.Is(e, biz.ErrAirWeightNotFound) {
+	// 同公司同号进口主单也不能借AE重量权限读取。
+	foreignType := "AI"
+	if businessType == biz.OrderBusinessAI {
+		foreignType = "AE"
+	}
+	foreign := d.db.AirMasterWaybill.Create().SetBusinessType(foreignType).SetOrganizationID(f.organizationID).SetMasterNo("78112345675").SetAirlineID(f.airlineID).SetOriginAirportID(f.originID).SetDestinationAirportID(f.destinationID).SaveX(ctx)
+	if _, e := biz.NewAirWeightUsecase(NewAirWeightRepo(d)).Preview(ctx, f.organizationID, &biz.AirWeightInput{Scope: "MASTER", TargetID: foreign.ID, Source: "PLANNED"}); !errors.Is(e, biz.ErrPermissionDenied) {
 		t.Fatalf("AE重量入口越权读AI主单：%v", e)
 	}
 	replay, e := uc.Create(ctx, f.organizationID, f.actorID, in)
@@ -50,7 +60,7 @@ func TestAirDirectCreateEditRestoreWeightFeesAndReviewPostgres(t *testing.T) {
 		t.Fatalf("航空幂等创建失败：%v", e)
 	}
 	for _, mode := range []string{"DIRECT", "HOUSE"} {
-		next := f.input("78112345675", "H-ILLEGAL")
+		next := airInputForBusiness(f, businessType, "78112345675", "H-ILLEGAL")
 		next.AirExportInput.DocumentMode = mode
 		if mode == "DIRECT" {
 			next.AirExportInput.House = nil
@@ -65,7 +75,7 @@ func TestAirDirectCreateEditRestoreWeightFeesAndReviewPostgres(t *testing.T) {
 	if d.db.Order.Query().Where(orderent.OrganizationIDEQ(f.organizationID)).CountX(ctx) != 1 {
 		t.Fatal("拒绝新挂票遗留半票")
 	}
-	candidates, _, e := air.List(ctx, f.organizationID, biz.SelectorListOptions{Page: 1, PageSize: 20})
+	candidates, _, e := air.List(ctx, f.organizationID, businessType, biz.SelectorListOptions{Page: 1, PageSize: 20})
 	if e != nil || len(candidates) != 1 || candidates[0].CanAttach || candidates[0].DocumentMode != "DIRECT" || candidates[0].AttachBlockedReason == "" {
 		t.Fatalf("候选未表达实际模式和阻断原因：%+v %v", candidates, e)
 	}
@@ -184,12 +194,18 @@ func TestAirDirectCreateEditRestoreWeightFeesAndReviewPostgres(t *testing.T) {
 }
 
 func TestAirDirectConcurrentAttachAndHistoricalModePostgres(t *testing.T) {
+	for _, businessType := range []biz.OrderBusinessType{biz.OrderBusinessAE, biz.OrderBusinessAI} {
+		t.Run(string(businessType), func(t *testing.T) { verifyAirDirectConcurrentAttachAndHistoricalModePostgres(t, businessType) })
+	}
+}
+
+func verifyAirDirectConcurrentAttachAndHistoricalModePostgres(t *testing.T, businessType biz.OrderBusinessType) {
 	d, cleanup := getIntegrationData(t)
 	t.Cleanup(cleanup)
 	f := newAirExportFixture(t, d)
 	ctx := context.Background()
 	uc := f.newUsecase()
-	first := f.create(t, directAirInput(f, "78112345675"))
+	first := f.create(t, directAirInputForBusiness(f, businessType, "78112345675"))
 	kind := biz.OrderTerminationOther
 	first, e := uc.TransitionTermination(ctx, f.organizationID, f.actorID, first.ID, first.Version, biz.OrderTerminationTerminating, &kind, "取消")
 	if e != nil {
@@ -203,7 +219,7 @@ func TestAirDirectConcurrentAttachAndHistoricalModePostgres(t *testing.T) {
 	operations := make([]func(context.Context) (*biz.Order, error), 2)
 	for i := range operations {
 		operations[i] = func(ctx context.Context) (*biz.Order, error) {
-			in := directAirInput(f, "78112345675")
+			in := directAirInputForBusiness(f, businessType, "78112345675")
 			in.AirExportInput.MasterWaybillID = &m.ID
 			in.AirExportInput.ExpectedMasterVersion = m.Version
 			in.AirExportInput.Master = &m.Content
@@ -235,11 +251,47 @@ func TestAirDirectConcurrentAttachAndHistoricalModePostgres(t *testing.T) {
 		t.Fatal(e)
 	}
 	m.Version = d.db.AirMasterWaybill.GetX(ctx, m.ID).Version
-	mixed := f.input(m.Content.MasterNo, "H-HISTORY")
+	mixed := airInputForBusiness(f, businessType, m.Content.MasterNo, "H-HISTORY")
 	mixed.AirExportInput.MasterWaybillID = &m.ID
 	mixed.AirExportInput.ExpectedMasterVersion = m.Version
 	mixed.AirExportInput.Master = &m.Content
 	if _, e = uc.Create(ctx, f.organizationID, f.actorID, mixed); e == nil {
 		t.Fatal("HOUSE混入历史DIRECT主单")
 	}
+}
+
+// 业务类型在输入与权限中显式给出，测试也不借AE权限运行AI。
+func airInputForBusiness(f *airExportFixture, kind biz.OrderBusinessType, no, house string) *biz.Order {
+	in := f.input(no, house)
+	in.BusinessType = kind
+	if kind.IsImport() {
+		in.TradeDirection = biz.OrderTradeImport
+	}
+	return in
+}
+func directAirInputForBusiness(f *airExportFixture, kind biz.OrderBusinessType, no string) *biz.Order {
+	in := airInputForBusiness(f, kind, no, "")
+	in.AirExportInput.DocumentMode = "DIRECT"
+	in.AirExportInput.House = nil
+	return in
+}
+func airPrincipalForBusiness(f *airExportFixture, kind biz.OrderBusinessType) *biz.Principal {
+	p := airTestPrincipal(f)
+	p.RoleGrants = []biz.RoleGrant{{DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{
+		access.OrderPermission(access.OrderBusinessType(kind), access.OrderRead):   {},
+		access.OrderPermission(access.OrderBusinessType(kind), access.OrderUpdate): {},
+	}}}
+	return p
+}
+func airTradeDirectionForBusiness(kind biz.OrderBusinessType) orderent.TradeDirection {
+	if kind.IsImport() {
+		return orderent.TradeDirectionImport
+	}
+	return orderent.TradeDirectionExport
+}
+func airInitialFlowForBusiness(kind biz.OrderBusinessType) orderent.FlowStatus {
+	if kind.IsImport() {
+		return orderent.FlowStatusIMPORT_NOT_APPLICABLE
+	}
+	return orderent.FlowStatusDRAFT
 }

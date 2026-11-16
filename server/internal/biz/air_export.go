@@ -128,9 +128,10 @@ type AirMasterPreview struct {
 	CanExecute       bool
 }
 type AirExportRepo interface {
+	BusinessType(context.Context, uuid.UUID, string, uuid.UUID) (OrderBusinessType, error)
 	HouseVersions(context.Context, uuid.UUID, uuid.UUID, SelectorListOptions) ([]*AirHouseVersion, int, error)
 	LinkCandidates(context.Context, uuid.UUID, uuid.UUID, SelectorListOptions) ([]*AirMasterMember, int, error)
-	List(context.Context, uuid.UUID, SelectorListOptions) ([]*AirMasterWaybill, int, error)
+	List(context.Context, uuid.UUID, OrderBusinessType, SelectorListOptions) ([]*AirMasterWaybill, int, error)
 	Get(context.Context, uuid.UUID, uuid.UUID, SelectorListOptions) (*AirMasterDetail, error)
 	Preview(context.Context, uuid.UUID, uuid.UUID, uint64, *AirMasterWaybillInput) (*AirMasterPreview, error)
 	Update(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, *AirMasterWaybillInput, string, string) error
@@ -139,12 +140,12 @@ type AirExportRepo interface {
 type AirExportUsecase struct{ repo AirExportRepo }
 
 func NewAirExportUsecase(repo AirExportRepo) *AirExportUsecase { return &AirExportUsecase{repo: repo} }
-func (uc *AirExportUsecase) List(ctx context.Context, org uuid.UUID, o SelectorListOptions) ([]*AirMasterWaybill, int, error) {
-	if org == uuid.Nil || !ValidListPagination(o.Page, o.PageSize) {
+func (uc *AirExportUsecase) List(ctx context.Context, org uuid.UUID, businessType OrderBusinessType, o SelectorListOptions) ([]*AirMasterWaybill, int, error) {
+	if org == uuid.Nil || !businessType.IsAir() || !ValidListPagination(o.Page, o.PageSize) {
 		return nil, 0, ErrAirWaybillInvalid
 	}
 	o.Keyword = strings.TrimSpace(o.Keyword)
-	return uc.repo.List(ctx, org, o)
+	return uc.repo.List(ctx, org, businessType, o)
 }
 func (uc *AirExportUsecase) Get(ctx context.Context, org, id uuid.UUID, o SelectorListOptions) (*AirMasterDetail, error) {
 	if org == uuid.Nil || id == uuid.Nil || !ValidListPagination(o.Page, o.PageSize) {
@@ -440,4 +441,9 @@ type AirHouseWaybill struct {
 	Content     *AirWaybillContent
 	Version     uint64
 	ContentHash string
+}
+
+// BusinessType 读取主单自身的稳定身份，不能由成员或请求类型推测。
+func (uc *AirExportUsecase) BusinessType(ctx context.Context, org uuid.UUID, scope string, id uuid.UUID) (OrderBusinessType, error) {
+	return uc.repo.BusinessType(ctx, org, scope, id)
 }

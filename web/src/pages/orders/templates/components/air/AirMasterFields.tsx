@@ -17,6 +17,10 @@ import {
 } from '@/services/roncin/airExportService';
 import { masterDataServiceListAirlines } from '@/services/roncin/masterDataService';
 import { ensureListResponse } from '@/utils/api';
+import {
+  airBusinessTypeCode,
+  requireAirMasterIdentity,
+} from '../../../order-kinds/air-export/identity';
 import type { TemplateProps } from '../../types';
 import { TemplateControlGroup, TemplateFieldGroup } from '../FieldGroup';
 import { SeaCollapsibleNotesField } from '../sea/SeaCollapsibleNotesField';
@@ -293,32 +297,47 @@ export function AirMasterTransportSection({ props }: { props: TemplateProps }) {
     | undefined;
   const { initialState } = useInitialState();
   const organizationId = initialState?.currentUser?.currentOrganization?.id;
-  const organizationRef = useRef(organizationId);
-  organizationRef.current = organizationId;
+  const businessType = props.businessType;
+  const businessTypeCode = airBusinessTypeCode(businessType);
+  const identity = `${organizationId}:${businessType}`;
+  const identityRef = useRef(identity);
+  identityRef.current = identity;
   const documentModeRef = useRef(documentMode);
   documentModeRef.current = documentMode;
+  const preselectedApplied = useRef<string | undefined>(undefined);
   const [params] = useSearchParams();
   const requestedMode = params.get('documentMode');
   const requestedMasterId = props.isDetail ? undefined : params.get('masterId');
   const preselected = useQuery({
     queryKey: [
-      'air-export',
+      'air-orders',
       'preselected-master',
       requestedMasterId,
-      { organizationId },
+      { organizationId, businessType },
     ],
-    enabled: Boolean(requestedMasterId && organizationId),
+    enabled: Boolean(requestedMasterId && organizationId && businessTypeCode),
     queryFn: async ({ signal }) => {
       const response = await airExportServiceGetAirMasterWaybill(
         { id: requestedMasterId || '', page: 1, pageSize: 1 },
         { signal },
       );
-      if (!response?.data) throw new Error('主单加载失败');
-      return response.data;
+      if (response?.success === false) throw new Error('主单加载失败');
+      return requireAirMasterIdentity(
+        response?.data,
+        requestedMasterId ?? undefined,
+        organizationId,
+        businessType,
+      );
     },
   });
   useEffect(() => {
-    if (preselected.data && !props.isDetail)
+    const selectionKey = `${identity}:${requestedMasterId}:${requestedMode}`;
+    if (
+      preselected.data &&
+      !props.isDetail &&
+      preselectedApplied.current !== selectionKey
+    ) {
+      preselectedApplied.current = selectionKey;
       form.setFieldsValue({
         airMasterMode: 'EXISTING',
         airMasterId: preselected.data.id,
@@ -330,10 +349,21 @@ export function AirMasterTransportSection({ props }: { props: TemplateProps }) {
             ? requestedMode
             : preselected.data.documentMode || 'HOUSE',
       });
-  }, [form, preselected.data, props.isDetail, requestedMode]);
+    }
+  }, [
+    form,
+    preselected.data,
+    props.isDetail,
+    requestedMode,
+    identity,
+    requestedMasterId,
+  ]);
   const masterEditable = !props.isDetail && mode === 'NEW';
   return (
     <div style={{ display: 'grid', gap: 12, width: '100%' }}>
+      {preselected.isError && (
+        <Alert type="error" showIcon title="所选主单加载失败，请重新选择。" />
+      )}
       <TemplateFieldGroup title="主单与订舱">
         <TemplateControlGroup title="航空单证模式" required>
           <Form.Item
@@ -396,7 +426,7 @@ export function AirMasterTransportSection({ props }: { props: TemplateProps }) {
             <ProFormSearchableSelect
               name="airMasterId"
               label="选择共享主单"
-              params={{ documentMode }}
+              params={{ documentMode, businessType, organizationId }}
               options={
                 selectedMasterId
                   ? [
@@ -414,6 +444,13 @@ export function AirMasterTransportSection({ props }: { props: TemplateProps }) {
                 { required: true, message: '请选择已有主单' },
                 {
                   validator: async () => {
+                    if (selectedMasterId)
+                      requireAirMasterIdentity(
+                        selectedIdentity,
+                        selectedMasterId,
+                        organizationId,
+                        businessType,
+                      );
                     if (
                       selectedMasterId &&
                       (selectedIdentity?.canAttach !== true ||
@@ -429,11 +466,11 @@ export function AirMasterTransportSection({ props }: { props: TemplateProps }) {
                 },
               ]}
               request={async ({ keyWords }) => {
-                if (!organizationId) return [];
+                if (!organizationId || !businessTypeCode) return [];
                 const requestedDocumentMode = documentMode;
                 const response = ensureListResponse(
                   await airExportServiceListAirMasterWaybills({
-                    businessType: 'AE',
+                    businessType: businessTypeCode,
                     keyword: keyWords,
                     page: 1,
                     pageSize: 50,
@@ -441,21 +478,29 @@ export function AirMasterTransportSection({ props }: { props: TemplateProps }) {
                   '主单候选加载失败',
                 );
                 if (
-                  organizationRef.current !== organizationId ||
+                  identityRef.current !== identity ||
                   documentModeRef.current !== requestedDocumentMode
                 )
                   return [];
-                return (response.data ?? []).map((master) => ({
-                  value: master.id || '',
-                  label: `${master.content?.masterNo} · ${master.airlineName || ''} · ${master.documentMode || '未定模式'} · ${master.memberCount || 0} 票${master.attachBlockedReason ? ` · ${master.attachBlockedReason}` : ''}`,
-                  disabled:
-                    master.canAttach !== true ||
-                    Boolean(
-                      master.documentMode &&
-                        master.documentMode !== requestedDocumentMode,
-                    ),
-                  master,
-                }));
+                return (response.data ?? []).map((item) => {
+                  const master = requireAirMasterIdentity(
+                    item,
+                    item.id,
+                    organizationId,
+                    businessType,
+                  );
+                  return {
+                    value: master.id || '',
+                    label: `${master.content?.masterNo} · ${master.airlineName || ''} · ${master.documentMode || '未定模式'} · ${master.memberCount || 0} 票${master.attachBlockedReason ? ` · ${master.attachBlockedReason}` : ''}`,
+                    disabled:
+                      master.canAttach !== true ||
+                      Boolean(
+                        master.documentMode &&
+                          master.documentMode !== requestedDocumentMode,
+                      ),
+                    master,
+                  };
+                });
               }}
               fieldProps={{
                 onChange: (_value, option) => {
@@ -515,7 +560,7 @@ export function AirMasterTransportSection({ props }: { props: TemplateProps }) {
                 <a
                   onClick={() =>
                     history.push(
-                      `/orders/air-export/masters/${air?.master?.id}`,
+                      `/orders/${props.orderKind}/masters/${air?.master?.id}`,
                     )
                   }
                 >
@@ -535,7 +580,10 @@ export function AirMasterTransportSection({ props }: { props: TemplateProps }) {
         {masterEditable && (
           <>
             <AirMasterRouteFields props={props} />
-            <AirMasterCandidateHint organizationId={organizationId} />
+            <AirMasterCandidateHint
+              organizationId={organizationId}
+              businessType={businessType}
+            />
           </>
         )}
       </TemplateFieldGroup>
@@ -574,25 +622,30 @@ export function AirMasterTransportSection({ props }: { props: TemplateProps }) {
 
 function AirMasterCandidateHint({
   organizationId,
+  businessType,
 }: {
   organizationId?: string;
+  businessType?: number;
 }) {
+  const businessTypeCode = airBusinessTypeCode(businessType);
   const form = Form.useFormInstance();
   const documentMode = Form.useWatch('airDocumentMode', form);
   const value = Form.useWatch(['airMaster', 'masterNo'], form);
   const masterNo = String(value || '').replace(/[\s-]/g, '');
   const query = useQuery({
     queryKey: [
-      'air-export',
+      'air-orders',
       'identity-candidates',
-      { organizationId, masterNo },
+      { organizationId, businessType, masterNo },
     ],
-    enabled: Boolean(organizationId && /^\d{11}$/.test(masterNo)),
+    enabled: Boolean(
+      organizationId && businessTypeCode && /^\d{11}$/.test(masterNo),
+    ),
     queryFn: async ({ signal }) => {
       const response = ensureListResponse(
         await airExportServiceListAirMasterWaybills(
           {
-            businessType: 'AE',
+            businessType: businessTypeCode,
             keyword: masterNo,
             page: 1,
             pageSize: 20,
@@ -601,9 +654,11 @@ function AirMasterCandidateHint({
         ),
         '主单身份核对失败',
       );
-      return (response.data || []).filter(
-        (candidate) => candidate.content?.masterNo === masterNo,
-      );
+      return (response.data || [])
+        .map((item) =>
+          requireAirMasterIdentity(item, item.id, organizationId, businessType),
+        )
+        .filter((candidate) => candidate.content?.masterNo === masterNo);
     },
   });
   const candidate =

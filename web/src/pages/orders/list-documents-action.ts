@@ -5,7 +5,8 @@ export function getDocumentsActionLabel(businessType: number) {
   return businessType === OrderBusinessType.BUSINESS_TYPE_SE ||
     businessType === OrderBusinessType.BUSINESS_TYPE_SI
     ? '海运单证'
-    : businessType === OrderBusinessType.BUSINESS_TYPE_AE
+    : businessType === OrderBusinessType.BUSINESS_TYPE_AE ||
+        businessType === OrderBusinessType.BUSINESS_TYPE_AI
       ? '航空运单'
       : undefined;
 }
@@ -20,7 +21,8 @@ export function openOrderDocuments(
   if (
     businessType === OrderBusinessType.BUSINESS_TYPE_SE ||
     businessType === OrderBusinessType.BUSINESS_TYPE_SI ||
-    businessType === OrderBusinessType.BUSINESS_TYPE_AE
+    businessType === OrderBusinessType.BUSINESS_TYPE_AE ||
+    businessType === OrderBusinessType.BUSINESS_TYPE_AI
   ) {
     const path = `/orders/${item.orderKind || fallbackOrderKind}/${item.id}`;
     navigate(

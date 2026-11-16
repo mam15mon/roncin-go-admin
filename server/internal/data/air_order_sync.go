@@ -19,7 +19,7 @@ import (
 )
 
 func prepareAirOrderCreate(ctx context.Context, tx *ent.Tx, org, actor uuid.UUID, input *biz.Order) (*ent.AirMasterWaybill, error) {
-	if input.BusinessType != biz.OrderBusinessAE {
+	if !input.BusinessType.IsAir() {
 		return nil, nil
 	}
 	in := input.AirExportInput
@@ -67,7 +67,7 @@ func prepareAirOrderCreate(ctx context.Context, tx *ent.Tx, org, actor uuid.UUID
 			return nil, e
 		}
 		var e error
-		m, e = tx.AirMasterWaybill.Create().SetBusinessType("AE").SetOrganizationID(org).SetMasterNo(v.MasterNo).SetAirlineID(v.AirlineID).SetOriginAirportID(v.OriginAirportID).SetDestinationAirportID(v.DestinationAirportID).SetFlightNo(v.FlightNo).SetEtd(v.ETD).SetEta(v.ETA).SetActualDepartureAt(v.ActualDepartureAt).SetActualArrivalAt(v.ActualArrivalAt).SetDocumentCutoffAt(v.DocumentCutoffAt).SetCustomsCutoffAt(v.CustomsCutoffAt).SetStatus(v.Status).SetNillableDeclaredPackages(v.DeclaredPackages).SetNillableDeclaredGrossWeightKg(v.DeclaredGrossWeightKg).SetNillableDeclaredVolumeCbm(v.DeclaredVolumeCbm).SetNotes(v.Notes).SetWaybillContent(airContentJSON(v.WaybillContent)).SetContentHash(biz.AirWaybillContentHash(v.WaybillContent)).Save(ctx)
+		m, e = tx.AirMasterWaybill.Create().SetBusinessType(string(input.BusinessType)).SetOrganizationID(org).SetMasterNo(v.MasterNo).SetAirlineID(v.AirlineID).SetOriginAirportID(v.OriginAirportID).SetDestinationAirportID(v.DestinationAirportID).SetFlightNo(v.FlightNo).SetEtd(v.ETD).SetEta(v.ETA).SetActualDepartureAt(v.ActualDepartureAt).SetActualArrivalAt(v.ActualArrivalAt).SetDocumentCutoffAt(v.DocumentCutoffAt).SetCustomsCutoffAt(v.CustomsCutoffAt).SetStatus(v.Status).SetNillableDeclaredPackages(v.DeclaredPackages).SetNillableDeclaredGrossWeightKg(v.DeclaredGrossWeightKg).SetNillableDeclaredVolumeCbm(v.DeclaredVolumeCbm).SetNotes(v.Notes).SetWaybillContent(airContentJSON(v.WaybillContent)).SetContentHash(biz.AirWaybillContentHash(v.WaybillContent)).Save(ctx)
 		if e != nil {
 			return nil, mapEntError(e, nil, biz.ErrAirWaybillExists)
 		}
@@ -81,7 +81,7 @@ func prepareAirOrderCreate(ctx context.Context, tx *ent.Tx, org, actor uuid.UUID
 	return m, nil
 }
 func createAirOrderDocuments(ctx context.Context, tx *ent.Tx, org, actor uuid.UUID, o *ent.Order, input *biz.Order, m *ent.AirMasterWaybill) error {
-	if input.BusinessType != biz.OrderBusinessAE {
+	if !input.BusinessType.IsAir() {
 		return nil
 	}
 	in := input.AirExportInput
@@ -107,7 +107,7 @@ func createAirOrderDocuments(ctx context.Context, tx *ent.Tx, org, actor uuid.UU
 	return writeAirMasterHistory(ctx, tx, m, actor, "CREATE_LINK", "创建空运订单 "+o.OrderNo)
 }
 func updateAirOrderDocuments(ctx context.Context, tx *ent.Tx, org, actor uuid.UUID, o *ent.Order, input *biz.Order) error {
-	if input.BusinessType != biz.OrderBusinessAE {
+	if !input.BusinessType.IsAir() {
 		return nil
 	}
 	in := input.AirExportInput
@@ -186,7 +186,7 @@ func lockAirLifecycleTarget(ctx context.Context, tx *ent.Tx, org, id uuid.UUID) 
 	if e != nil {
 		return nil, nil, mapEntError(e, biz.ErrOrderNotFound, nil)
 	}
-	if row.BusinessType != orderent.BusinessTypeAE {
+	if !biz.OrderBusinessType(row.BusinessType).IsAir() {
 		o, e := tx.Order.Query().Where(orderent.IDEQ(id), orderent.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
 		return o, nil, e
 	}
@@ -210,7 +210,7 @@ func lockAirLifecycleTarget(ctx context.Context, tx *ent.Tx, org, id uuid.UUID) 
 	return nil, nil, biz.ErrAirWaybillConflict
 }
 func endAirOrderOnTermination(ctx context.Context, tx *ent.Tx, o *ent.Order, c *airMasterLockContext, actor uuid.UUID, at time.Time) error {
-	if o.BusinessType != orderent.BusinessTypeAE {
+	if !biz.OrderBusinessType(o.BusinessType).IsAir() {
 		return nil
 	}
 	if c == nil {
@@ -230,7 +230,7 @@ func endAirOrderOnTermination(ctx context.Context, tx *ent.Tx, o *ent.Order, c *
 	return writeAirMasterHistory(ctx, tx, m, actor, "END_LINK", "终止空运订单 "+o.OrderNo)
 }
 func validateAirFlowData(ctx context.Context, tx *ent.Tx, o *ent.Order, target biz.OrderFlowStatus, reason string) error {
-	if o.BusinessType != orderent.BusinessTypeAE {
+	if !biz.OrderBusinessType(o.BusinessType).IsAir() {
 		return nil
 	}
 	if !biz.ValidAirFlowTransition(biz.OrderFlowStatus(o.FlowStatus), target) {
@@ -290,11 +290,15 @@ func airDocumentSnapshotFingerprint(snapshot map[string]string) string {
 }
 
 func airOrderLockDocumentSnapshot(ctx context.Context, tx *ent.Tx, org, id uuid.UUID) (map[string]string, error) {
+	o, e := tx.Order.Query().Where(orderent.IDEQ(id), orderent.OrganizationIDEQ(org)).Only(ctx)
+	if e != nil || !biz.OrderBusinessType(o.BusinessType).IsAir() {
+		return nil, biz.ErrAirWaybillConflict
+	}
 	candidate, e := tx.AirMasterWaybillOrderLink.Query().Where(airlink.OrderIDEQ(id), airlink.OrganizationIDEQ(org), airlink.StatusEQ("ACTIVE")).Only(ctx)
 	if e != nil {
 		return nil, biz.ErrAirWaybillConflict
 	}
-	if _, e = tx.AirMasterWaybill.Query().Where(airmaster.IDEQ(candidate.MasterWaybillID), airmaster.OrganizationIDEQ(org), airmaster.BusinessTypeEQ("AE")).ForUpdate().Only(ctx); e != nil {
+	if _, e = tx.AirMasterWaybill.Query().Where(airmaster.IDEQ(candidate.MasterWaybillID), airmaster.OrganizationIDEQ(org), airmaster.BusinessTypeEQ(string(o.BusinessType))).ForUpdate().Only(ctx); e != nil {
 		return nil, biz.ErrAirWaybillConflict
 	}
 	if _, e = tx.AirMasterWaybillOrderLink.Query().Where(airlink.IDEQ(candidate.ID), airlink.StatusEQ("ACTIVE")).ForUpdate().Only(ctx); e != nil {
@@ -309,15 +313,19 @@ func airOrderLockDocumentSnapshot(ctx context.Context, tx *ent.Tx, org, id uuid.
 }
 
 func readAirOrderDocumentSnapshot(ctx context.Context, c *ent.Client, org, id uuid.UUID) (map[string]string, error) {
+	o, e := c.Order.Query().Where(orderent.IDEQ(id), orderent.OrganizationIDEQ(org)).Only(ctx)
+	if e != nil || !biz.OrderBusinessType(o.BusinessType).IsAir() {
+		return nil, biz.ErrAirWaybillConflict
+	}
 	l, e := c.AirMasterWaybillOrderLink.Query().Where(airlink.OrderIDEQ(id), airlink.OrganizationIDEQ(org), airlink.StatusEQ("ACTIVE")).Only(ctx)
 	if e != nil {
 		return nil, biz.ErrAirWaybillConflict
 	}
-	m, e := c.AirMasterWaybill.Query().Where(airmaster.IDEQ(l.MasterWaybillID), airmaster.OrganizationIDEQ(org), airmaster.BusinessTypeEQ("AE")).Only(ctx)
+	m, e := c.AirMasterWaybill.Query().Where(airmaster.IDEQ(l.MasterWaybillID), airmaster.OrganizationIDEQ(org), airmaster.BusinessTypeEQ(string(o.BusinessType))).Only(ctx)
 	if e != nil {
 		return nil, e
 	}
-	if m.OrganizationID != org || m.BusinessType != "AE" {
+	if m.OrganizationID != org || m.BusinessType != string(o.BusinessType) {
 		return nil, biz.ErrAirWaybillConflict
 	}
 	l, e = c.AirMasterWaybillOrderLink.Query().Where(airlink.IDEQ(l.ID), airlink.StatusEQ("ACTIVE")).Only(ctx)

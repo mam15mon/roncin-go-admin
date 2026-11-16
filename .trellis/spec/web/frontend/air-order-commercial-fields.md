@@ -2,7 +2,7 @@
 
 ## 1. 适用范围
 
-AE新建和详情的公共经营字段UI、默认值、载荷和回显；入口为订单域内的`templates/components/air/AirCommercialFields.tsx`与`order-kinds/air-export/form-adapter.ts`。航空运输、MAWB/HAWB正文与重量确认仍由各自契约管理，不以公共货值或付款方式代替单证声明/印字。
+AE/AI新建和详情的公共经营字段UI、默认值、载荷和回显；入口为订单域内的`templates/components/air/AirCommercialFields.tsx`与`order-kinds/air-export/form-adapter.ts`。AI定义组合共有映射并显式传入AI/IMPORT，不逐页复制公共字段；进口边界见[空运进口闭环](../../server/backend/air-import-contract.md)。航空运输、MAWB/HAWB正文与重量确认仍由各自契约管理，不以公共货值或付款方式代替单证声明/印字。
 
 ## 2. 签名与字段
 

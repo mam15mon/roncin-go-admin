@@ -37,7 +37,7 @@ export default function AirExportDetailFeatures({
                   key: 'shared-master',
                   label: '共享主单与成员',
                   onClick: () =>
-                    history.push(`/orders/air-export/masters/${masterId}`),
+                    history.push(`/orders/${context.kind}/masters/${masterId}`),
                 },
               ]
             : []),
@@ -50,6 +50,7 @@ export default function AirExportDetailFeatures({
               <AirWeightPanel
                 scope="ORDER"
                 targetId={context.orderId}
+                businessType={context.order.businessType}
                 canUpdate={
                   context.canOrder('update') && !context.businessWritesDisabled
                 }

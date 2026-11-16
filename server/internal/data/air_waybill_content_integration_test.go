@@ -13,13 +13,19 @@ import (
 )
 
 func TestAirWaybillOrdinarySaveChecksExplicitMasterVersionPostgres(t *testing.T) {
+	for _, businessType := range []biz.OrderBusinessType{biz.OrderBusinessAE, biz.OrderBusinessAI} {
+		t.Run(string(businessType), func(t *testing.T) { verifyAirWaybillOrdinarySaveChecksExplicitMasterVersionPostgres(t, businessType) })
+	}
+}
+
+func verifyAirWaybillOrdinarySaveChecksExplicitMasterVersionPostgres(t *testing.T, businessType biz.OrderBusinessType) {
 	d, cleanup := getIntegrationData(t)
 	t.Cleanup(cleanup)
 	f := newAirExportFixture(t, d)
 	ctx := context.Background()
 	uc := f.newUsecase()
 	air := biz.NewAirExportUsecase(NewAirExportRepo(d))
-	in := f.input("78112345675", "H-MASTER-BASELINE")
+	in := airInputForBusiness(f, businessType, "78112345675", "H-MASTER-BASELINE")
 	in.AirExportInput.House.Content = &biz.AirWaybillContent{Remarks: "原始分单"}
 	o := f.create(t, in)
 	master := o.AirExport.Master
@@ -71,14 +77,20 @@ func TestAirWaybillOrdinarySaveChecksExplicitMasterVersionPostgres(t *testing.T)
 }
 
 func TestAirWaybillIndependentContentVersionsAndReviewPostgres(t *testing.T) {
+	for _, businessType := range []biz.OrderBusinessType{biz.OrderBusinessAE, biz.OrderBusinessAI} {
+		t.Run(string(businessType), func(t *testing.T) { verifyAirWaybillIndependentContentVersionsAndReviewPostgres(t, businessType) })
+	}
+}
+
+func verifyAirWaybillIndependentContentVersionsAndReviewPostgres(t *testing.T, businessType biz.OrderBusinessType) {
 	d, cleanup := getIntegrationData(t)
 	t.Cleanup(cleanup)
 	f := newAirExportFixture(t, d)
-	p := airTestPrincipal(f)
+	p := airPrincipalForBusiness(f, businessType)
 	ctx := biz.WithPrincipal(context.Background(), p)
 	uc := f.newUsecase()
 	air := biz.NewAirExportUsecase(NewAirExportRepo(d))
-	in := f.input("78112345675", "H-CONTENT")
+	in := airInputForBusiness(f, businessType, "78112345675", "H-CONTENT")
 	in.AirExportInput.Master.WaybillContent = &biz.AirWaybillContent{ShipperText: "主单发货人", Remarks: "主单独立正文"}
 	in.AirExportInput.House.Content = &biz.AirWaybillContent{ShipperText: strings.Repeat("中", 5000), Marks: strings.Repeat("唛", 10000), Remarks: "  原始分单\n换行  ", IssueDate: "2026-11-16", CustomsValue: &biz.AirDeclaredValue{Kind: "AMOUNT", Amount: "0"}}
 	o := f.create(t, in)
@@ -88,7 +100,7 @@ func TestAirWaybillIndependentContentVersionsAndReviewPostgres(t *testing.T) {
 		t.Fatal("独立正文、换行或哈希错误")
 	}
 	// 按ID选择已有主单，日期与机场只取锁内权威事实；幂等重放不依赖副本。
-	existingInput := f.input("", "H-ID-ONLY")
+	existingInput := airInputForBusiness(f, businessType, "", "H-ID-ONLY")
 	existingInput.ETD = ""
 	existingInput.ETA = ""
 	existingInput.DestinationLocationID = nil
@@ -247,13 +259,19 @@ func TestAirWaybillIndependentContentVersionsAndReviewPostgres(t *testing.T) {
 }
 
 func TestAirWaybillBodyAuditFailureAndPermanentNumberPostgres(t *testing.T) {
+	for _, businessType := range []biz.OrderBusinessType{biz.OrderBusinessAE, biz.OrderBusinessAI} {
+		t.Run(string(businessType), func(t *testing.T) { verifyAirWaybillBodyAuditFailureAndPermanentNumberPostgres(t, businessType) })
+	}
+}
+
+func verifyAirWaybillBodyAuditFailureAndPermanentNumberPostgres(t *testing.T, businessType biz.OrderBusinessType) {
 	d, cleanup := getIntegrationData(t)
 	t.Cleanup(cleanup)
 	f := newAirExportFixture(t, d)
 	ctx := context.Background()
 	uc := f.newUsecase()
 	air := biz.NewAirExportUsecase(NewAirExportRepo(d))
-	in := f.input("78112345675", "H-PERMANENT")
+	in := airInputForBusiness(f, businessType, "78112345675", "H-PERMANENT")
 	in.AirExportInput.House.Content = &biz.AirWaybillContent{Remarks: "旧分单正文"}
 	o := f.create(t, in)
 	if _, e := d.sqlDB.ExecContext(ctx, `CREATE FUNCTION fail_air_content_audit() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION '正文审计失败测试'; END $$`); e != nil {
@@ -295,7 +313,7 @@ func TestAirWaybillBodyAuditFailureAndPermanentNumberPostgres(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	duplicate := f.input("78112345675", "H-PERMANENT")
+	duplicate := airInputForBusiness(f, businessType, "78112345675", "H-PERMANENT")
 	duplicate.AirExportInput.Master = &o.AirExport.Master.Content
 	duplicate.AirExportInput.MasterWaybillID = &o.AirExport.Master.ID
 	duplicate.AirExportInput.ExpectedMasterVersion = o.AirExport.Master.Version
@@ -305,5 +323,5 @@ func TestAirWaybillBodyAuditFailureAndPermanentNumberPostgres(t *testing.T) {
 	if d.db.Order.Query().Where(orderent.OrganizationIDEQ(f.organizationID)).CountX(ctx) != 1 {
 		t.Fatal("永久号冲突遗留半票")
 	}
-	f.create(t, f.input("78112345686", "H-PERMANENT"))
+	f.create(t, airInputForBusiness(f, businessType, "78112345686", "H-PERMANENT"))
 }

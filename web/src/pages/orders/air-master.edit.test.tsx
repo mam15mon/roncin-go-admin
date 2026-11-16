@@ -80,9 +80,10 @@ describe('航空主单编辑快照', () => {
     masterServices.get.mockResolvedValue(masterResponse('2'));
     await act(async () => {
       await view.queryClient.invalidateQueries({
-        queryKey: ['air-export', 'master'],
+        queryKey: ['air-orders', 'master'],
       });
     });
+    expect(masterServices.get).toHaveBeenCalledTimes(2);
     expect(remarks).toHaveValue('本次主单正文');
     expect(screen.getByLabelText('测试运输航班')).toHaveValue('运输航班-1');
     fireEvent.click(screen.getByRole('button', { name: '预览影响' }));

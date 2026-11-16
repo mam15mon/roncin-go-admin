@@ -105,7 +105,7 @@ func (r *orderRepo) TransitionTermination(ctx context.Context, organizationID, i
 			target == biz.OrderTerminationTerminating && existing.LockedAt != nil {
 			return ensureOrderNotBusinessLocked(ctx, tx.User, existing)
 		}
-		if existing.BusinessType == orderent.BusinessTypeAE && existing.TerminationStatus == orderent.TerminationStatusTERMINATED && target == biz.OrderTerminationActive {
+		if biz.OrderBusinessType(existing.BusinessType).IsAir() && existing.TerminationStatus == orderent.TerminationStatusTERMINATED && target == biz.OrderTerminationActive {
 			return biz.NewAirFlowDataError("请从原主单显式关联并恢复订单")
 		}
 		var restoredLink *ent.SeaMasterBillOrderLink

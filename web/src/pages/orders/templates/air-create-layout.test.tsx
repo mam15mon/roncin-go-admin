@@ -9,6 +9,7 @@ import {
 } from '@testing-library/react';
 import { Form, type FormInstance } from 'antd';
 import { describe, expect, it, vi } from 'vitest';
+import { OrderBusinessType } from '@/enums.generated';
 import { airExportServiceListAirMasterWaybills } from '@/services/roncin/airExportService';
 import { getAirTemplateSections } from './air-template';
 import type { TemplateProps } from './types';
@@ -32,6 +33,8 @@ vi.mock('@/services/roncin/airExportService', async (importOriginal) => ({
 
 const search = async () => [];
 const props: TemplateProps = {
+  businessType: OrderBusinessType.BUSINESS_TYPE_AE,
+  orderKind: 'air-export',
   cargoCategoryOptions: [],
   locationOptions: [],
   searchLocations: search,

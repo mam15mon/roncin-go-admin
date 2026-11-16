@@ -2,19 +2,23 @@ import { renderWithApp } from '@root/tests/renderWithApp';
 import { screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { OrderBusinessType } from '@/enums.generated';
+import { formatDate } from '@/utils/format';
 import { type FeeSideSummary, summarizeFees } from './feeSummary';
 import OrderFeeHeader from './OrderFeeHeader';
 
 const emptyFeeSummary = summarizeFees([]);
 
 describe('空运费用页业务摘要', () => {
-  it('展示真实航空主单、航班、机场与航司，不展示海运标签或引用 UUID', () => {
+  it.each([
+    OrderBusinessType.BUSINESS_TYPE_AE,
+    OrderBusinessType.BUSINESS_TYPE_AI,
+  ])('%s展示真实航空主单与机场，进口使用主单ETA经营日期', (businessType) => {
     renderWithApp(
       <OrderFeeHeader
         order={{
           id: 'order',
           orderNo: 'AE-001',
-          businessType: OrderBusinessType.BUSINESS_TYPE_AE,
+          businessType,
           customerId: 'customer-uuid',
           customerName: '验收客户',
           originLocationId: 'origin-uuid',
@@ -28,6 +32,7 @@ describe('空运费用页业务摘要', () => {
                 masterNo: '78112345675',
                 flightNo: 'MU583',
                 etd: '2026-10-21T06:45:00Z',
+                eta: '2026-10-22T16:30:00Z',
               },
             },
           },
@@ -47,6 +52,13 @@ describe('空运费用页业务摘要', () => {
     expect(screen.getByText('上海浦东 (PVG)')).toBeVisible();
     expect(screen.getByText('洛杉矶 (LAX)')).toBeVisible();
     expect(screen.getByText('中国东方航空')).toBeVisible();
+    if (businessType === OrderBusinessType.BUSINESS_TYPE_AI) {
+      expect(screen.getByText('计划到达（经营日期）')).toBeVisible();
+      expect(
+        screen.getByText(formatDate('2026-10-22T16:30:00Z', 'minute')),
+      ).toBeVisible();
+      expect(screen.queryByText('计划起飞')).not.toBeInTheDocument();
+    }
     expect(screen.queryByText('主单号 (MBL)')).not.toBeInTheDocument();
     expect(screen.queryByText('origin-uuid')).not.toBeInTheDocument();
     expect(screen.queryByText('destination-uuid')).not.toBeInTheDocument();

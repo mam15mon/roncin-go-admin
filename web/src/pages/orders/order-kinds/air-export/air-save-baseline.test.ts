@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { OrderBusinessType } from '@/enums.generated';
 import {
   acceptsAirSaveBaseline,
   sameAirWaybillContent,
@@ -7,7 +8,12 @@ import {
 const previous: API.AirOrderInfo = {
   documentMode: 'HOUSE',
   active: true,
-  master: { id: 'master', version: '3' },
+  master: {
+    id: 'master',
+    organizationId: 'org',
+    businessType: 'AE',
+    version: '3',
+  },
   house: {
     id: 'house',
     houseNo: 'H1',
@@ -36,6 +42,7 @@ function saved(): API.Order {
   return {
     id: 'order',
     organizationId: 'org',
+    businessType: OrderBusinessType.BUSINESS_TYPE_AE,
     version: '9007199254740994',
     airExport: {
       ...previous,
@@ -49,7 +56,14 @@ function saved(): API.Order {
   };
 }
 const accepts = (snapshot: API.Order, input = payload, baseline = previous) =>
-  acceptsAirSaveBaseline('order', 'org', baseline, input, snapshot);
+  acceptsAirSaveBaseline(
+    'order',
+    'org',
+    OrderBusinessType.BUSINESS_TYPE_AE,
+    baseline,
+    input,
+    snapshot,
+  );
 
 describe('航空保存精确版本基线', () => {
   it('分单修改同步确认订单、分单及关联各自版本，不受JS整数精度影响', () => {

@@ -33,11 +33,13 @@ export default function AirWeightPanel({
   scope,
   targetId,
   canUpdate,
+  businessType,
   onConfirmed,
 }: {
   scope: 'ORDER' | 'MASTER';
   targetId: string;
   canUpdate: boolean;
+  businessType?: number;
   onConfirmed?: () => void | Promise<void>;
 }) {
   const [source, setSource] = useState<'ACTUAL' | 'PLANNED'>('ACTUAL');
@@ -64,7 +66,7 @@ export default function AirWeightPanel({
     bubbleShareDenominator: denominator,
   };
   const preview = useQuery({
-    queryKey: ['air-weight', 'preview', input],
+    queryKey: ['air-weight', 'preview', { ...input, businessType }],
     enabled: validRule,
     queryFn: async ({ signal }) => {
       const response = await airWeightServicePreviewAirWeight(input, {

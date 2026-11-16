@@ -85,7 +85,7 @@ func (r *embeddedAuthRepo) CreateSession(_ context.Context, s *biz.Session, _ st
 func embeddedHTTPServer(repo *embeddedAuthRepo, p *embeddedProvider) *kratoshttp.Server {
 	policy := &biz.SessionPolicy{CookieName: "roncin_session", TTL: time.Hour, Secure: true, SameSite: "lax"}
 	uc := biz.NewAuthUsecase(repo, policy, p, nil)
-	server := kratoshttp.NewServer(kratoshttp.ResponseEncoder(encodeResponse), kratoshttp.ErrorEncoder(encodeError), kratoshttp.Middleware(Authorization(uc, policy, nil, nil), RequiredFieldsValidator()))
+	server := kratoshttp.NewServer(kratoshttp.ResponseEncoder(encodeResponse), kratoshttp.ErrorEncoder(encodeError), kratoshttp.Middleware(Authorization(uc, policy, nil, nil, nil), RequiredFieldsValidator()))
 	authv1.RegisterAuthServiceHTTPServer(server, service.NewAuthService(uc, policy, nil))
 	return server
 }

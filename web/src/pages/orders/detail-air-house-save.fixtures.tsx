@@ -3,7 +3,7 @@ import { act, fireEvent, screen } from '@testing-library/react';
 import { App, ConfigProvider, Form, type FormInstance, Input } from 'antd';
 import React, { type ComponentType } from 'react';
 import { vi } from 'vitest';
-import { OrderAllowedAction } from '@/enums.generated';
+import { OrderAllowedAction, OrderBusinessType } from '@/enums.generated';
 import { orderServiceUpdateOrder } from '@/services/roncin/orderService';
 import type { OrderDetailFeaturesProps } from './order-kinds/types';
 import type { TemplateProps } from './templates/types';
@@ -96,7 +96,9 @@ export function renderAirSaveDetail() {
       </App>
     </ConfigProvider>,
     {
-      routerProps: { initialEntries: [`/orders/air-export/${state.routeId}`] },
+      routerProps: {
+        initialEntries: [`/orders/${state.routeKind}/${state.routeId}`],
+      },
     },
   );
 }
@@ -142,6 +144,7 @@ export async function resetAirSaveState(houseStatus = 'DRAFT') {
     id: 'order-1',
     version: '4',
     organizationId: 'org-1',
+    businessType: OrderBusinessType.BUSINESS_TYPE_AE,
     customerId: 'customer-1',
     orderDate: '2026-10-01',
     allowedActions: [OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT],
@@ -160,7 +163,13 @@ export async function resetAirSaveState(houseStatus = 'DRAFT') {
       },
       linkId: 'link-1',
       linkVersion: '1',
-      master: { id: 'mawb-1', version: '3', content: {} },
+      master: {
+        id: 'mawb-1',
+        organizationId: 'org-1',
+        businessType: 'AE',
+        version: '3',
+        content: {},
+      },
     },
   };
   state.loadData.mockImplementation(async () => ({

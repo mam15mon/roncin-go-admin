@@ -57,8 +57,9 @@ func TestSeaImportMigrationRejectsUnverifiableSnapshotsPostgres(t *testing.T) {
 	if e := migration.Apply(ctx, d.sqlDB, filepath.Join("..", "..", "migrations")); e == nil {
 		t.Fatal("不可验证SI审核快照必须显式停止")
 	}
+	// 只检查隔离Schema，不能沿search_path命中开发库public中的同名正式表。
 	var exists bool
-	if e := d.sqlDB.QueryRowContext(ctx, `SELECT to_regclass('order_import_handlings') IS NOT NULL`).Scan(&exists); e != nil {
+	if e := d.sqlDB.QueryRowContext(ctx, `SELECT EXISTS (SELECT 1 FROM pg_catalog.pg_tables WHERE schemaname = current_schema() AND tablename = 'order_import_handlings')`).Scan(&exists); e != nil {
 		t.Fatal(e)
 	}
 	if exists {

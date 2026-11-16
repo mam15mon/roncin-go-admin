@@ -23,12 +23,16 @@ func TestFinanceReportAuthoritativeAirAndImportDatePostgres(t *testing.T) {
 	f.fee(f.order.ID, feeent.DirectionRECEIVABLE, "100", "100")
 	imported := d.db.Order.Create().SetOrganizationID(f.org).SetIdempotencyKey(uuid.NewString()).SetOrderNo("IMPORT").SetCustomerID(f.party).SetBusinessType(orderent.BusinessTypeSI).SetFlowStatus(orderent.FlowStatusIMPORT_NOT_APPLICABLE).SetTradeDirection(orderent.TradeDirectionImport).SetPaymentTerm(orderent.PaymentTermPREPAID).SetEtd("2026-01-01T00:00:00Z").SetEta("2026-05-01T03:00:00+08:00").SaveX(ctx)
 	f.fee(imported.ID, feeent.DirectionPAYABLE, "40", "40")
+	ai := d.db.Order.Create().SetOrganizationID(f.org).SetIdempotencyKey(uuid.NewString()).SetOrderNo("AIR-IMPORT").SetCustomerID(f.party).SetBusinessType(orderent.BusinessTypeAI).SetFlowStatus(orderent.FlowStatusIMPORT_NOT_APPLICABLE).SetTradeDirection(orderent.TradeDirectionImport).SetPaymentTerm(orderent.PaymentTermPREPAID).SetEtd("2026-01-01T00:00:00Z").SetEta("2026-01-02T00:00:00Z").SaveX(ctx)
+	aiMaster := d.db.AirMasterWaybill.Create().SetBusinessType("AI").SetOrganizationID(f.org).SetMasterNo("99912345678").SetAirlineID(airline.ID).SetOriginAirportID(airport.ID).SetDestinationAirportID(airport.ID).SetEta("2026-04-30T17:00:00Z").SaveX(ctx)
+	d.db.AirMasterWaybillOrderLink.Create().SetDocumentMode("DIRECT").SetOrganizationID(f.org).SetOrderID(ai.ID).SetMasterWaybillID(aiMaster.ID).SaveX(ctx)
+	f.fee(ai.ID, feeent.DirectionPAYABLE, "20", "20")
 	report, err := NewFinanceReportRepo(d).Profit(ctx, f.org, biz.FinanceReportFilter{Page: 1, PageSize: 20, DateFrom: "2026-05-01", DateTo: "2026-05-01"}, false)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if report.Total != 2 || report.Totals[0].ProfitAmount.String() != "60" {
-		t.Fatalf("AE应取权威主单ETD，进口应取ETA并按中国业务日筛选: %#v", report)
+	if report.Total != 3 || report.Totals[0].ProfitAmount.String() != "40" {
+		t.Fatalf("AE应取权威主单ETD，AI应取权威主单ETA，SI取同步ETA并按中国业务日筛选: %#v", report)
 	}
 	for _, row := range report.Items {
 		if row.BusinessDate == nil || *row.BusinessDate != "2026-05-01" {

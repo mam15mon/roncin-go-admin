@@ -16,7 +16,7 @@
   `(organization_id, business_type, master_no)`；号码仍按航空既有规则规范化。
 - 两主单额外索引 `(organization_id, business_type)`；替换旧的不含方向唯一索引。
 - `MatchSeaMasterBillCandidateRequest.business_type`、
-  `ListAirMasterWaybillsRequest.business_type` 必填。当前出口入口分别显式提交 SE、AE，缺失或
+  `ListAirMasterWaybillsRequest.business_type` 必填。海运入口显式提交SE/SI，航空入口显式提交AE/AI，缺失或
   不适用类型拒绝；HTTP/生成客户端使用 `businessType`。响应投影保留主单的真实业务类型。
 - 正式迁移：`20261116120000_order_master_business_identity.sql`。
 
@@ -44,7 +44,7 @@
 
 | 条件 | 结果 |
 | --- | --- |
-| 当前出口候选省略 `businessType` 或传进口类型 | 参数错误，不默认出口 |
+| 候选省略 `businessType` 或传不适用运输类型 | 参数错误，不默认出口 |
 | 同公司同号、不同方向 | 两张独立主单 |
 | 同公司同方向重复号 | 唯一约束拒绝，失败事务回滚 |
 | 按 ID 引用另一方向或公司 | 不可见或业务拒绝，不改挂 |

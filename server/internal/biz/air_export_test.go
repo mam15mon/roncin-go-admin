@@ -54,7 +54,7 @@ type airExportPaginationRepo struct {
 	options SelectorListOptions
 }
 
-func (r *airExportPaginationRepo) List(_ context.Context, _ uuid.UUID, options SelectorListOptions) ([]*AirMasterWaybill, int, error) {
+func (r *airExportPaginationRepo) List(_ context.Context, _ uuid.UUID, _ OrderBusinessType, options SelectorListOptions) ([]*AirMasterWaybill, int, error) {
 	r.called, r.options = true, options
 	return nil, 0, nil
 }
@@ -78,7 +78,7 @@ func TestAirExportPaginationBounds(t *testing.T) {
 		run  func(*AirExportUsecase, SelectorListOptions) error
 	}{
 		{"主单列表", func(uc *AirExportUsecase, options SelectorListOptions) error {
-			_, _, err := uc.List(context.Background(), org, options)
+			_, _, err := uc.List(context.Background(), org, OrderBusinessAE, options)
 			return err
 		}},
 		{"主单成员与历史", func(uc *AirExportUsecase, options SelectorListOptions) error {

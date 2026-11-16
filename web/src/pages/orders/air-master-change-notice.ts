@@ -1,7 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePageForeground } from '@/hooks/usePageForeground';
 import { airExportServiceGetAirMasterWaybill } from '@/services/roncin/airExportService';
+import { generateUUID } from '@/utils/uuid';
+import { requireAirMasterIdentity } from './order-kinds/air-export/identity';
 
 function markerOf(response?: API.GetAirMasterWaybillResponse) {
   return JSON.stringify([
@@ -15,19 +17,25 @@ export function useAirMasterChangeNotice(options: {
   baseline?: API.GetAirMasterWaybillResponse;
   session: number;
   organizationId?: string;
+  businessType?: number;
   enabled: boolean;
 }) {
-  const { baseline, session, organizationId, enabled } = options;
+  const { baseline, session, organizationId, businessType, enabled } = options;
   const masterId = baseline?.data?.id;
-  const [changedSession, setChangedSession] = useState<number>();
+  const owner = useMemo(
+    () => generateUUID(),
+    [organizationId, businessType, masterId],
+  );
+  const identity = `${owner}:${session}`;
+  const [changedIdentity, setChangedIdentity] = useState<string>();
   const resumeRef = useRef<() => void>(() => undefined);
   const foreground = usePageForeground(() => resumeRef.current());
   const active = enabled && Boolean(masterId && organizationId);
   const query = useQuery({
     queryKey: [
-      'air-export',
+      'air-orders',
       'master-change-notice',
-      { masterId, organizationId, session },
+      { masterId, organizationId, businessType, owner, session },
     ],
     enabled: active && foreground,
     initialData: baseline,
@@ -41,12 +49,14 @@ export function useAirMasterChangeNotice(options: {
         { id: masterId, page: 1, pageSize: 1 },
         { signal, skipErrorHandler: true },
       );
-      if (
-        response?.success === false ||
-        response?.data?.id !== masterId ||
-        !response.data.version
-      )
+      if (response?.success === false || !response?.data)
         throw new Error('主单变动检查失败');
+      requireAirMasterIdentity(
+        response.data,
+        masterId,
+        organizationId,
+        businessType,
+      );
       return response;
     },
   });
@@ -57,7 +67,7 @@ export function useAirMasterChangeNotice(options: {
   const observed = markerOf(query.data);
   useEffect(() => {
     if (active && query.isSuccess && observed !== base)
-      setChangedSession(session);
-  }, [active, query.isSuccess, observed, base, session]);
-  return active && changedSession === session;
+      setChangedIdentity(identity);
+  }, [active, query.isSuccess, observed, base, identity]);
+  return active && changedIdentity === identity;
 }

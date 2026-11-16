@@ -12,6 +12,7 @@
 | [Directory Structure](./directory-structure.md) | 页面组织、features 分层与依赖边界 | ✅ |
 | [空运公共经营字段](./air-order-commercial-fields.md) | AE本票经营字段UI、金额日期往返与显式清空 | ✅ |
 | [航空直单与结构化正文](../../server/backend/air-waybill-content-and-mode.md) | 模式与可选HAWB、正文数值/纯日期/清空、主单编辑快照及航空审核指纹 | ✅ |
+| [空运进口闭环](../../server/backend/air-import-contract.md) | AI路由/候选/主单类型、重量权限、ETA与服务保存航空基线 | ✅ |
 | [进口订单与按票服务](../../server/backend/order-import-handling.md) | SI页面复用、真实类型/服务基线、五环节适用性与外部HBL登记归档 | ✅ |
 | [订单列表字段与排序](../../server/backend/order-list-fields.md) | 海运可选列、本票摘要、真实排序、品类偏好与列表提成退役 | ✅ |
 | [Column Settings](./column-settings.md) | 全量铺排排序、逐列多列冻结、偏好隔离和Pro适配 | ✅ |

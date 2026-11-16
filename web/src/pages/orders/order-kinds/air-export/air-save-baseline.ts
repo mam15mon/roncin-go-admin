@@ -1,3 +1,5 @@
+import { airBusinessTypeCode } from './identity';
+
 /** 正文中的非 optional 标量由 ProtoJSON 省略零值，按实际 wire 语义比较。 */
 export function sameAirWaybillContent(
   left?: API.AirWaybillContent,
@@ -59,6 +61,7 @@ function versionAdvanced(
 export function acceptsAirSaveBaseline(
   orderId: string,
   organizationId: string | undefined,
+  businessType: number,
   previous: API.AirOrderInfo | undefined,
   payload: API.UpdateOrderRequest,
   saved: API.Order,
@@ -68,9 +71,15 @@ export function acceptsAirSaveBaseline(
     !organizationId ||
     saved.id !== orderId ||
     saved.organizationId !== organizationId ||
+    !airBusinessTypeCode(businessType) ||
+    saved.businessType !== businessType ||
     !versionAdvanced(payload.expectedVersion, saved.version, 1n) ||
     !previous?.master?.id ||
     previous.master.id !== air?.master?.id ||
+    previous.master.organizationId !== organizationId ||
+    air.master?.organizationId !== organizationId ||
+    previous.master.businessType !== airBusinessTypeCode(businessType) ||
+    air.master?.businessType !== airBusinessTypeCode(businessType) ||
     !versionAdvanced(previous.master.version, air?.master?.version, 0n) ||
     previous.documentMode !== air?.documentMode ||
     (previous.active ?? false) !== (air?.active ?? false) ||

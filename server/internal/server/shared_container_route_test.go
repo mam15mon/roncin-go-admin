@@ -74,7 +74,7 @@ func TestSharedContainerHTTPAuthorizationAndBinding(t *testing.T) {
 						operation = tr.Operation()
 						return next(ctx, req)
 					}
-				}, Authorization(authUC, policy, orderUC, nil), RequiredFieldsValidator()))
+				}, Authorization(authUC, policy, orderUC, nil, nil), RequiredFieldsValidator()))
 				repo := &sharedRouteRepo{}
 				shared := service.NewSeaSharedContainerService(biz.NewSeaSharedContainerUsecase(repo))
 				orders := &recordingOrderServiceHTTPServer{}

@@ -59,7 +59,7 @@ func TestSeaTransportHTTPAuthorizationUsesActualBusinessPermissions(t *testing.T
 				policy := &biz.SessionPolicy{CookieName: "sid", TTL: time.Hour, SameSite: "lax"}
 				authUC := biz.NewAuthUsecase(&middlewareAuthRepoStub{session: &biz.Session{UserID: principal.UserID, OrganizationID: test.companyID, ExpiresAt: time.Now().Add(time.Hour)}, principal: principal}, policy, nil, nil)
 				orderUC := biz.NewOrderUsecase(&anchorAwareOrderRepoStub{order: anchor}, nil, nil, nil, nil)
-				srv := khttp.NewServer(khttp.ErrorEncoder(encodeError), khttp.Middleware(Authorization(authUC, policy, orderUC, nil), RequiredFieldsValidator()))
+				srv := khttp.NewServer(khttp.ErrorEncoder(encodeError), khttp.Middleware(Authorization(authUC, policy, orderUC, nil, nil), RequiredFieldsValidator()))
 				repo := &seaTransportRouteRepo{}
 				orderv1.RegisterSeaOrderChangeServiceHTTPServer(srv, service.NewSeaOrderChangeService(biz.NewSeaOrderChangeUsecase(repo, nil)))
 				path := "/api/v1/orders/" + anchor.ID.String() + "/sea-order-change/transport-execution"
@@ -108,7 +108,7 @@ func TestSeaCandidateHTTPAuthorizationUsesRequestedBusinessIdentity(t *testing.T
 				authUC := biz.NewAuthUsecase(&middlewareAuthRepoStub{session: &biz.Session{UserID: uuid.New(), OrganizationID: principal.Organization.ID, ExpiresAt: time.Now().Add(time.Hour)}, principal: principal}, policy, nil, nil)
 				repo := &seaCandidateRouteRepo{}
 				orderUC := biz.NewOrderUsecase(nil, repo, nil, nil, nil)
-				srv := khttp.NewServer(khttp.ErrorEncoder(encodeError), khttp.Middleware(Authorization(authUC, policy, orderUC, nil), RequiredFieldsValidator()))
+				srv := khttp.NewServer(khttp.ErrorEncoder(encodeError), khttp.Middleware(Authorization(authUC, policy, orderUC, nil, nil), RequiredFieldsValidator()))
 				orderv1.RegisterOrderServiceHTTPServer(srv, service.NewOrderService(orderUC))
 				query := url.Values{"businessType": {requested}, "shippingLineId": {uuid.NewString()}, "masterNo": {"IMPORT123"}}
 				request := httptest.NewRequest(http.MethodGet, "/api/v1/orders/sea-master-bill-candidate?"+query.Encode(), nil)

@@ -354,7 +354,9 @@ export function buildOrderStatusSection(
   actions: OrderStatusSectionActions = {},
 ): OrderFormTemplateSection {
   const allowedTargets = new Set(order?.allowedTargetFlowStatuses ?? []);
-  const isAir = order?.businessType === OrderBusinessType.BUSINESS_TYPE_AE;
+  const isAir =
+    order?.businessType === OrderBusinessType.BUSINESS_TYPE_AE ||
+    order?.businessType === OrderBusinessType.BUSINESS_TYPE_AI;
   const isImport =
     order?.businessType === OrderBusinessType.BUSINESS_TYPE_SI ||
     order?.businessType === OrderBusinessType.BUSINESS_TYPE_AI;

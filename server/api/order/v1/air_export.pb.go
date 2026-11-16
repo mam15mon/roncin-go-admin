@@ -3464,15 +3464,19 @@ const file_order_v1_air_export_proto_rawDesc = "" +
 	"\ahistory\x18\b \x03(\v2\x1a.order.v1.AirMasterHistoryR\ahistory\x12'\n" +
 	"\x0fblocked_reasons\x18\t \x03(\tR\x0eblockedReasons\x12#\n" +
 	"\rhistory_total\x18\n" +
-	" \x01(\x05R\fhistoryTotal2\x92\v\n" +
-	"\x10AirExportService\x12\xd7\x01\n" +
-	"\x1bListAirHouseWaybillVersions\x12,.order.v1.ListAirHouseWaybillVersionsRequest\x1a-.order.v1.ListAirHouseWaybillVersionsResponse\"[\x82\xb5\x18\x1c\b\x03\x12\x16business.order.ae.read \x02\x82\xd3\xe4\x93\x025\x123/api/v1/air-export/orders/{order_id}/house-versions\x12\xcb\x01\n" +
-	"\x15ListAirLinkCandidates\x12&.order.v1.ListAirLinkCandidatesRequest\x1a'.order.v1.ListAirLinkCandidatesResponse\"a\x82\xb5\x18\x1e\b\x03\x12\x18business.order.ae.update \x02\x82\xd3\xe4\x93\x029\x127/api/v1/air-export/master-waybills/{id}/link-candidates\x12\xb4\x01\n" +
-	"\x15ListAirMasterWaybills\x12&.order.v1.ListAirMasterWaybillsRequest\x1a'.order.v1.ListAirMasterWaybillsResponse\"J\x82\xb5\x18\x1c\b\x03\x12\x16business.order.ae.read \x02\x82\xd3\xe4\x93\x02$\x12\"/api/v1/air-export/master-waybills\x12\xb3\x01\n" +
-	"\x13GetAirMasterWaybill\x12$.order.v1.GetAirMasterWaybillRequest\x1a%.order.v1.GetAirMasterWaybillResponse\"O\x82\xb5\x18\x1c\b\x03\x12\x16business.order.ae.read \x02\x82\xd3\xe4\x93\x02)\x12'/api/v1/air-export/master-waybills/{id}\x12\xde\x01\n" +
-	"\x1dPreviewAirMasterWaybillUpdate\x12..order.v1.PreviewAirMasterWaybillUpdateRequest\x1a/.order.v1.PreviewAirMasterWaybillUpdateResponse\"\\\x82\xb5\x18\x1e\b\x03\x12\x18business.order.ae.update \x02\x82\xd3\xe4\x93\x024:\x01*\"//api/v1/air-export/master-waybills/{id}/preview\x12\xc1\x01\n" +
-	"\x16UpdateAirMasterWaybill\x12'.order.v1.UpdateAirMasterWaybillRequest\x1a(.order.v1.UpdateAirMasterWaybillResponse\"T\x82\xb5\x18\x1e\b\x03\x12\x18business.order.ae.update \x02\x82\xd3\xe4\x93\x02,:\x01*\x1a'/api/v1/air-export/master-waybills/{id}\x12\xc3\x01\n" +
-	"\x14LinkAirMasterWaybill\x12%.order.v1.LinkAirMasterWaybillRequest\x1a&.order.v1.LinkAirMasterWaybillResponse\"\\\x82\xb5\x18\x1e\b\x03\x12\x18business.order.ae.update \x02\x82\xd3\xe4\x93\x024:\x01*\"//api/v1/air-export/master-waybills/{id}/membersB:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
+	" \x01(\x05R\fhistoryTotal2\x94\n" +
+	"\n" +
+	"\x10AirExportService\x12\xc5\x01\n" +
+	"\x1bListAirHouseWaybillVersions\x12,.order.v1.ListAirHouseWaybillVersionsRequest\x1a-.order.v1.ListAirHouseWaybillVersionsResponse\"I\x82\xb5\x18\n" +
+	"\b\x04\x1a\x04read \x02\x82\xd3\xe4\x93\x025\x123/api/v1/air-export/orders/{order_id}/house-versions\x12\xb9\x01\n" +
+	"\x15ListAirLinkCandidates\x12&.order.v1.ListAirLinkCandidatesRequest\x1a'.order.v1.ListAirLinkCandidatesResponse\"O\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x029\x127/api/v1/air-export/master-waybills/{id}/link-candidates\x12\xa2\x01\n" +
+	"\x15ListAirMasterWaybills\x12&.order.v1.ListAirMasterWaybillsRequest\x1a'.order.v1.ListAirMasterWaybillsResponse\"8\x82\xb5\x18\n" +
+	"\b\x04\x1a\x04read \x02\x82\xd3\xe4\x93\x02$\x12\"/api/v1/air-export/master-waybills\x12\xa1\x01\n" +
+	"\x13GetAirMasterWaybill\x12$.order.v1.GetAirMasterWaybillRequest\x1a%.order.v1.GetAirMasterWaybillResponse\"=\x82\xb5\x18\n" +
+	"\b\x04\x1a\x04read \x02\x82\xd3\xe4\x93\x02)\x12'/api/v1/air-export/master-waybills/{id}\x12\xcc\x01\n" +
+	"\x1dPreviewAirMasterWaybillUpdate\x12..order.v1.PreviewAirMasterWaybillUpdateRequest\x1a/.order.v1.PreviewAirMasterWaybillUpdateResponse\"J\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x024:\x01*\"//api/v1/air-export/master-waybills/{id}/preview\x12\xaf\x01\n" +
+	"\x16UpdateAirMasterWaybill\x12'.order.v1.UpdateAirMasterWaybillRequest\x1a(.order.v1.UpdateAirMasterWaybillResponse\"B\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x02,:\x01*\x1a'/api/v1/air-export/master-waybills/{id}\x12\xb1\x01\n" +
+	"\x14LinkAirMasterWaybill\x12%.order.v1.LinkAirMasterWaybillRequest\x1a&.order.v1.LinkAirMasterWaybillResponse\"J\x82\xb5\x18\f\b\x04\x1a\x06update \x02\x82\xd3\xe4\x93\x024:\x01*\"//api/v1/air-export/master-waybills/{id}/membersB:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
 	file_order_v1_air_export_proto_rawDescOnce sync.Once

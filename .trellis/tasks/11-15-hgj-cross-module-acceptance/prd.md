@@ -16,7 +16,7 @@
 
 ## 依赖与边界
 
-前置：.trellis/tasks/archive/2026-11/11-15-hgj-order-direction、.trellis/tasks/archive/2026-11/11-15-hgj-air-documents、.trellis/tasks/11-15-hgj-sea-import、.trellis/tasks/11-15-hgj-air-import、.trellis/tasks/11-15-hgj-air-waybill-pdf。前置交付未完成不能把树形位置当作已满足依赖。
+前置：.trellis/tasks/archive/2026-11/11-15-hgj-order-direction、.trellis/tasks/archive/2026-11/11-15-hgj-air-documents、.trellis/tasks/archive/2026-11/11-15-hgj-sea-import、.trellis/tasks/11-15-hgj-air-import、.trellis/tasks/11-15-hgj-air-waybill-pdf。前置交付未完成不能把树形位置当作已满足依赖。
 
 本期不增加真正多航段、复杂空运拆拼改配、批量导入或另五类实现；不提交海管家单据、不清库、不手改生成物。父最终方案已批准，按前置交付验收顺序start。
 

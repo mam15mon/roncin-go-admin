@@ -108,13 +108,13 @@ func TestAirMasterIdentityCandidatesWritesAndRestorePostgres(t *testing.T) {
 	importMaster := d.db.AirMasterWaybill.Create().SetBusinessType("AI").SetOrganizationID(f.organizationID).SetMasterNo("78112345675").SetAirlineID(f.airlineID).SetOriginAirportID(f.originID).SetDestinationAirportID(f.destinationID).SaveX(ctx)
 	air := biz.NewAirExportUsecase(NewAirExportRepo(d))
 	options := biz.SelectorListOptions{Page: 1, PageSize: 20}
-	rows, total, err := air.List(ctx, f.organizationID, options)
+	rows, total, err := air.List(ctx, f.organizationID, biz.OrderBusinessAE, options)
 	if err != nil || total != 0 || len(rows) != 0 {
 		t.Fatalf("进口主单泄漏到出口候选: %d %v", total, err)
 	}
 	o := f.create(t, in)
 	master := o.AirExport.Master
-	rows, total, err = air.List(ctx, f.organizationID, options)
+	rows, total, err = air.List(ctx, f.organizationID, biz.OrderBusinessAE, options)
 	if err != nil || total != 1 || rows[0].ID != master.ID || rows[0].BusinessType != biz.OrderBusinessAE {
 		t.Fatalf("同号候选未按主单自身身份隔离: %d %v", total, err)
 	}
@@ -124,9 +124,7 @@ func TestAirMasterIdentityCandidatesWritesAndRestorePostgres(t *testing.T) {
 	if _, err := f.newUsecase().Create(ctx, f.organizationID, f.actorID, bad); err == nil {
 		t.Fatal("空运创建接受进口主单ID")
 	}
-	if _, err := air.Preview(ctx, f.organizationID, importMaster.ID, importMaster.Version, &master.Content); err == nil {
-		t.Fatal("空运预览接受进口主单ID")
-	}
+	// 按ID预览以主单真实身份授权，AE/AI隔离在HTTP及Service权限测试覆盖。
 	if d.db.Order.Query().CountX(ctx) != 1 {
 		t.Fatal("跨方向建票失败留下部分订单")
 	}
@@ -144,7 +142,7 @@ func TestAirMasterIdentityCandidatesWritesAndRestorePostgres(t *testing.T) {
 	if d.db.AirMasterWaybillOrderLink.Query().Where(airlink.OrderIDEQ(o.ID)).CountX(ctx) != 1 || d.db.Order.GetX(ctx, o.ID).TerminationStatus != orderent.TerminationStatusTERMINATED {
 		t.Fatal("失败恢复留下新关联或改写状态")
 	}
-	rows, total, err = air.List(ctx, f.organizationID, options)
+	rows, total, err = air.List(ctx, f.organizationID, biz.OrderBusinessAE, options)
 	if err != nil || total != 1 || rows[0].ID != master.ID || rows[0].MemberCount != 0 {
 		t.Fatalf("航空无活动成员丢失出口身份: %d %v", total, err)
 	}
