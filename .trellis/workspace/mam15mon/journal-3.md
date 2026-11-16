@@ -1951,3 +1951,26 @@ AI真实类型权限、DIRECT/HOUSE、独立重量与ETA费用、审核恢复和
 ### Status
 
 [OK] **Completed**
+
+
+## Session 216: 空运订单新建与详情页排版对齐海运
+<!-- trellis-session: v=2 fp=485442fab0fbffe8 -->
+
+**Date**: 2026-11-16
+**Task**: 空运订单新建与详情页排版对齐海运
+**Branch**: `main`
+
+### Summary
+
+空运 AE/AI 新建与详情五卡内分组、字段归属、六列栅格与备注小节对齐海运；修正备注行换行缺陷；字段与载荷不变，订单目录测试全绿，用户浏览器验收通过；同步空运规范。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `16ca0e99` | refactor(web): 空运订单新建与详情页排版对齐海运 |
+| `255083de` | docs: 同步空运订单字段归属与排版规范 |
+
+### Status
+
+[OK] **Completed**
