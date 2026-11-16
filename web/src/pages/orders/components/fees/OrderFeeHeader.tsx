@@ -1,4 +1,4 @@
-import { Card, Col, Row, Space, Tag } from 'antd';
+import { Card, Col, Descriptions, Row, Space, Tag } from 'antd';
 import React from 'react';
 import { SectionCard } from '@/components/ui';
 import { OrderBusinessType } from '@/enums.generated';
@@ -10,7 +10,6 @@ import {
   type FeeCurrencyTotal,
   type FeeSideSummary,
 } from './feeSummary';
-import styles from './OrderFeeHeader.module.css';
 
 type OrderFeeHeaderProps = {
   order: API.Order;
@@ -117,66 +116,63 @@ export default function OrderFeeHeader({
     order.businessType === OrderBusinessType.BUSINESS_TYPE_AI;
   return (
     <>
-      {/* 1. 基础信息卡片 */}
-      <SectionCard title="订单基础信息" style={{ marginBottom: 16 }}>
-        <div className={styles.identity}>
-          <div className={styles.orderIdentity}>
-            <span className={styles.label}>订单编号</span>
-            <strong className={styles.orderNo}>
+      {/* 1. 基础信息卡片：单号与业务类型并入标题栏，明细用标准 Descriptions 紧凑网格 */}
+      <SectionCard
+        title="订单基础信息"
+        extra={
+          <>
+            <span
+              style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}
+            >
               {order.orderNo || order.id}
-            </strong>
-            <Tag color="blue">{configTitle}</Tag>
-            <span className={styles.tradeTerm}>
-              <span className={styles.label}>贸易条款</span>
-              {tradeTermOptions.find((o) => o.value === order.tradeTerm)
-                ?.label ?? '-'}
             </span>
-          </div>
-          <div className={styles.customer}>
-            <span className={styles.label}>委托单位</span>
-            <strong>{customerName || order.customerName || '-'}</strong>
-          </div>
-        </div>
-        <div className={styles.transport}>
-          <div className={styles.route}>
-            <div className={styles.location}>
-              <span className={styles.label}>
-                {isAir ? '起运机场' : '起运港 (POL)'}
-              </span>
-              <strong>
-                {(isAir
+            <Tag color="blue" style={{ marginInlineEnd: 0 }}>
+              {configTitle}
+            </Tag>
+          </>
+        }
+        style={{ marginBottom: 16 }}
+      >
+        <Descriptions
+          size="small"
+          colon={false}
+          column={{ xs: 1, sm: 2, lg: 3, xl: 4 }}
+          styles={{
+            label: { minWidth: 96, color: '#64748b' },
+            content: { color: '#1f2937', minWidth: 0 },
+          }}
+          items={[
+            {
+              key: 'customer',
+              label: '委托单位',
+              children: customerName || order.customerName || '-',
+            },
+            {
+              key: 'origin',
+              label: isAir ? '起运机场' : '起运港 (POL)',
+              children:
+                (isAir
                   ? master?.originAirportName
-                  : order.originLocationName) || '-'}
-              </strong>
-            </div>
-            <div className={styles.routeConnector} aria-hidden="true">
-              <span />
-              <span className={styles.routeArrow}>→</span>
-              <span />
-            </div>
-            <div className={styles.location}>
-              <span className={styles.label}>
-                {isAir ? '目的机场' : '目的港 (POD)'}
-              </span>
-              <strong>
-                {(isAir
+                  : order.originLocationName) || '-',
+            },
+            {
+              key: 'destination',
+              label: isAir ? '目的机场' : '目的港 (POD)',
+              children:
+                (isAir
                   ? master?.destinationAirportName
-                  : order.destinationLocationName) || '-'}
-              </strong>
-            </div>
-          </div>
-          <div className={styles.schedule}>
-            <span className={styles.label}>
-              {isImport
+                  : order.destinationLocationName) || '-',
+            },
+            {
+              key: 'schedule',
+              label: isImport
                 ? isAir
                   ? '计划到达（经营日期）'
                   : 'ETA（经营日期）'
                 : isAir
                   ? '计划起飞'
-                  : 'ETD'}
-            </span>
-            <strong>
-              {formatDate(
+                  : 'ETD',
+              children: formatDate(
                 isImport
                   ? isAir
                     ? master?.content?.eta
@@ -185,46 +181,54 @@ export default function OrderFeeHeader({
                     ? master?.content?.etd
                     : order.etd,
                 isAir ? 'minute' : 'date',
-              )}
-            </strong>
-          </div>
-        </div>
-        <dl className={styles.details}>
-          <div>
-            <dt>{isAir ? '主运单号 (MAWB)' : '主单号 (MBL)'}</dt>
-            <dd className={styles.documentNo}>
-              {(isAir
-                ? master?.content?.masterNo
-                : order.seaMasterBill?.masterNo) || '-'}
-            </dd>
-          </div>
-          <div>
-            <dt>{isAir ? '航空公司' : '船公司'}</dt>
-            <dd>
-              {(isAir
-                ? master?.airlineName
-                : order.seaMasterBill?.shippingLineName) || '-'}
-            </dd>
-          </div>
-          <div>
-            <dt>{isAir ? '航班号' : '船名航次'}</dt>
-            <dd>
-              {(isAir ? master?.content?.flightNo : order.vesselVoyage) || '-'}
-            </dd>
-          </div>
-          <div>
-            <dt>订舱代理</dt>
-            <dd>{order.bookingAgentName || '-'}</dd>
-          </div>
-          <div>
-            <dt>件重尺</dt>
-            <dd>
-              {order.totalPackages || '-'} 件 /{' '}
-              {order.totalGrossWeightKg || '-'} kg /{' '}
-              {order.totalVolumeCbm || '-'} m³
-            </dd>
-          </div>
-        </dl>
+              ),
+            },
+            {
+              key: 'masterNo',
+              label: isAir ? '主运单号 (MAWB)' : '主单号 (MBL)',
+              children: (
+                <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                  {(isAir
+                    ? master?.content?.masterNo
+                    : order.seaMasterBill?.masterNo) || '-'}
+                </span>
+              ),
+            },
+            {
+              key: 'carrier',
+              label: isAir ? '航空公司' : '船公司',
+              children:
+                (isAir
+                  ? master?.airlineName
+                  : order.seaMasterBill?.shippingLineName) || '-',
+            },
+            {
+              key: 'voyage',
+              label: isAir ? '航班号' : '船名航次',
+              children:
+                (isAir ? master?.content?.flightNo : order.vesselVoyage) || '-',
+            },
+            {
+              key: 'tradeTerm',
+              label: '贸易条款',
+              children:
+                tradeTermOptions.find((o) => o.value === order.tradeTerm)
+                  ?.label ?? '-',
+            },
+            {
+              key: 'bookingAgent',
+              label: '订舱代理',
+              children: order.bookingAgentName || '-',
+            },
+            {
+              key: 'cargo',
+              label: '件重尺',
+              children: `${order.totalPackages || '-'} 件 / ${
+                order.totalGrossWeightKg || '-'
+              } kg / ${order.totalVolumeCbm || '-'} m³`,
+            },
+          ]}
+        />
       </SectionCard>
 
       {/* 2. 费用汇总统计指标卡：含税与不含税同时展示 */}
