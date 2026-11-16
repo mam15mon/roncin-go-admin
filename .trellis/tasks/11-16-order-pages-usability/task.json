@@ -4,7 +4,7 @@
   "title": "四类订单页面操作体验对齐",
   "description": "以现有海运出口为基线，完善空运运输与重量核对、主分单入口、进口服务布局及四类列表体验",
   "status": "in_progress",
-  "dev_type": null,
+  "dev_type": "fullstack",
   "scope": null,
   "package": null,
   "priority": "P2",
@@ -15,12 +15,12 @@
   "branch": "codex/order-pages-usability",
   "base_branch": "main",
   "worktree_path": null,
-  "commit": null,
+  "commit": "b9f197c4",
   "pr_url": null,
   "subtasks": [],
   "children": [],
   "parent": null,
   "relatedFiles": [],
-  "notes": "",
+  "notes": "PRD全部验收完成。后端门禁与真实PG专项通过；最终check:web 537文件/2878项通过，11项既有跳过；24项浏览器场景及2项宽度聚焦通过。详见research/verification.md。",
   "meta": {}
 }

@@ -10,6 +10,7 @@
 | [Capability Navigation](./capability-navigation.md) | 复用能力导航：场景→入口→职责，开发前先查 | ✅ |
 | [Duplicate Report](./duplicate-report.md) | 前后端疑似重复函数扫描、证据与审查限制 | ✅ |
 | [Directory Structure](./directory-structure.md) | 页面组织、features 分层与依赖边界 | ✅ |
+| [航空订单就近工作区](./air-order-workspace.md) | 五卡插槽、共同运输快照与草稿基线、主分单页签、重量及只读操作 | ✅ |
 | [空运公共经营字段](./air-order-commercial-fields.md) | AE本票经营字段UI、金额日期往返与显式清空 | ✅ |
 | [航空直单与结构化正文](../../server/backend/air-waybill-content-and-mode.md) | 模式与可选HAWB、正文数值/纯日期/清空、主单编辑快照及航空审核指纹 | ✅ |
 | [航空制作与PDF](../../server/backend/air-waybill-production.md) | MAWB/HAWB真实主体与保存版本、按需同Blob输出、完整分页及输入保护 | ✅ |

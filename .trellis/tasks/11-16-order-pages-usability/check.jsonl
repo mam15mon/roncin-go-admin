@@ -8,3 +8,4 @@
 {"file": ".trellis/spec/server/backend/air-export-contract.md", "reason": "订单体验改造必须保留的UI、数据及并发合同"}
 {"file": ".trellis/spec/server/backend/air-import-contract.md", "reason": "订单体验改造必须保留的UI、数据及并发合同"}
 {"file": ".trellis/spec/server/backend/order-import-handling.md", "reason": "订单体验改造必须保留的UI、数据及并发合同"}
+{"file": ".trellis/spec/web/frontend/air-order-workspace.md", "reason": "本次航空工作区的轻量独立规范，避免大规范注入截断遗漏新增合同"}

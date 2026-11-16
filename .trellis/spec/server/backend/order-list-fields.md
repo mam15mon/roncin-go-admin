@@ -48,3 +48,41 @@ const count = order.attachmentCount ?? 0;
 // 正确：保留存在性，由列渲染区分“-”和明确0。
 const count = order.attachmentCount;
 ```
+
+## 航空本票确认重量摘要
+
+### 1. 适用范围
+AE/AI 列表与详情的 `AirOrderInfo`，只读展示两种货量来源的最新本票确认；不改变费用采用来源，无 Schema 变更。
+
+### 2. 签名
+`AirOrderInfo.weight_summaries: repeated AirOrderWeightSummary`，ProtoJSON 为 `weightSummaries`。
+`AirOrderWeightSummary` 含 `source`、`confirmedWeightKg`、`confirmationStale`、`confirmedAt`。
+实现：`internal/data/air_order_weight_summary.go`，经 `airOrderToAPI` 输出。
+
+### 3. 合同
+- `source` 只能为 PLANNED/ACTUAL，各自按 version 取最新 ORDER 确认；MASTER 不混入，两个来源不替代。
+- 无确认不返回该来源；`"0"` 是明确确认值。`confirmationStale` 为非 optional bool，省略表示 false。
+- 过期状态复用 `BuildAirWeightPreview` 及同一货量指纹构造，禁止另写列表算法。
+- 仅对已授权订单按公司批量查询；新增摘要固定至多四次查询/公司，前端不逐行补取。
+- 本次没有改造既有共享主单装饰查询，不将摘要批量化等同于整套订单聚合无逐主单查询。
+
+### 4. 校验与错误
+| 状态 | 结果 |
+| --- | --- |
+| 来源无确认 | 不返回摘要，界面显示未确认 |
+| 仅 ACTUAL 货量变化 | ACTUAL 需重确认，PLANNED 不随之过期 |
+| 确认值为字符串 0 | 展示 0，不能当缺失 |
+| 未知 source / 缺少或非法重量 | 前端映射显式报错，不伪造未确认 |
+
+### 5. 示例
+正常：PLANNED=120，ACTUAL=130且过期，两行分别展示；基础：空数组展示未确认。
+错误：选择两来源中数值较大者作为“当前采用值”，或把主单重量分配给本票。
+
+### 6. 验证
+`air_weight_integration_test.go` 的真实 PostgreSQL 场景覆盖双来源最新版本、独立过期、未确认票；
+`air_order_weight_summary_test.go` 覆盖 wire 省略 bool 与明确零；
+前端 `list-query.air-weight.test.ts`、`air-list-columns.test.tsx` 验证映射和展示。
+
+### 7. 正误对照
+错误：`confirmedWeightKg || '0'` 把未知确认改成零。
+正确：无摘要展示未确认，有摘要校验字符串后通过 `trimDecimal` 展示；CSV 保留来源分列。
