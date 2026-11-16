@@ -91,6 +91,12 @@ import {
   orderColumnsByPreference,
 } from './orderFeeOptionalColumns';
 
+/**
+ * 数量、单价的校验错误直接显示在输入框下方；ProTable 行内默认放进点击才弹出的气泡，
+ * 业务人员只看到红框不知原因。
+ */
+const inlineFieldError = { errorType: 'inline' } as Record<string, unknown>;
+
 /** 输入框展示用：去掉后端 decimal 的小数尾零（1.0000 → 1），空值原样保留。 */
 const trimDecimalInput = (value?: string) =>
   value ? trimDecimal(value) : value;
@@ -696,15 +702,21 @@ export default function OrderFeeTableTabs({
       });
   };
 
-  /** 计费单位或带入数量变化后重跑数量字段规则；校验失败只展示错误，不抛出。 */
+  /**
+   * 计费单位或带入数量变化后重跑数量字段规则；校验失败只展示错误，不抛出。
+   * ProTable 列回调给出的 rowKey 可能是 ['id'] 形式的路径，validateFields 按段
+   * 精确匹配，须先展平，否则静默匹配不到字段。
+   */
   const revalidateQuantity = (
     form:
       | { validateFields: (names: React.Key[][]) => Promise<unknown> }
       | undefined,
-    rowKey: React.Key | undefined,
+    rowKey: React.Key | React.Key[] | undefined,
   ) => {
     if (!form || rowKey === undefined) return;
-    void form.validateFields([[rowKey, 'quantity']]).catch(() => undefined);
+    void form
+      .validateFields([[...[rowKey].flat(), 'quantity']])
+      .catch(() => undefined);
   };
 
   // 单价/数量/币种变化后重算总金额预览，并同步行内单价供不含税单价列
@@ -1235,6 +1247,7 @@ export default function OrderFeeTableTabs({
         width: 120,
         align: 'right',
         formItemProps: {
+          ...inlineFieldError,
           rules: [
             { required: true, message: '请输入单价' },
             {
@@ -1265,6 +1278,17 @@ export default function OrderFeeTableTabs({
         width: 190,
         align: 'right',
         formItemProps: (form, { rowKey }) => ({
+          ...inlineFieldError,
+          // 整数计费单位（箱、票等）不接受小数点：键入的 "." 直接不出现；
+          // 粘贴的小数在小数点处截断（1.5 → 1），避免去点后放大成 15。
+          normalize: (value?: string) =>
+            value &&
+            billingUnits?.find(
+              (unit) =>
+                unit.id === form.getFieldValue([rowKey, 'billingUnitId']),
+            )?.quantityMustBeInteger
+              ? value.split('.')[0].replace(/\D/g, '')
+              : value,
           rules: [
             { required: true, message: '请输入数量' },
             {
