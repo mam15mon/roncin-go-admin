@@ -33,6 +33,7 @@ const feeTestState = vi.hoisted(() => ({
   acceptOwnSave: vi.fn(),
   refreshLockState: vi.fn(),
   lockStateLoading: false,
+  lockStateRefreshing: false,
   lockStateError: null as Error | null,
   modalSubmitResult: vi.fn(),
 }));
@@ -45,6 +46,7 @@ beforeEach(() => {
   feeTestState.acceptOwnSave.mockReset();
   feeTestState.refreshLockState.mockReset();
   feeTestState.lockStateLoading = false;
+  feeTestState.lockStateRefreshing = false;
   feeTestState.lockStateError = null;
   feeTestState.modalSubmitResult.mockReset();
 });
@@ -207,6 +209,7 @@ vi.mock('./use-order-lock-state', async (importOriginal) => {
     useOrderLockState: () => ({
       state: feeTestState.lockState,
       loading: feeTestState.lockStateLoading,
+      refreshing: feeTestState.lockStateRefreshing,
       error: feeTestState.lockStateError,
       refresh: feeTestState.refreshLockState,
     }),
@@ -262,6 +265,7 @@ vi.mock('./components/fees/OrderFeeTableTabs', () => ({
       <div data-testid="fee-write-disabled">
         {String(props.feeWritesDisabled)}
       </div>
+      <div data-testid="fee-rows-locked">{String(props.feeRowsLocked)}</div>
       <div data-testid="fee-bill-tracking">
         {props.feeBillTracking
           ? `${props.feeBillTracking.state}|${
@@ -808,6 +812,23 @@ describe('订单费用页外部变动提示与刷新保护', () => {
     expect(feeTestState.rebaseline).not.toHaveBeenCalled();
     expect(feeTestState.refreshLockState).toHaveBeenCalledOnce();
     expect(screen.getByTestId('fee-reload-token')).toHaveTextContent('0');
+  });
+
+  it('保存后审核状态后台重读只关闭提交，不收起费用行', async () => {
+    const { rerender, queryClient } = renderFeesPage();
+    expect(await screen.findByTestId('fee-rows-locked')).toHaveTextContent(
+      'false',
+    );
+    feeTestState.lockStateLoading = true;
+    feeTestState.lockStateRefreshing = true;
+    rerenderFeesPage(rerender, queryClient);
+    expect(screen.getByTestId('fee-write-disabled')).toHaveTextContent('true');
+    expect(screen.getByTestId('fee-rows-locked')).toHaveTextContent('false');
+
+    // 首次加载（无已确认快照）仍按同步中锁定费用行。
+    feeTestState.lockStateRefreshing = false;
+    rerenderFeesPage(rerender, queryClient);
+    expect(screen.getByTestId('fee-rows-locked')).toHaveTextContent('true');
   });
 
   it('行内写入成功也同步审核状态而不整体重建费用表', async () => {

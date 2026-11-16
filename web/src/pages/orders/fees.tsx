@@ -116,9 +116,13 @@ export default function OrderFeesPage() {
   const {
     state: lockState,
     loading: lockStateLoading,
+    refreshing: lockStateRefreshing,
     error: lockStateError,
     refresh: refreshLockState,
   } = useOrderLockState(targetOrderId);
+  // 保存、建账等动作后的审核状态后台重读不应收起行内输入、切换锁定标签或暂停变动检查；
+  // 这些展示按最近确认的审核状态保持稳定，提交入口仍由 feeWritesDisabled 失败关闭。
+  const lockStateSettling = lockStateLoading && !lockStateRefreshing;
 
   const {
     totalPreview,
@@ -295,10 +299,14 @@ export default function OrderFeesPage() {
       Boolean(lockState) &&
       lockWritePolicy.disabled);
   const feeWritesDisabled = lockWritePolicy.disabled;
+  const feeRowsLocked = getOrderBusinessWritePolicy({
+    ...orderWriteContext,
+    loading: lockStateSettling,
+  }).disabled;
   // 已有订单的费用表可编辑时才检查外部变动；新建/只读/加载中不轮询。
   const feeChangeNotice = useFeeChangeNotice({
     orderId: targetOrderId,
-    enabled: Boolean(order) && !feeWritesDisabled,
+    enabled: Boolean(order) && !feeRowsLocked,
   });
   const feeWritePolicyRef = useRef(lockWritePolicy);
   feeWritePolicyRef.current = lockWritePolicy;
@@ -634,7 +642,7 @@ export default function OrderFeesPage() {
         tags={
           <OrderLockStatusTag
             state={lockState}
-            loading={lockStateLoading}
+            loading={lockStateSettling}
             error={lockStateError}
           />
         }
@@ -696,6 +704,7 @@ export default function OrderFeesPage() {
         canEditFeeTaxRate={Boolean(access.canEditFeeTaxRate)}
         canDeleteFees={access.canOrder(order.businessType || '', 'fee.delete')}
         feeWritesDisabled={feeWritesDisabled}
+        feeRowsLocked={feeRowsLocked}
         columnSettingScope={feeColumnSettingScope}
         feeBillTracking={feeBillTracking}
         reloadToken={feeReloadToken}

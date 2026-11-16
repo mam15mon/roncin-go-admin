@@ -204,6 +204,12 @@ interface OrderFeeTableTabsProps {
   /** 任一侧存在未保存修改时通知页面（刷新前确认用）。 */
   onDraftChange?: (hasDraft: boolean) => void;
   feeWritesDisabled: boolean;
+  /**
+   * 行内输入与新增入口是否按审核状态锁定。父级在审核状态后台重读期间沿用最近确认
+   * 的状态，避免保存后整表收起成只读文本再展开造成跳动；未传入时与
+   * feeWritesDisabled 一致。提交与财务动作始终由 feeWritesDisabled 判定。
+   */
+  feeRowsLocked?: boolean;
   onOpenBillWorkbench: (feeIds: string[]) => void;
   onOpenFeeModal?: (direction: number, fee?: API.OrderFee) => void;
   getTableColumns?: (direction: number) => ProColumns<API.OrderFee>[];
@@ -246,6 +252,7 @@ export default function OrderFeeTableTabs({
   reloadToken = 0,
   onDraftChange,
   feeWritesDisabled,
+  feeRowsLocked = feeWritesDisabled,
   onOpenBillWorkbench,
   getTableColumns,
   feeSettings,
@@ -290,8 +297,9 @@ export default function OrderFeeTableTabs({
   // 两侧均为多行常开编辑：所有可编辑行始终处于输入态，各侧独立保存；
   // 草稿（输入、新增行、行错误、请求键）按方向隔离，一侧保存或刷新不影响另一侧。
   const rowWritesLocked = feeWritesDisabled || !canUpdateFees;
-  const receivableEditable = rowWritesLocked ? [] : receivableEditableKeys;
-  const payableEditable = rowWritesLocked ? [] : payableEditableKeys;
+  const rowInputsLocked = feeRowsLocked || !canUpdateFees;
+  const receivableEditable = rowInputsLocked ? [] : receivableEditableKeys;
+  const payableEditable = rowInputsLocked ? [] : payableEditableKeys;
   const [dirty, setDirty] = useState({ receivable: false, payable: false });
   const [saving, setSaving] = useState({ receivable: false, payable: false });
   const savingRef = useRef({ receivable: false, payable: false });
@@ -807,7 +815,7 @@ export default function OrderFeeTableTabs({
 
   /** 在本侧表格顶部新增一行；新增行以 dataSource 模式加入，允许同时存在多行。 */
   const handleAddRow = (direction: number) => {
-    if (rowWritesLocked || !canCreateFees) return;
+    if (rowInputsLocked || !canCreateFees) return;
     const isReceivable = direction === RECEIVABLE;
     const newId = `${NEW_FEE_ROW_PREFIX}${generateUUID()}`;
     const defaultPartyId = isReceivable
@@ -1789,7 +1797,7 @@ export default function OrderFeeTableTabs({
               <Button
                 key="add"
                 icon={<PlusOutlined />}
-                disabled={rowWritesLocked || !canCreateFees || saving[side]}
+                disabled={rowInputsLocked || !canCreateFees || saving[side]}
                 onClick={() => handleAddRow(direction)}
               >
                 新增{label}费用

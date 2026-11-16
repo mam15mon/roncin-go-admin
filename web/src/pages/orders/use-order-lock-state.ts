@@ -104,6 +104,9 @@ export function useOrderLockState(orderId?: string) {
   // 由 getOrderBusinessWritePolicy 依据 loading/error 失败关闭。
   const state = error ? null : (data ?? null);
   const loading = Boolean(orderId) && (isPending || isFetching);
+  // 已有成功快照时的后台重读：写入口仍按 loading 失败关闭，展示层可沿用最近确认状态，
+  // 避免每次保存后的同步把整页切到「同步中」再切回。
+  const refreshing = loading && !isPending && !error;
 
   const refresh = useCallback(() => {
     if (!orderId) {
@@ -117,6 +120,7 @@ export function useOrderLockState(orderId?: string) {
   return {
     state,
     loading,
+    refreshing,
     error: error ?? null,
     refresh,
   };

@@ -96,6 +96,38 @@ describe('useOrderLockState', () => {
     expect(result.current.error).toBeNull();
   });
 
+  it('已有快照的后台重读标记为 refreshing 并保留最近状态', async () => {
+    const refetched = deferred<Awaited<ReturnType<typeof getLockState>>>();
+    getLockState
+      .mockResolvedValueOnce(
+        response({ orderId: 'order-a', isLocked: false, orderVersion: '1' }),
+      )
+      .mockReturnValueOnce(refetched.promise);
+
+    const { result } = renderHook(() => useOrderLockState('order-a'), {
+      wrapper: createHookWrapper().wrapper,
+    });
+    await waitFor(() => expect(result.current.state?.orderVersion).toBe('1'));
+    expect(result.current.refreshing).toBe(false);
+
+    act(() => {
+      void result.current.refresh();
+    });
+    await waitFor(() => expect(result.current.loading).toBe(true));
+    expect(result.current.refreshing).toBe(true);
+    expect(result.current.state?.orderVersion).toBe('1');
+
+    await act(async () => {
+      refetched.resolve(
+        response({ orderId: 'order-a', isLocked: false, orderVersion: '2' }),
+      );
+      await refetched.promise;
+    });
+    await waitFor(() => expect(result.current.state?.orderVersion).toBe('2'));
+    expect(result.current.loading).toBe(false);
+    expect(result.current.refreshing).toBe(false);
+  });
+
   it('切换订单后立即清空旧状态并丢弃迟到响应', async () => {
     const first = deferred<Awaited<ReturnType<typeof getLockState>>>();
     const second = deferred<Awaited<ReturnType<typeof getLockState>>>();
