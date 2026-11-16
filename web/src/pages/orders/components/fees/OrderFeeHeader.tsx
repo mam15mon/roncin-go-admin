@@ -148,6 +148,36 @@ export default function OrderFeeHeader({
               children: customerName || order.customerName || '-',
             },
             {
+              key: 'masterNo',
+              label: isAir ? '主运单号 (MAWB)' : '主单号 (MBL)',
+              children: (
+                <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                  {(isAir
+                    ? master?.content?.masterNo
+                    : order.seaMasterBill?.masterNo) || '-'}
+                </span>
+              ),
+            },
+            {
+              key: 'houseNo',
+              label: isAir ? '分运单号 (HAWB)' : '分单号 (HBL)',
+              children: (
+                <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                  {(isAir
+                    ? order.airExport?.house?.houseNo
+                    : order.seaDocumentSummary?.houseNo) || '-'}
+                </span>
+              ),
+            },
+            {
+              key: 'carrier',
+              label: isAir ? '航空公司' : '船公司',
+              children:
+                (isAir
+                  ? master?.airlineName
+                  : order.seaMasterBill?.shippingLineName) || '-',
+            },
+            {
               key: 'origin',
               label: isAir ? '起运机场' : '起运港 (POL)',
               children:
@@ -184,25 +214,6 @@ export default function OrderFeeHeader({
               ),
             },
             {
-              key: 'masterNo',
-              label: isAir ? '主运单号 (MAWB)' : '主单号 (MBL)',
-              children: (
-                <span style={{ fontVariantNumeric: 'tabular-nums' }}>
-                  {(isAir
-                    ? master?.content?.masterNo
-                    : order.seaMasterBill?.masterNo) || '-'}
-                </span>
-              ),
-            },
-            {
-              key: 'carrier',
-              label: isAir ? '航空公司' : '船公司',
-              children:
-                (isAir
-                  ? master?.airlineName
-                  : order.seaMasterBill?.shippingLineName) || '-',
-            },
-            {
               key: 'voyage',
               label: isAir ? '航班号' : '船名航次',
               children:
@@ -226,6 +237,11 @@ export default function OrderFeeHeader({
               children: `${order.totalPackages || '-'} 件 / ${
                 order.totalGrossWeightKg || '-'
               } kg / ${order.totalVolumeCbm || '-'} m³`,
+            },
+            {
+              key: 'sales',
+              label: '业务员',
+              children: order.salesName || '-',
             },
           ]}
         />
