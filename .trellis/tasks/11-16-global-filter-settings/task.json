@@ -2,7 +2,7 @@
   "id": "global-filter-settings",
   "name": "global-filter-settings",
   "title": "全站筛选与表头设置统一及跨浏览器保存",
-  "description": "全站筛选支持统一设置和布局定制，筛选与表头的全部展示设置跟随账号保存并跨浏览器恢复。",
+  "description": "全站筛选支持统一设置和布局定制，筛选与表头设置跨浏览器保存；参考海管家补齐有价值的业务筛选并修正无效查询。",
   "status": "planning",
   "dev_type": null,
   "scope": null,
@@ -22,7 +22,8 @@
     "11-16-account-display-preferences",
     "11-16-table-display-preferences",
     "11-16-filter-layout-settings",
-    "11-16-global-filter-rollout"
+    "11-16-global-filter-rollout",
+    "11-16-business-filter-completion"
   ],
   "parent": null,
   "relatedFiles": [],
