@@ -4,7 +4,7 @@
   "title": "空运单证内部布局对齐海运",
   "description": "修正上一轮只对齐外层的遗漏，按海运单证的字段编排、通知人切换、文本高度与带入动作完善空运",
   "status": "in_progress",
-  "dev_type": null,
+  "dev_type": "frontend",
   "scope": null,
   "package": null,
   "priority": "P2",
@@ -15,12 +15,12 @@
   "branch": "codex/order-pages-usability",
   "base_branch": "main",
   "worktree_path": null,
-  "commit": null,
+  "commit": "97870df5",
   "pr_url": null,
   "subtasks": [],
   "children": [],
   "parent": null,
   "relatedFiles": [],
-  "notes": "",
+  "notes": "A1-A5完成。最终check:web通过：544文件、2889测试，保留11项既有跳过；3项真实浏览器海空同viewport对照通过。见research/verification.md。",
   "meta": {}
 }
