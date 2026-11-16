@@ -1,0 +1,11 @@
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "Query v5唯一模式、工作区隔离、命令成功守卫、变动检测与输入基线"}
+{"file": ".trellis/spec/web/frontend/hook-guidelines.md", "reason": "领域归属、候选依赖身份和公开搜索入口约束"}
+{"file": ".trellis/spec/web/frontend/directory-structure.md", "reason": "公共层和features/pages依赖边界"}
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "ProtoJSON零值、列表空值和业务必填存在性"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "定向验证、pnpm、类型及最终门禁、长尾测试规范"}
+{"file": ".trellis/spec/web/frontend/capability-navigation.md", "reason": "已有能力复用及旧缓存导航同步"}
+{"file": ".trellis/spec/web/frontend/finance-current-workspace.md", "reason": "财务查询绑定当前公司与身份门禁"}
+{"file": ".trellis/spec/web/frontend/finance-ledger-snapshots.md", "reason": "保持官方request采纳快照和汇总范围"}
+{"file": ".trellis/tasks/11-16-global-server-state-migration/research/source-audit.md", "reason": "31查询入口、2缓存、7命令补充入口和原始锚点"}
+{"file": ".trellis/tasks/11-16-global-server-state-migration/research/worktree-baseline.md", "reason": "保留其他会话差异与暂存状态、重叠文件整合边界"}
+{"file": ".trellis/tasks/11-16-global-server-state-migration/research/context-loading.md", "reason": "检查代理不能遗漏被截断的规范尾部"}
