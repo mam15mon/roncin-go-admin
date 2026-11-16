@@ -75,6 +75,7 @@ import { feeQuantityRuleError } from './feeQuantityRule';
 import { FeeQuantitySourceFields, FeeQuantityValue } from './feeQuantitySource';
 import {
   buildSaveRow,
+  EXCHANGE_RATE_OVERRIDE_MESSAGE,
   type FeeDraftRow,
   type FeeSaveRowError,
   feeRowChanged,
@@ -84,6 +85,7 @@ import {
   SaveRequestKeyHolder,
   taxRateInputPattern,
   validateFeeRow,
+  validExchangeRateOverride,
 } from './feeSave';
 import { type FeeSideSummary, summarizeFees } from './feeSummary';
 import {
@@ -171,6 +173,8 @@ type RowEditPreview = {
   taxRate?: string;
   /** 行内输入的单价（供不含税单价列实时折算；编辑始终提交含税口径）。 */
   unitPrice?: string;
+  /** 行内手工汇率（格式有效时），优先于系统汇率参与折本币预览。 */
+  rateOverride?: string;
 };
 
 type FeeRequestError = Error & {
@@ -199,6 +203,8 @@ interface OrderFeeTableTabsProps {
   canDeleteFees: boolean;
   /** 订单费用税率更改权限（access.canEditFeeTaxRate）；无权限时税率列只读。 */
   canEditFeeTaxRate?: boolean;
+  /** 订单费用汇率覆盖权限（access.canOverrideFeeExchangeRate）；无权限时汇率列只读。 */
+  canOverrideFeeExchangeRate?: boolean;
   /** 外部「刷新」确认丢弃草稿后递增，两表整体重建并重新加载。 */
   reloadToken?: number;
   /** 任一侧存在未保存修改时通知页面（刷新前确认用）。 */
@@ -251,6 +257,7 @@ export default function OrderFeeTableTabs({
   canUpdateFees,
   canDeleteFees,
   canEditFeeTaxRate = false,
+  canOverrideFeeExchangeRate = false,
   reloadToken = 0,
   onDraftChange,
   feeWritesDisabled,
@@ -689,7 +696,8 @@ export default function OrderFeeTableTabs({
           !next.amount &&
           next.feeCode === undefined &&
           next.taxRate === undefined &&
-          next.unitPrice === undefined
+          next.unitPrice === undefined &&
+          next.rateOverride === undefined
         ) {
           const { [key]: _removed, ...rest } = prev;
           return rest;
@@ -822,6 +830,19 @@ export default function OrderFeeTableTabs({
     });
   };
 
+  // 行内手工汇率：格式有效时进入预览参与折本币金额，清空或无效时回到系统/当前汇率。
+  const setRowRateOverride = (rowKey: React.Key | undefined, raw?: string) => {
+    const key = String(rowKey ?? '');
+    const text = normalizeDecimalInput(String(raw ?? '').trim());
+    const rateOverride =
+      text !== '' && validExchangeRateOverride(text) ? text : undefined;
+    setRowPreviews((prev) => {
+      const current = prev[key];
+      if (current?.rateOverride === rateOverride) return prev;
+      return { ...prev, [key]: { ...current, rateOverride } };
+    });
+  };
+
   /** 在本侧表格顶部新增一行；新增行以 dataSource 模式加入，允许同时存在多行。 */
   const handleAddRow = (direction: number) => {
     if (rowInputsLocked || !canCreateFees) return;
@@ -942,7 +963,9 @@ export default function OrderFeeTableTabs({
 
     // 校验：先跑单元格规则，再跑提交前业务校验；任一失败不发请求。
     const fieldNames = Object.keys(feeFieldLabels).filter(
-      (name) => name !== 'version' && name !== 'exchangeRateOverride',
+      (name) =>
+        name !== 'version' &&
+        (name !== 'exchangeRateOverride' || canOverrideFeeExchangeRate),
     );
     try {
       await form.validateFields(
@@ -1268,6 +1291,9 @@ export default function OrderFeeTableTabs({
             name: c.name,
           })),
           onChange: (val: string) => {
+            // 手工汇率针对原币种填写，换币种后清空，改按新币种系统汇率。
+            form.setFieldValue([rowKey, 'exchangeRateOverride'], undefined);
+            setRowRateOverride(rowKey, undefined);
             resolveRowRatePreview(rowKey, direction, val);
             refreshAmountPreview(rowKey, form);
           },
@@ -1507,10 +1533,77 @@ export default function OrderFeeTableTabs({
       },
       {
         title: '汇率',
-        dataIndex: 'exchangeRate',
-        width: 110,
+        // 有权限时行内输入写入独立字段 exchangeRateOverride（列偏好经别名仍记为 exchangeRate），
+        // 默认为空表示不覆盖；可编辑范围与税率列一致（新增行或未建账可编辑行）。
+        dataIndex: canOverrideFeeExchangeRate
+          ? 'exchangeRateOverride'
+          : 'exchangeRate',
+        width: canOverrideFeeExchangeRate ? 130 : 110,
         align: 'right',
-        editable: false,
+        editable: canOverrideFeeExchangeRate
+          ? (_, record) =>
+              isNewFeeRowKey(record.id) ||
+              (record.canEdit === true && record.hasActiveBill !== true)
+          : false,
+        formItemProps: canOverrideFeeExchangeRate
+          ? {
+              rules: [
+                {
+                  validator: (_: unknown, value?: string) => {
+                    const text = normalizeDecimalInput(
+                      String(value ?? '').trim(),
+                    );
+                    return text === '' || validExchangeRateOverride(text)
+                      ? Promise.resolve()
+                      : Promise.reject(
+                          new Error(EXCHANGE_RATE_OVERRIDE_MESSAGE),
+                        );
+                  },
+                },
+              ],
+            }
+          : undefined,
+        fieldProps: canOverrideFeeExchangeRate
+          ? (form, config) => {
+              // 可编辑单元格只传入 rowKey（行字段路径），按行 key 回查基线或新增草稿。
+              const key = String([config.rowKey].flat()[0] ?? '');
+              const entity =
+                getDirectionItems(direction).find(
+                  (item) => String(item.id) === key,
+                ) ?? draftRowsRef.current[direction].get(key);
+              const currency =
+                form.getFieldValue([key, 'currency']) ?? entity?.currency;
+              const baseCurrency = entity?.baseCurrency || 'CNY';
+              const preview = rowPreviews[key]?.rate;
+              const placeholder = preview
+                ? preview.status === 'resolved'
+                  ? `${preview.rate ?? ''} 系统`
+                  : preview.status === 'loading'
+                    ? '获取中…'
+                    : preview.status === 'missing'
+                      ? '请先维护汇率'
+                      : '汇率解析失败'
+                : entity?.exchangeRate
+                  ? `${trimDecimal(entity.exchangeRate)} ${
+                      entity.exchangeRateSource === 'MANUAL' ? '手工' : '系统'
+                    }`
+                  : '系统汇率';
+              return {
+                // 本币汇率固定为 1，不提供手工覆盖。
+                'aria-label': '手工汇率',
+                disabled: currency === baseCurrency,
+                placeholder: currency === baseCurrency ? '1' : placeholder,
+                allowClear: false,
+                style: { textAlign: 'right' },
+                styles: { input: { textAlign: 'right' } },
+                onFocus: (event: React.FocusEvent<HTMLInputElement>) => {
+                  event.currentTarget.select();
+                },
+                onChange: (event: React.ChangeEvent<HTMLInputElement>) =>
+                  setRowRateOverride(key, event.target.value),
+              };
+            }
+          : undefined,
         shouldCellUpdate: () => true,
         render: (_, record) => {
           const preview = rowPreviews[String(record.id ?? '')]?.rate;
@@ -1634,6 +1727,7 @@ export default function OrderFeeTableTabs({
             unitPrice: trimDecimalInput(item.unitPrice),
             note: item.note ?? '',
             taxRate: item.taxRate ?? '',
+            exchangeRateOverride: undefined,
             quantitySource: item.quantitySource,
           },
         ]),

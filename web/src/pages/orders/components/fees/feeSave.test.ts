@@ -66,6 +66,43 @@ describe('整表保存纯逻辑', () => {
     });
   });
 
+  it('手工汇率：留空不算改动也不携带，有值即算改动并按规范化文本提交，格式错误拦截', () => {
+    expect(
+      feeRowChanged({ ...baseline, exchangeRateOverride: '' }, baseline),
+    ).toBe(false);
+    expect(
+      feeRowChanged({ ...baseline, exchangeRateOverride: ' 7.1 ' }, baseline),
+    ).toBe(true);
+    expect(
+      buildSaveRow({ clientRowId: 'f1', row: baseline, baseline }),
+    ).not.toHaveProperty('exchangeRateOverride');
+    expect(
+      buildSaveRow({
+        clientRowId: 'f1',
+        row: { ...baseline, exchangeRateOverride: ' 7.1000 ' },
+        baseline,
+      }).exchangeRateOverride,
+    ).toBe('7.1');
+    for (const invalid of ['0', '-1', '7.12345', 'abc']) {
+      expect(
+        validateFeeRow(
+          { ...baseline, exchangeRateOverride: invalid },
+          baseline,
+          units,
+          false,
+        ),
+      ).toMatchObject({ field: 'exchangeRateOverride' });
+    }
+    expect(
+      validateFeeRow(
+        { ...baseline, exchangeRateOverride: '7.1234' },
+        baseline,
+        units,
+        false,
+      ),
+    ).toBeUndefined();
+  });
+
   it('提交前校验：必填、数量规则与税率范围', () => {
     expect(validateFeeRow(baseline, baseline, units, true)).toBeUndefined();
     expect(

@@ -1,5 +1,10 @@
 import Decimal from 'decimal.js';
-import { normalizeDecimalInput, quantityOrPricePattern } from '@/utils/decimal';
+import {
+  exchangeRatePattern,
+  isPositiveExactDecimal,
+  normalizeDecimalInput,
+  quantityOrPricePattern,
+} from '@/utils/decimal';
 import { feeQuantityRuleError } from './feeQuantityRule';
 import { quantitySelectionForSave } from './feeQuantitySource';
 
@@ -15,8 +20,32 @@ export function isNewFeeRowKey(key: unknown): boolean {
   return String(key ?? '').startsWith(NEW_FEE_ROW_PREFIX);
 }
 
-/** 表单中一行的可编辑字段（保存前以 baseline 兜底补齐未渲染字段）。 */
-export type FeeDraftRow = Partial<API.OrderFee>;
+/**
+ * 表单中一行的可编辑字段（保存前以 baseline 兜底补齐未渲染字段）。
+ * exchangeRateOverride 为行内手工汇率输入：留空表示不覆盖（新增或换币种取系统汇率，
+ * 其余保持当前汇率），有值即按手工汇率提交，需具备费用汇率覆盖权限。
+ */
+export type FeeDraftRow = Partial<API.OrderFee> & {
+  exchangeRateOverride?: string;
+};
+
+/** 行内手工汇率输入的规范化文本；未输入返回空串。 */
+export function exchangeRateOverrideInput(row: FeeDraftRow): string {
+  return normalizeDecimalInput(String(row.exchangeRateOverride ?? '').trim());
+}
+
+/**
+ * 手工汇率格式：严格大于 0，最多四位小数，与服务端口径一致。
+ * decimal.js 的 isPositive 把 0 视为正数，须另行排除。
+ */
+export function validExchangeRateOverride(text: string): boolean {
+  return (
+    isPositiveExactDecimal(text, exchangeRatePattern) && new Decimal(text).gt(0)
+  );
+}
+
+export const EXCHANGE_RATE_OVERRIDE_MESSAGE =
+  '汇率须为大于 0 的数值，最多四位小数';
 
 export type FeeRowIssue = { field: string; message: string };
 
@@ -66,6 +95,7 @@ export function feeRowChanged(
     !sameDecimalText(row.unitPrice, baseline.unitPrice) ||
     !sameText(row.note, baseline.note) ||
     taxRateChanged(row, baseline.taxRate) ||
+    exchangeRateOverrideInput(row) !== '' ||
     JSON.stringify(row.quantitySource ?? null) !==
       JSON.stringify(baseline.quantitySource ?? null)
   );
@@ -114,6 +144,13 @@ export function validateFeeRow(
       return { field: 'taxRate', message: '税率必须为 0-100 且最多两位小数' };
     }
   }
+  const rateOverride = exchangeRateOverrideInput(row);
+  if (rateOverride !== '' && !validExchangeRateOverride(rateOverride)) {
+    return {
+      field: 'exchangeRateOverride',
+      message: EXCHANGE_RATE_OVERRIDE_MESSAGE,
+    };
+  }
   return undefined;
 }
 
@@ -148,6 +185,8 @@ export function buildSaveRow(args: {
   if (taxRateChanged(row, taxBaseline)) {
     saveRow.taxRate = normalizeDecimalInput(String(row.taxRate));
   }
+  const rateOverride = exchangeRateOverrideInput(row);
+  if (rateOverride !== '') saveRow.exchangeRateOverride = rateOverride;
   return saveRow;
 }
 

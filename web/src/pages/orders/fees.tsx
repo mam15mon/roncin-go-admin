@@ -702,6 +702,7 @@ export default function OrderFeesPage() {
         canCreateFees={access.canOrder(order.businessType || '', 'fee.create')}
         canUpdateFees={access.canOrder(order.businessType || '', 'fee.update')}
         canEditFeeTaxRate={Boolean(access.canEditFeeTaxRate)}
+        canOverrideFeeExchangeRate={Boolean(access.canOverrideFeeExchangeRate)}
         canDeleteFees={access.canOrder(order.businessType || '', 'fee.delete')}
         feeWritesDisabled={feeWritesDisabled}
         feeRowsLocked={feeRowsLocked}

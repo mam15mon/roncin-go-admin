@@ -72,6 +72,8 @@ export type FeeRowPreview = {
   unitPrice?: string;
   amount?: { total: string; currency: string };
   rate?: { status: string; rate?: string };
+  /** 行内手工汇率（已通过格式校验的规范化文本），优先于系统汇率参与折本币预览。 */
+  rateOverride?: string;
 };
 
 /**
@@ -353,20 +355,28 @@ export function buildOptionalFeeColumns(
       shouldCellUpdate: () => true,
       render: (_, record) => {
         const preview = previewOf(record);
-        const rate = preview?.rate
-          ? preview.rate.status === 'resolved'
-            ? preview.rate.rate
-            : undefined
-          : record.exchangeRate;
+        const rate =
+          preview?.rateOverride ??
+          (preview?.rate
+            ? preview.rate.status === 'resolved'
+              ? preview.rate.rate
+              : undefined
+            : record.exchangeRate);
+        // 仅改手工汇率时金额未进入预览，按已存总金额折算。
+        const total =
+          preview?.amount?.total ??
+          (preview?.rateOverride && preview.unitPrice === undefined
+            ? record.totalAmount
+            : undefined);
         const previewBase =
-          preview?.amount && rate
-            ? new Decimal(preview.amount.total)
+          total && rate
+            ? new Decimal(total)
                 .mul(new Decimal(rate))
                 .toDecimalPlaces(2, Decimal.ROUND_HALF_UP)
                 .toString()
             : undefined;
         const amount = formatAmount(
-          preview?.unitPrice !== undefined
+          preview?.unitPrice !== undefined || preview?.rateOverride
             ? previewBase
             : record.baseCurrencyAmount,
         );
@@ -385,10 +395,20 @@ export function buildOptionalFeeColumns(
   ];
 }
 
+/**
+ * 行内输入字段名与列偏好 key 不同的列：偏好仍按展示 key 保存。
+ * 不能改用列的 key 属性，pro-components 以 key 优先生成可编辑单元格的表单字段名。
+ */
+const COLUMN_KEY_ALIASES: Record<string, string> = {
+  exchangeRateOverride: 'exchangeRate',
+};
+
 /** 提取列稳定 key，优先使用 dataIndex。 */
 function columnKeyOf(column: ProColumns<API.OrderFee>): string | undefined {
   const dataIndex = column.dataIndex;
-  if (typeof dataIndex === 'string') return dataIndex;
+  if (typeof dataIndex === 'string') {
+    return COLUMN_KEY_ALIASES[dataIndex] ?? dataIndex;
+  }
   if (Array.isArray(dataIndex) && typeof dataIndex[0] === 'string') {
     return dataIndex[0];
   }
