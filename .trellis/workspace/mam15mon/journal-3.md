@@ -1888,3 +1888,27 @@ AI真实类型权限、DIRECT/HOUSE、独立重量与ETA费用、审核恢复和
 ### Status
 
 [OK] **Completed**
+
+
+## Session 214: 航空单证内部对齐海运
+<!-- trellis-session: v=2 fp=0d1975e7ef292f53 -->
+
+**Date**: 2026-11-16
+**Task**: 航空单证内部对齐海运
+**Branch**: `codex/order-pages-usability`
+
+### Summary
+
+修正航空单证内部编排、通知人切换、显式带入及只读MAWB视觉；保留独立保存与原版本基线。海空1440/390真实尺寸对照和带入离开保护3项通过，最终check:web 544文件/2889测试通过。任务已归档。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `3bddf4c9` | fix: 按海运编排航空单证正文并补齐显式带入 |
+| `97870df5` | test: 适配航空单证折叠路径并拆分签发长尾用例 |
+| `199720c3` | docs: 固化航空单证内部布局合同与验收证据 |
+
+### Status
+
+[OK] **Completed**
