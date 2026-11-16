@@ -6,6 +6,7 @@ import { history } from '@/router/history';
 import { authServiceMe } from '@/services/roncin/authService';
 import { DEV_MOCK_USER, isDevMockEnabled } from '@/utils/devMockUser';
 import defaultSettings from '../../config/defaultSettings';
+import { AppBootLoading } from './AppBootLoading';
 import {
   appInitialStateContext,
   type InitialState,
@@ -115,7 +116,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   // 阻塞首帧直至初始状态就绪（对齐 Umi 在渲染前执行 getInitialState 的语义）。
-  if (!ready) return null;
+  if (!ready) return <AppBootLoading />;
 
   return (
     <appInitialStateContext.Provider value={value}>

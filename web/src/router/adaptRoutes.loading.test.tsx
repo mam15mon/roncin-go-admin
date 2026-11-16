@@ -9,7 +9,7 @@ import { expect, it, vi } from 'vitest';
 import { buildRouterConfig } from './adaptRoutes';
 
 it.each(['/user/login', '/orders/sea-export/new'])(
-  '首次直达 %s 时展示路由加载占位，模块就绪后展示页面',
+  '首次直达 %s 时展示启动加载画面，模块就绪后展示页面',
   async (pathname) => {
     const warning = vi.spyOn(console, 'warn');
     let complete!: () => void;
@@ -45,7 +45,7 @@ it.each(['/user/login', '/orders/sea-export/new'])(
     try {
       render(<RouterProvider router={router} />);
       expect(
-        screen.getByRole('status', { name: '正在加载页面' }),
+        screen.getByRole('status', { name: '正在加载资源' }),
       ).toBeVisible();
       expect(screen.queryByText('页面已就绪')).not.toBeInTheDocument();
       await act(async () => {
@@ -53,7 +53,7 @@ it.each(['/user/login', '/orders/sea-export/new'])(
       });
       expect(await screen.findByText('页面已就绪')).toBeVisible();
       expect(
-        screen.queryByRole('status', { name: '正在加载页面' }),
+        screen.queryByRole('status', { name: '正在加载资源' }),
       ).not.toBeInTheDocument();
       expect(warning.mock.calls.flat().join('\n')).not.toContain(
         'No `HydrateFallback`',

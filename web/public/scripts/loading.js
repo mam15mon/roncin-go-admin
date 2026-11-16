@@ -1,6 +1,7 @@
 /**
  * loading 占位
  * 解决首次加载时白屏的问题（采用 QuarterRing 四分之一圆弧加载器）
+ * React 接管后由 src/app/AppBootLoading.tsx 延续同一画面，两处外观须同步修改。
  */
 (() => {
   const _root = document.querySelector('#root');

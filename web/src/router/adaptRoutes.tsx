@@ -12,8 +12,8 @@ import type { MenuDataItem } from '@ant-design/pro-components';
 import type { ComponentType, ReactNode } from 'react';
 import type { RouteObject } from 'react-router';
 import { Navigate, Outlet } from 'react-router';
-import { QuarterRing } from '@/components/ui';
 import umiRoutes from '../../config/routes';
+import { AppBootLoading } from '../app/AppBootLoading';
 import { AccessGuard } from './guard';
 import { RouteErrorPage } from './RouteErrorPage';
 import type { AccessState, UmiRoute } from './routeTypes';
@@ -101,11 +101,12 @@ export function buildRouterConfig(): RouteObject[] {
     (route.layout === false ? bare : shelled).push(toRoute(route));
   }
   return [
-    ...bare.map((route) => ({ ...route, HydrateFallback: RouteLoading })),
+    // HydrateFallback 只在首屏懒加载期间显示，复用启动画面保持与静态占位一致
+    ...bare.map((route) => ({ ...route, HydrateFallback: AppBootLoading })),
     {
       // 布局壳懒加载，同时切断 router → AppLayout → history → router 的模块环
       errorElement: <RouteErrorPage />,
-      HydrateFallback: RouteLoading,
+      HydrateFallback: AppBootLoading,
       lazy: async () => {
         const { AppLayout } = await import('../app/AppLayout');
         return { Component: AppLayout };
@@ -113,14 +114,6 @@ export function buildRouterConfig(): RouteObject[] {
       children: shelled,
     },
   ];
-}
-
-function RouteLoading() {
-  return (
-    <div style={{ padding: 48, textAlign: 'center' }}>
-      <QuarterRing size={32} aria-label="正在加载页面" />
-    </div>
-  );
 }
 
 // 菜单数据：同一份 routes.ts 产出 ProLayout route 树，按 access 过滤 +
