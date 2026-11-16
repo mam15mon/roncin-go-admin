@@ -28,10 +28,10 @@ func commissionCorrectionTestAudit(f *commissionPostgresFixture, id uuid.UUID) *
 }
 func commissionCorrectionTestCleanup(t *testing.T, f *commissionPostgresFixture, requests *[]uuid.UUID) {
 	t.Helper()
-	if _, err := f.data.db.Order.UpdateOneID(f.orderID).SetBusinessType(orderent.BusinessTypeSI).Save(context.Background()); err != nil {
+	if _, err := f.data.db.Order.UpdateOneID(f.orderID).SetBusinessType(orderent.BusinessTypeLAND).Save(context.Background()); err != nil {
 		t.Fatal(err)
 	}
-	(&workbenchIntegrationFixture{t: t, data: f.data, organizationID: f.organizationID, suffix: f.suffix}).grantWorkbenchPermission(f.employeeID, "business.order.si.lock", "business.order.si.read", "business.order.si.update", "business.order.si.fee.read")
+	(&workbenchIntegrationFixture{t: t, data: f.data, organizationID: f.organizationID, suffix: f.suffix}).grantWorkbenchPermission(f.employeeID, "business.order.land.lock", "business.order.land.read", "business.order.land.update", "business.order.land.fee.read")
 	seedManualOrderReviewForTest(t, f.data, f.orderID, f.actorID)
 	t.Cleanup(func() {
 		ctx := context.Background()

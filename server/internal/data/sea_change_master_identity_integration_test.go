@@ -23,7 +23,7 @@ func TestSeaChangesRejectInvalidMasterMembersPostgres(t *testing.T) {
 				if location == "原主单" {
 					badMaster, badTE = f.link.MasterBillID, f.link.TransportExecutionID
 				}
-				member := env.data.db.Order.Create().SetOrganizationID(env.orgID).SetBusinessType("SI").SetTradeDirection("import").SetCustomerID(env.customerID).SetOrderNo(uuid.NewString()).SetTradeTerm("FOB").SetPaymentTerm("PREPAID").SetIdempotencyKey(uuid.NewString()).SaveX(ctx)
+				member := env.data.db.Order.Create().SetOrganizationID(env.orgID).SetBusinessType("SI").SetFlowStatus("IMPORT_NOT_APPLICABLE").SetTradeDirection("import").SetCustomerID(env.customerID).SetOrderNo(uuid.NewString()).SetTradeTerm("FOB").SetPaymentTerm("PREPAID").SetIdempotencyKey(uuid.NewString()).SaveX(ctx)
 				env.data.db.SeaMasterBillOrderLink.Create().SetOrganizationID(env.orgID).SetOrderID(member.ID).SetMasterBillID(badMaster).SetTransportExecutionID(badTE).SetDocumentStructure("HOUSE").SaveX(ctx)
 				confirmation := &biz.SeaExternalConfirmation{ConfirmedByParty: "船代", ConfirmedAt: time.Now(), ConfirmationNote: "确认改配"}
 				beforeOrders := env.data.db.Order.Query().CountX(ctx)

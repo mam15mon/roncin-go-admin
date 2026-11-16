@@ -86,6 +86,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeereviewevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderimporthandling"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderimporthandlingevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockhousebillsnapshot"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
@@ -217,6 +219,8 @@ const (
 	TypeOrderFeeCorrectionRequest        = "OrderFeeCorrectionRequest"
 	TypeOrderFeeReviewEvent              = "OrderFeeReviewEvent"
 	TypeOrderFeeSupplementRequest        = "OrderFeeSupplementRequest"
+	TypeOrderImportHandling              = "OrderImportHandling"
+	TypeOrderImportHandlingEvent         = "OrderImportHandlingEvent"
 	TypeOrderLifecycleEvent              = "OrderLifecycleEvent"
 	TypeOrderLockHouseBillSnapshot       = "OrderLockHouseBillSnapshot"
 	TypeOrderLockRecord                  = "OrderLockRecord"
@@ -109016,6 +109020,1196 @@ func (m *OrderFeeSupplementRequestMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown OrderFeeSupplementRequest edge %s", name)
+}
+
+// OrderImportHandlingMutation represents an operation that mutates the OrderImportHandling nodes in the graph.
+type OrderImportHandlingMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *uuid.UUID
+	state         *json.RawMessage
+	appendstate   json.RawMessage
+	clearedFields map[string]struct{}
+	_order        *uuid.UUID
+	cleared_order bool
+	done          bool
+	oldValue      func(context.Context) (*OrderImportHandling, error)
+	predicates    []predicate.OrderImportHandling
+}
+
+var _ ent.Mutation = (*OrderImportHandlingMutation)(nil)
+
+// orderimporthandlingOption allows management of the mutation configuration using functional options.
+type orderimporthandlingOption func(*OrderImportHandlingMutation)
+
+// newOrderImportHandlingMutation creates new mutation for the OrderImportHandling entity.
+func newOrderImportHandlingMutation(c config, op Op, opts ...orderimporthandlingOption) *OrderImportHandlingMutation {
+	m := &OrderImportHandlingMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeOrderImportHandling,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withOrderImportHandlingID sets the ID field of the mutation.
+func withOrderImportHandlingID(id uuid.UUID) orderimporthandlingOption {
+	return func(m *OrderImportHandlingMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *OrderImportHandling
+		)
+		m.oldValue = func(ctx context.Context) (*OrderImportHandling, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().OrderImportHandling.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withOrderImportHandling sets the old OrderImportHandling of the mutation.
+func withOrderImportHandling(node *OrderImportHandling) orderimporthandlingOption {
+	return func(m *OrderImportHandlingMutation) {
+		m.oldValue = func(context.Context) (*OrderImportHandling, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m OrderImportHandlingMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m OrderImportHandlingMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of OrderImportHandling entities.
+func (m *OrderImportHandlingMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *OrderImportHandlingMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *OrderImportHandlingMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().OrderImportHandling.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetOrderID sets the "order_id" field.
+func (m *OrderImportHandlingMutation) SetOrderID(u uuid.UUID) {
+	m._order = &u
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *OrderImportHandlingMutation) OrderID() (r uuid.UUID, exists bool) {
+	v := m._order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the OrderImportHandling entity.
+// If the OrderImportHandling object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderImportHandlingMutation) OldOrderID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *OrderImportHandlingMutation) ResetOrderID() {
+	m._order = nil
+}
+
+// SetState sets the "state" field.
+func (m *OrderImportHandlingMutation) SetState(jm json.RawMessage) {
+	m.state = &jm
+	m.appendstate = nil
+}
+
+// State returns the value of the "state" field in the mutation.
+func (m *OrderImportHandlingMutation) State() (r json.RawMessage, exists bool) {
+	v := m.state
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldState returns the old "state" field's value of the OrderImportHandling entity.
+// If the OrderImportHandling object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderImportHandlingMutation) OldState(ctx context.Context) (v json.RawMessage, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldState is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldState requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldState: %w", err)
+	}
+	return oldValue.State, nil
+}
+
+// AppendState adds jm to the "state" field.
+func (m *OrderImportHandlingMutation) AppendState(jm json.RawMessage) {
+	m.appendstate = append(m.appendstate, jm...)
+}
+
+// AppendedState returns the list of values that were appended to the "state" field in this mutation.
+func (m *OrderImportHandlingMutation) AppendedState() (json.RawMessage, bool) {
+	if len(m.appendstate) == 0 {
+		return nil, false
+	}
+	return m.appendstate, true
+}
+
+// ResetState resets all changes to the "state" field.
+func (m *OrderImportHandlingMutation) ResetState() {
+	m.state = nil
+	m.appendstate = nil
+}
+
+// ClearOrder clears the "order" edge to the Order entity.
+func (m *OrderImportHandlingMutation) ClearOrder() {
+	m.cleared_order = true
+	m.clearedFields[orderimporthandling.FieldOrderID] = struct{}{}
+}
+
+// OrderCleared reports if the "order" edge to the Order entity was cleared.
+func (m *OrderImportHandlingMutation) OrderCleared() bool {
+	return m.cleared_order
+}
+
+// OrderIDs returns the "order" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrderID instead. It exists only for internal usage by the builders.
+func (m *OrderImportHandlingMutation) OrderIDs() (ids []uuid.UUID) {
+	if id := m._order; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrder resets all changes to the "order" edge.
+func (m *OrderImportHandlingMutation) ResetOrder() {
+	m._order = nil
+	m.cleared_order = false
+}
+
+// Where appends a list predicates to the OrderImportHandlingMutation builder.
+func (m *OrderImportHandlingMutation) Where(ps ...predicate.OrderImportHandling) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the OrderImportHandlingMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *OrderImportHandlingMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.OrderImportHandling, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *OrderImportHandlingMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *OrderImportHandlingMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (OrderImportHandling).
+func (m *OrderImportHandlingMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *OrderImportHandlingMutation) Fields() []string {
+	fields := make([]string, 0, 2)
+	if m._order != nil {
+		fields = append(fields, orderimporthandling.FieldOrderID)
+	}
+	if m.state != nil {
+		fields = append(fields, orderimporthandling.FieldState)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *OrderImportHandlingMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case orderimporthandling.FieldOrderID:
+		return m.OrderID()
+	case orderimporthandling.FieldState:
+		return m.State()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *OrderImportHandlingMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case orderimporthandling.FieldOrderID:
+		return m.OldOrderID(ctx)
+	case orderimporthandling.FieldState:
+		return m.OldState(ctx)
+	}
+	return nil, fmt.Errorf("unknown OrderImportHandling field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderImportHandlingMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case orderimporthandling.FieldOrderID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
+		return nil
+	case orderimporthandling.FieldState:
+		v, ok := value.(json.RawMessage)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetState(v)
+		return nil
+	}
+	return fmt.Errorf("unknown OrderImportHandling field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *OrderImportHandlingMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *OrderImportHandlingMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderImportHandlingMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown OrderImportHandling numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *OrderImportHandlingMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *OrderImportHandlingMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *OrderImportHandlingMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown OrderImportHandling nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *OrderImportHandlingMutation) ResetField(name string) error {
+	switch name {
+	case orderimporthandling.FieldOrderID:
+		m.ResetOrderID()
+		return nil
+	case orderimporthandling.FieldState:
+		m.ResetState()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderImportHandling field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *OrderImportHandlingMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m._order != nil {
+		edges = append(edges, orderimporthandling.EdgeOrder)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *OrderImportHandlingMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case orderimporthandling.EdgeOrder:
+		if id := m._order; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *OrderImportHandlingMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *OrderImportHandlingMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *OrderImportHandlingMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleared_order {
+		edges = append(edges, orderimporthandling.EdgeOrder)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *OrderImportHandlingMutation) EdgeCleared(name string) bool {
+	switch name {
+	case orderimporthandling.EdgeOrder:
+		return m.cleared_order
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *OrderImportHandlingMutation) ClearEdge(name string) error {
+	switch name {
+	case orderimporthandling.EdgeOrder:
+		m.ClearOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderImportHandling unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *OrderImportHandlingMutation) ResetEdge(name string) error {
+	switch name {
+	case orderimporthandling.EdgeOrder:
+		m.ResetOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderImportHandling edge %s", name)
+}
+
+// OrderImportHandlingEventMutation represents an operation that mutates the OrderImportHandlingEvent nodes in the graph.
+type OrderImportHandlingEventMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *uuid.UUID
+	occurred_at   *time.Time
+	reason        *string
+	before        *json.RawMessage
+	appendbefore  json.RawMessage
+	after         *json.RawMessage
+	appendafter   json.RawMessage
+	clearedFields map[string]struct{}
+	actor         *uuid.UUID
+	clearedactor  bool
+	_order        *uuid.UUID
+	cleared_order bool
+	done          bool
+	oldValue      func(context.Context) (*OrderImportHandlingEvent, error)
+	predicates    []predicate.OrderImportHandlingEvent
+}
+
+var _ ent.Mutation = (*OrderImportHandlingEventMutation)(nil)
+
+// orderimporthandlingeventOption allows management of the mutation configuration using functional options.
+type orderimporthandlingeventOption func(*OrderImportHandlingEventMutation)
+
+// newOrderImportHandlingEventMutation creates new mutation for the OrderImportHandlingEvent entity.
+func newOrderImportHandlingEventMutation(c config, op Op, opts ...orderimporthandlingeventOption) *OrderImportHandlingEventMutation {
+	m := &OrderImportHandlingEventMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeOrderImportHandlingEvent,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withOrderImportHandlingEventID sets the ID field of the mutation.
+func withOrderImportHandlingEventID(id uuid.UUID) orderimporthandlingeventOption {
+	return func(m *OrderImportHandlingEventMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *OrderImportHandlingEvent
+		)
+		m.oldValue = func(ctx context.Context) (*OrderImportHandlingEvent, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().OrderImportHandlingEvent.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withOrderImportHandlingEvent sets the old OrderImportHandlingEvent of the mutation.
+func withOrderImportHandlingEvent(node *OrderImportHandlingEvent) orderimporthandlingeventOption {
+	return func(m *OrderImportHandlingEventMutation) {
+		m.oldValue = func(context.Context) (*OrderImportHandlingEvent, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m OrderImportHandlingEventMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m OrderImportHandlingEventMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of OrderImportHandlingEvent entities.
+func (m *OrderImportHandlingEventMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *OrderImportHandlingEventMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *OrderImportHandlingEventMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().OrderImportHandlingEvent.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetOrderID sets the "order_id" field.
+func (m *OrderImportHandlingEventMutation) SetOrderID(u uuid.UUID) {
+	m._order = &u
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *OrderImportHandlingEventMutation) OrderID() (r uuid.UUID, exists bool) {
+	v := m._order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the OrderImportHandlingEvent entity.
+// If the OrderImportHandlingEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderImportHandlingEventMutation) OldOrderID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *OrderImportHandlingEventMutation) ResetOrderID() {
+	m._order = nil
+}
+
+// SetActorID sets the "actor_id" field.
+func (m *OrderImportHandlingEventMutation) SetActorID(u uuid.UUID) {
+	m.actor = &u
+}
+
+// ActorID returns the value of the "actor_id" field in the mutation.
+func (m *OrderImportHandlingEventMutation) ActorID() (r uuid.UUID, exists bool) {
+	v := m.actor
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldActorID returns the old "actor_id" field's value of the OrderImportHandlingEvent entity.
+// If the OrderImportHandlingEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderImportHandlingEventMutation) OldActorID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldActorID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldActorID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldActorID: %w", err)
+	}
+	return oldValue.ActorID, nil
+}
+
+// ResetActorID resets all changes to the "actor_id" field.
+func (m *OrderImportHandlingEventMutation) ResetActorID() {
+	m.actor = nil
+}
+
+// SetOccurredAt sets the "occurred_at" field.
+func (m *OrderImportHandlingEventMutation) SetOccurredAt(t time.Time) {
+	m.occurred_at = &t
+}
+
+// OccurredAt returns the value of the "occurred_at" field in the mutation.
+func (m *OrderImportHandlingEventMutation) OccurredAt() (r time.Time, exists bool) {
+	v := m.occurred_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOccurredAt returns the old "occurred_at" field's value of the OrderImportHandlingEvent entity.
+// If the OrderImportHandlingEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderImportHandlingEventMutation) OldOccurredAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOccurredAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOccurredAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOccurredAt: %w", err)
+	}
+	return oldValue.OccurredAt, nil
+}
+
+// ResetOccurredAt resets all changes to the "occurred_at" field.
+func (m *OrderImportHandlingEventMutation) ResetOccurredAt() {
+	m.occurred_at = nil
+}
+
+// SetReason sets the "reason" field.
+func (m *OrderImportHandlingEventMutation) SetReason(s string) {
+	m.reason = &s
+}
+
+// Reason returns the value of the "reason" field in the mutation.
+func (m *OrderImportHandlingEventMutation) Reason() (r string, exists bool) {
+	v := m.reason
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReason returns the old "reason" field's value of the OrderImportHandlingEvent entity.
+// If the OrderImportHandlingEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderImportHandlingEventMutation) OldReason(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReason is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReason requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReason: %w", err)
+	}
+	return oldValue.Reason, nil
+}
+
+// ResetReason resets all changes to the "reason" field.
+func (m *OrderImportHandlingEventMutation) ResetReason() {
+	m.reason = nil
+}
+
+// SetBefore sets the "before" field.
+func (m *OrderImportHandlingEventMutation) SetBefore(jm json.RawMessage) {
+	m.before = &jm
+	m.appendbefore = nil
+}
+
+// Before returns the value of the "before" field in the mutation.
+func (m *OrderImportHandlingEventMutation) Before() (r json.RawMessage, exists bool) {
+	v := m.before
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBefore returns the old "before" field's value of the OrderImportHandlingEvent entity.
+// If the OrderImportHandlingEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderImportHandlingEventMutation) OldBefore(ctx context.Context) (v json.RawMessage, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBefore is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBefore requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBefore: %w", err)
+	}
+	return oldValue.Before, nil
+}
+
+// AppendBefore adds jm to the "before" field.
+func (m *OrderImportHandlingEventMutation) AppendBefore(jm json.RawMessage) {
+	m.appendbefore = append(m.appendbefore, jm...)
+}
+
+// AppendedBefore returns the list of values that were appended to the "before" field in this mutation.
+func (m *OrderImportHandlingEventMutation) AppendedBefore() (json.RawMessage, bool) {
+	if len(m.appendbefore) == 0 {
+		return nil, false
+	}
+	return m.appendbefore, true
+}
+
+// ResetBefore resets all changes to the "before" field.
+func (m *OrderImportHandlingEventMutation) ResetBefore() {
+	m.before = nil
+	m.appendbefore = nil
+}
+
+// SetAfter sets the "after" field.
+func (m *OrderImportHandlingEventMutation) SetAfter(jm json.RawMessage) {
+	m.after = &jm
+	m.appendafter = nil
+}
+
+// After returns the value of the "after" field in the mutation.
+func (m *OrderImportHandlingEventMutation) After() (r json.RawMessage, exists bool) {
+	v := m.after
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAfter returns the old "after" field's value of the OrderImportHandlingEvent entity.
+// If the OrderImportHandlingEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderImportHandlingEventMutation) OldAfter(ctx context.Context) (v json.RawMessage, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAfter is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAfter requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAfter: %w", err)
+	}
+	return oldValue.After, nil
+}
+
+// AppendAfter adds jm to the "after" field.
+func (m *OrderImportHandlingEventMutation) AppendAfter(jm json.RawMessage) {
+	m.appendafter = append(m.appendafter, jm...)
+}
+
+// AppendedAfter returns the list of values that were appended to the "after" field in this mutation.
+func (m *OrderImportHandlingEventMutation) AppendedAfter() (json.RawMessage, bool) {
+	if len(m.appendafter) == 0 {
+		return nil, false
+	}
+	return m.appendafter, true
+}
+
+// ResetAfter resets all changes to the "after" field.
+func (m *OrderImportHandlingEventMutation) ResetAfter() {
+	m.after = nil
+	m.appendafter = nil
+}
+
+// ClearActor clears the "actor" edge to the User entity.
+func (m *OrderImportHandlingEventMutation) ClearActor() {
+	m.clearedactor = true
+	m.clearedFields[orderimporthandlingevent.FieldActorID] = struct{}{}
+}
+
+// ActorCleared reports if the "actor" edge to the User entity was cleared.
+func (m *OrderImportHandlingEventMutation) ActorCleared() bool {
+	return m.clearedactor
+}
+
+// ActorIDs returns the "actor" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ActorID instead. It exists only for internal usage by the builders.
+func (m *OrderImportHandlingEventMutation) ActorIDs() (ids []uuid.UUID) {
+	if id := m.actor; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetActor resets all changes to the "actor" edge.
+func (m *OrderImportHandlingEventMutation) ResetActor() {
+	m.actor = nil
+	m.clearedactor = false
+}
+
+// ClearOrder clears the "order" edge to the Order entity.
+func (m *OrderImportHandlingEventMutation) ClearOrder() {
+	m.cleared_order = true
+	m.clearedFields[orderimporthandlingevent.FieldOrderID] = struct{}{}
+}
+
+// OrderCleared reports if the "order" edge to the Order entity was cleared.
+func (m *OrderImportHandlingEventMutation) OrderCleared() bool {
+	return m.cleared_order
+}
+
+// OrderIDs returns the "order" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrderID instead. It exists only for internal usage by the builders.
+func (m *OrderImportHandlingEventMutation) OrderIDs() (ids []uuid.UUID) {
+	if id := m._order; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrder resets all changes to the "order" edge.
+func (m *OrderImportHandlingEventMutation) ResetOrder() {
+	m._order = nil
+	m.cleared_order = false
+}
+
+// Where appends a list predicates to the OrderImportHandlingEventMutation builder.
+func (m *OrderImportHandlingEventMutation) Where(ps ...predicate.OrderImportHandlingEvent) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the OrderImportHandlingEventMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *OrderImportHandlingEventMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.OrderImportHandlingEvent, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *OrderImportHandlingEventMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *OrderImportHandlingEventMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (OrderImportHandlingEvent).
+func (m *OrderImportHandlingEventMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *OrderImportHandlingEventMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m._order != nil {
+		fields = append(fields, orderimporthandlingevent.FieldOrderID)
+	}
+	if m.actor != nil {
+		fields = append(fields, orderimporthandlingevent.FieldActorID)
+	}
+	if m.occurred_at != nil {
+		fields = append(fields, orderimporthandlingevent.FieldOccurredAt)
+	}
+	if m.reason != nil {
+		fields = append(fields, orderimporthandlingevent.FieldReason)
+	}
+	if m.before != nil {
+		fields = append(fields, orderimporthandlingevent.FieldBefore)
+	}
+	if m.after != nil {
+		fields = append(fields, orderimporthandlingevent.FieldAfter)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *OrderImportHandlingEventMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case orderimporthandlingevent.FieldOrderID:
+		return m.OrderID()
+	case orderimporthandlingevent.FieldActorID:
+		return m.ActorID()
+	case orderimporthandlingevent.FieldOccurredAt:
+		return m.OccurredAt()
+	case orderimporthandlingevent.FieldReason:
+		return m.Reason()
+	case orderimporthandlingevent.FieldBefore:
+		return m.Before()
+	case orderimporthandlingevent.FieldAfter:
+		return m.After()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *OrderImportHandlingEventMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case orderimporthandlingevent.FieldOrderID:
+		return m.OldOrderID(ctx)
+	case orderimporthandlingevent.FieldActorID:
+		return m.OldActorID(ctx)
+	case orderimporthandlingevent.FieldOccurredAt:
+		return m.OldOccurredAt(ctx)
+	case orderimporthandlingevent.FieldReason:
+		return m.OldReason(ctx)
+	case orderimporthandlingevent.FieldBefore:
+		return m.OldBefore(ctx)
+	case orderimporthandlingevent.FieldAfter:
+		return m.OldAfter(ctx)
+	}
+	return nil, fmt.Errorf("unknown OrderImportHandlingEvent field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderImportHandlingEventMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case orderimporthandlingevent.FieldOrderID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
+		return nil
+	case orderimporthandlingevent.FieldActorID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetActorID(v)
+		return nil
+	case orderimporthandlingevent.FieldOccurredAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOccurredAt(v)
+		return nil
+	case orderimporthandlingevent.FieldReason:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReason(v)
+		return nil
+	case orderimporthandlingevent.FieldBefore:
+		v, ok := value.(json.RawMessage)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBefore(v)
+		return nil
+	case orderimporthandlingevent.FieldAfter:
+		v, ok := value.(json.RawMessage)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAfter(v)
+		return nil
+	}
+	return fmt.Errorf("unknown OrderImportHandlingEvent field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *OrderImportHandlingEventMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *OrderImportHandlingEventMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderImportHandlingEventMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown OrderImportHandlingEvent numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *OrderImportHandlingEventMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *OrderImportHandlingEventMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *OrderImportHandlingEventMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown OrderImportHandlingEvent nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *OrderImportHandlingEventMutation) ResetField(name string) error {
+	switch name {
+	case orderimporthandlingevent.FieldOrderID:
+		m.ResetOrderID()
+		return nil
+	case orderimporthandlingevent.FieldActorID:
+		m.ResetActorID()
+		return nil
+	case orderimporthandlingevent.FieldOccurredAt:
+		m.ResetOccurredAt()
+		return nil
+	case orderimporthandlingevent.FieldReason:
+		m.ResetReason()
+		return nil
+	case orderimporthandlingevent.FieldBefore:
+		m.ResetBefore()
+		return nil
+	case orderimporthandlingevent.FieldAfter:
+		m.ResetAfter()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderImportHandlingEvent field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *OrderImportHandlingEventMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.actor != nil {
+		edges = append(edges, orderimporthandlingevent.EdgeActor)
+	}
+	if m._order != nil {
+		edges = append(edges, orderimporthandlingevent.EdgeOrder)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *OrderImportHandlingEventMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case orderimporthandlingevent.EdgeActor:
+		if id := m.actor; id != nil {
+			return []ent.Value{*id}
+		}
+	case orderimporthandlingevent.EdgeOrder:
+		if id := m._order; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *OrderImportHandlingEventMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *OrderImportHandlingEventMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *OrderImportHandlingEventMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedactor {
+		edges = append(edges, orderimporthandlingevent.EdgeActor)
+	}
+	if m.cleared_order {
+		edges = append(edges, orderimporthandlingevent.EdgeOrder)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *OrderImportHandlingEventMutation) EdgeCleared(name string) bool {
+	switch name {
+	case orderimporthandlingevent.EdgeActor:
+		return m.clearedactor
+	case orderimporthandlingevent.EdgeOrder:
+		return m.cleared_order
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *OrderImportHandlingEventMutation) ClearEdge(name string) error {
+	switch name {
+	case orderimporthandlingevent.EdgeActor:
+		m.ClearActor()
+		return nil
+	case orderimporthandlingevent.EdgeOrder:
+		m.ClearOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderImportHandlingEvent unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *OrderImportHandlingEventMutation) ResetEdge(name string) error {
+	switch name {
+	case orderimporthandlingevent.EdgeActor:
+		m.ResetActor()
+		return nil
+	case orderimporthandlingevent.EdgeOrder:
+		m.ResetOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderImportHandlingEvent edge %s", name)
 }
 
 // OrderLifecycleEventMutation represents an operation that mutates the OrderLifecycleEvent nodes in the graph.

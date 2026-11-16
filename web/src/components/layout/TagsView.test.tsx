@@ -105,9 +105,15 @@ describe('routeUtils', () => {
       expect(
         resolveRouteTitle('/orders/sea-export/SE2026082600004/split'),
       ).toBe('订单拆票');
-      // 未注册订单类型不再伪装成已知业务，回落到订单管理中性标题
-      expect(resolveRouteTitle('/orders/sea-import')).toBe('订单管理');
-      expect(resolveRouteTitle('/orders/sea-import/new')).toBe('订单管理');
+      expect(resolveRouteTitle('/orders/sea-import')).toBe('海运进口订单列表');
+      expect(resolveRouteTitle('/orders/sea-import/new')).toBe('SI 新建订单');
+      expect(resolveRouteTitle('/orders/sea-import/SI001')).toBe('订单详情');
+      expect(resolveRouteTitle('/orders/sea-import/SI001/fees')).toBe(
+        '订单费用录入',
+      );
+      expect(resolveRouteTitle('/orders/sea-import/SI001/hbl')).toBe(
+        '进口 HBL 制作归档',
+      );
       expect(resolveRouteTitle('/orders/air-export')).toBe('空运出口订单列表');
       expect(resolveRouteTitle('/orders/air-export/new')).toBe('AE 新建订单');
       expect(resolveRouteTitle('/orders/air-export/AE2026082600001')).toBe(
@@ -116,6 +122,7 @@ describe('routeUtils', () => {
       expect(resolveRouteTitle('/orders/air-export/AE2026082600001/fees')).toBe(
         '订单费用录入',
       );
+      // 尚未注册的航空进口仍回落到订单管理中性标题。
       expect(resolveRouteTitle('/orders/air-import')).toBe('订单管理');
       expect(resolveRouteTitle('/orders/air-import/new')).toBe('订单管理');
       expect(resolveRouteTitle('/partners/customers')).toBe('客户');

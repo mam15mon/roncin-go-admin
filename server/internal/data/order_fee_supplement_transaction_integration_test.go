@@ -167,17 +167,27 @@ func newFeeSupplementFixture(t *testing.T) *feeSupplementPostgresFixture {
 }
 
 // createOrder 创建 SI 测试订单并挂上费用大类服务类型。
-func (f *feeSupplementPostgresFixture) createOrder(orderNo string) *ent.Order {
+func (f *feeSupplementPostgresFixture) createOrder(orderNo string, kinds ...orderent.BusinessType) *ent.Order {
+	kind := orderent.BusinessTypeSI
+	if len(kinds) > 0 {
+		kind = kinds[0]
+	}
+	flow, direction := orderent.FlowStatusIMPORT_NOT_APPLICABLE, orderent.TradeDirectionImport
+	if kind == orderent.BusinessTypeSE {
+		flow, direction = orderent.FlowStatusDRAFT, orderent.TradeDirectionExport
+	}
 	f.t.Helper()
 	order, err := f.data.db.Order.Create().
 		SetIdempotencyKey(uuid.NewString()).
 		SetOrganizationID(f.organizationID).
 		SetOrderNo(orderNo).
 		SetCustomerID(f.customerID).
-		SetBusinessType(orderent.BusinessTypeSI).
-		// 费用汇率按订单 ETD 所在周解析：测试订单统一带 ETD，避免 ORDER_ETD_MISSING。
+		SetBusinessType(kind).
+		SetFlowStatus(flow).
+		// 进口经营日期按ETA；保留ETD用于独立运输事实。
 		SetEtd("2026-09-16T00:00:00Z").
-		SetTradeDirection(orderent.TradeDirectionExport).
+		SetEta("2026-09-16T00:00:00Z").
+		SetTradeDirection(direction).
 		SetTradeTerm(orderent.TradeTermFOB).
 		SetPaymentTerm(orderent.PaymentTermPREPAID).
 		SetTerminationStatus(orderent.TerminationStatusACTIVE).
@@ -187,6 +197,7 @@ func (f *feeSupplementPostgresFixture) createOrder(orderNo string) *ent.Order {
 	if err != nil {
 		f.t.Fatalf("创建订单 %s: %v", orderNo, err)
 	}
+	seedSeaImportTestResources(f.t, f.data, f.ctx, order)
 	return order
 }
 

@@ -13,3 +13,5 @@
 {"file": ".trellis/spec/guides/index.md", "reason": "跨层数据流和真实复用检查"}
 {"file": ".trellis/spec/server/backend/order-master-business-identity.md", "reason": "方向隔离前置交付：不可变主单身份、正式回填、完整成员与锁内方向门禁"}
 {"file": ".trellis/spec/server/backend/air-waybill-content-and-mode.md", "reason": "航空结构化正文前置：DIRECT/HOUSE、可选分单、独立版本哈希、审核指纹及编辑基线"}
+{"file": ".trellis/spec/server/backend/order-import-handling.md", "reason": "进口固定五服务/Order版本/派生进度、SI真实单证与外部归档合同"}
+{"file": ".trellis/tasks/11-15-hgj-air-import/research/entrypoints.md", "reason": "按真实入口检查AI而非机械放开创建；复核重量权限、ETA与服务保存基线"}

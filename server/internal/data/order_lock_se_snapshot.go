@@ -30,7 +30,7 @@ type seaOrderLockSnapshot struct {
 	HouseBills                  []seaOrderLockHouseBillSnapshot
 }
 
-// createSeaOrderLockSnapshot 在已持有 Order 行锁的事务内创建或复用 SE 单证不可变版本。
+// createSeaOrderLockSnapshot 在已持有 Order 行锁的事务内创建或复用海运单证不可变版本。
 // 固定锁序为 Order → MBL → Link → 按 UUID 排序的 HBL。
 // actorID 是写入新建版本 created_by 的人工锁定人；系统自动锁定传 nil，
 // 新建版本的 created_by 保持为空，复用既有版本时不改写原 created_by。
@@ -50,9 +50,13 @@ func createSeaOrderLockSnapshot(ctx context.Context, tx *ent.Tx, organizationID,
 		return nil, err
 	}
 
+	targetOrder, err := tx.Order.Get(ctx, orderID)
+	if err != nil {
+		return nil, err
+	}
 	// 锁序 2: MBL FOR UPDATE。
 	mbl, err := tx.SeaMasterBill.Query().
-		Where(seamasterbillent.IDEQ(activeLink.MasterBillID), seamasterbillent.BusinessTypeEQ("SE"), seamasterbillent.OrganizationIDEQ(organizationID)).
+		Where(seamasterbillent.IDEQ(activeLink.MasterBillID), seamasterbillent.BusinessTypeEQ(string(targetOrder.BusinessType)), seamasterbillent.OrganizationIDEQ(organizationID)).
 		ForUpdate().
 		Only(ctx)
 	if err != nil {
@@ -282,7 +286,7 @@ type seaGroupLockContext struct {
 // 升序），随后重验活动成员集合。集合与期望不一致时返回结构冲突，整组零写入。
 func lockSeaGroupDocumentGraph(ctx context.Context, tx *ent.Tx, organizationID, masterBillID uuid.UUID, expectedMemberIDs []uuid.UUID) (*seaGroupLockContext, error) {
 	mbl, err := tx.SeaMasterBill.Query().
-		Where(seamasterbillent.IDEQ(masterBillID), seamasterbillent.BusinessTypeEQ("SE"), seamasterbillent.OrganizationIDEQ(organizationID)).
+		Where(seamasterbillent.IDEQ(masterBillID), seamasterbillent.BusinessTypeIn("SE", "SI"), seamasterbillent.OrganizationIDEQ(organizationID)).
 		ForUpdate().
 		Only(ctx)
 	if err != nil {

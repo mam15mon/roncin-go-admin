@@ -29,7 +29,7 @@ type orderLockCoreSpec struct {
 
 // applyOrderLockCore 写入人工审核锁。调用方必须在当前事务内取得 Order 行锁，
 // 完成授权、费用审核内容及幂等校验。
-// 核心负责终止状态检查、SE 单证不可变版本快照、订单锁状态写入、锁定记录
+// 核心负责终止状态检查、海运单证不可变版本快照、订单锁状态写入、锁定记录
 // 与 HBL 快照创建；任一步失败由调用方的事务整体回滚。
 func applyOrderLockCore(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, order *ent.Order, spec orderLockCoreSpec) (*ent.OrderLockRecord, *seaOrderLockSnapshot, error) {
 	if spec.reviewerID == uuid.Nil || len(spec.feeSnapshot) == 0 || len(spec.feeContentFingerprint) != 64 {
@@ -48,7 +48,7 @@ func applyOrderLockCore(ctx context.Context, tx *ent.Tx, organizationID uuid.UUI
 	}
 
 	var seaSnapshot *seaOrderLockSnapshot
-	if businessType == access.OrderBusinessSE {
+	if businessType == access.OrderBusinessSE || businessType == access.OrderBusinessSI {
 		var snapshotErr error
 		seaSnapshot, snapshotErr = createSeaOrderLockSnapshot(ctx, tx, organizationID, order.ID, &spec.reviewerID)
 		if snapshotErr != nil {

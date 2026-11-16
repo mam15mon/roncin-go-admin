@@ -42,6 +42,7 @@ import { orderContainerServiceListContainers } from '@/services/roncin/orderCont
 import { seaDocumentServiceUpdateSeaHouseBill } from '@/services/roncin/seaDocumentService';
 import { seaSharedContainerServiceListSeaSharedContainers } from '@/services/roncin/seaSharedContainerService';
 import { isWriteResponse } from '@/utils/api';
+import { getOrderKindDefinitionByBusinessType } from '../order-kinds/registry';
 import {
   getOrderBusinessWritePolicy,
   useOrderLockState,
@@ -56,6 +57,7 @@ import {
   hblOutputBlockedReason,
   hblUnavailableReason,
   hblValuesFingerprint,
+  isExternalHblArchive,
 } from './model';
 import {
   HBL_PDF_VARIANTS,
@@ -102,8 +104,16 @@ export default function HblEditor({
 
   const { order, documents } = baseline;
   const house = documents.houseBill;
+  const isArchive = isExternalHblArchive(baseline);
   const orderId = order.id as string;
-  const path = `/orders/sea-export/${orderId}/hbl`;
+  const definition = getOrderKindDefinitionByBusinessType(
+    order.businessType ?? 0,
+  );
+  const businessType =
+    order.businessType ?? OrderBusinessType.BUSINESS_TYPE_UNSPECIFIED;
+  const kind = definition?.kind;
+  const listPath = `/orders/${kind}`;
+  const path = `/orders/${kind}/${orderId}/hbl`;
   const tabKey = resolveTabKey(path);
   const lock = useOrderLockState(orderId);
   const policy = getOrderBusinessWritePolicy({
@@ -114,7 +124,7 @@ export default function HblEditor({
     canOperate: access.canOperateOrganization(order.organizationId),
   });
   const canUpdate =
-    access.canOrder(OrderBusinessType.BUSINESS_TYPE_SE, 'update') &&
+    access.canOrder(businessType, 'update') &&
     documents.allowedActions?.includes(
       SeaDocumentAction.SEA_DOCUMENT_ACTION_UPDATE_HOUSE_BILL,
     ) === true &&
@@ -164,8 +174,8 @@ export default function HblEditor({
     setRefreshing(true);
     try {
       const bundle = await client.fetchQuery({
-        queryKey: ['orders', 'hbl-production', { id: orderId, scope }],
-        queryFn: ({ signal }) => fetchHblBundle(orderId, signal),
+        queryKey: ['orders', 'hbl-production', { id: orderId, scope, kind }],
+        queryFn: ({ signal }) => fetchHblBundle(orderId, order, signal),
         staleTime: 0,
       });
       acceptBundle(bundle);
@@ -220,6 +230,7 @@ export default function HblEditor({
           id: house.id,
           houseNo: house.houseNo ?? '',
           issuerSource: house.issuerSource ?? 0,
+          issuerPartnerId: house.issuerPartnerId,
           note: house.note,
           ...hblFormPayload(values),
         },
@@ -236,13 +247,13 @@ export default function HblEditor({
       try {
         // 写入前启动的后台读取不能成为本次保存后的同步快照。
         await client.cancelQueries({
-          queryKey: ['orders', 'hbl-production', { id: orderId, scope }],
+          queryKey: ['orders', 'hbl-production', { id: orderId, scope, kind }],
           exact: true,
         });
         if (!alive.current) return true;
         const next = await client.fetchQuery({
-          queryKey: ['orders', 'hbl-production', { id: orderId, scope }],
-          queryFn: ({ signal }) => fetchHblBundle(orderId, signal),
+          queryKey: ['orders', 'hbl-production', { id: orderId, scope, kind }],
+          queryFn: ({ signal }) => fetchHblBundle(orderId, order, signal),
           staleTime: 0,
         });
         acceptBundle(next);
@@ -319,11 +330,7 @@ export default function HblEditor({
   });
 
   const importContainers = async () => {
-    if (
-      disabled ||
-      !access.canOrder(OrderBusinessType.BUSINESS_TYPE_SE, 'container.read')
-    )
-      return;
+    if (disabled || !access.canOrder(businessType, 'container.read')) return;
     const result = await containers.refetch();
     if (!alive.current) return;
     if (result.error || result.data === undefined) {
@@ -390,6 +397,9 @@ export default function HblEditor({
       setPreview({
         houseNo: house?.houseNo ?? '',
         issuerNameEn: house?.issuerOrganizationNameEn ?? '',
+        outputKind: isArchive ? 'external-archive' : undefined,
+        issuerDisplayName: isArchive ? house?.issuerPartnerName : undefined,
+        savedVersion: house?.version,
         ...hblFormPayload(baselineValues),
       });
     } catch (error) {
@@ -458,12 +468,15 @@ export default function HblEditor({
           <PageHeaderShell
             title="HBL 制作"
             subTitle={order.orderNo}
-            onBack={() => history.push('/orders/sea-export')}
+            onBack={() => history.push(listPath)}
             breadcrumbs={[
-              { label: '海运出口', href: '/orders/sea-export' },
+              {
+                label: definition?.navigationTitle ?? '海运订单',
+                href: listPath,
+              },
               {
                 label: order.orderNo || orderId,
-                href: `/orders/sea-export/${orderId}`,
+                href: `/orders/${kind}/${orderId}`,
               },
             ]}
             tags={<Tag color="blue">{house?.houseNo}</Tag>}
@@ -486,19 +499,22 @@ export default function HblEditor({
         prependSections={[
           {
             key: 'output',
-            title: '输出版本',
+            title: isArchive ? '外部提单归档' : '输出版本',
             content: (
               <div style={{ width: '100%', display: 'grid', gap: 12 }}>
-                <Segmented
-                  aria-label="HBL 输出版本"
-                  options={HBL_PDF_VARIANTS}
-                  value={variant}
-                  onChange={setVariant}
-                  disabled={false}
-                />
+                {!isArchive && (
+                  <Segmented
+                    aria-label="HBL 输出版本"
+                    options={HBL_PDF_VARIANTS}
+                    value={variant}
+                    onChange={setVariant}
+                    disabled={false}
+                  />
+                )}
                 <Typography.Text type="secondary">
-                  {house?.issuerOrganizationName} ·
-                  四种版本可直接选择，输出不会改变订单审核或放单状态。
+                  {isArchive
+                    ? `${house?.issuerPartnerName ?? ''} · 外部提单登记资料（归档），保存和输出不代表本公司签发或办理放货。`
+                    : `${house?.issuerOrganizationName ?? ''} · 四种版本可直接选择，输出不会改变订单审核或放单状态。`}
                 </Typography.Text>
                 {notice.changed && (
                   <Alert
@@ -532,7 +548,10 @@ export default function HblEditor({
                     showIcon
                     title={policy.reason ?? '当前 HBL 仅可查看，不能直接修改。'}
                     description={
-                      outputBlocked ?? '仍可选择四种版本进行预览、打印和下载。'
+                      outputBlocked ??
+                      (isArchive
+                        ? '仍可预览、打印和下载已保存的归档资料。'
+                        : '仍可选择四种版本进行预览、打印和下载。')
                     }
                     action={
                       lock.error ? (
@@ -552,11 +571,7 @@ export default function HblEditor({
             <Button
               size="small"
               disabled={
-                disabled ||
-                !access.canOrder(
-                  OrderBusinessType.BUSINESS_TYPE_SE,
-                  'container.read',
-                )
+                disabled || !access.canOrder(businessType, 'container.read')
               }
               loading={containers.isFetching}
               onClick={() => void importContainers()}
@@ -582,7 +597,7 @@ export default function HblEditor({
             <Space wrap>
               <Button
                 disabled={false}
-                onClick={() => history.push(`/orders/sea-export/${orderId}`)}
+                onClick={() => history.push(`/orders/${kind}/${orderId}`)}
               >
                 返回订单
               </Button>

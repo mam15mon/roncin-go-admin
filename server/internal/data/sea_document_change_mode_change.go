@@ -48,7 +48,7 @@ func (r *seaDocumentChangeRepo) ExecuteModeChange(ctx context.Context, orgID, ac
 		if err != nil {
 			return mapEntError(err, biz.ErrSeaDocumentNoActiveLink, nil)
 		}
-		mbl, err := tx.SeaMasterBill.Query().Where(seamasterbillent.IDEQ(located.MasterBillID), seamasterbillent.BusinessTypeEQ("SE"), seamasterbillent.OrganizationIDEQ(orgID)).ForUpdate().Only(ctx)
+		mbl, err := tx.SeaMasterBill.Query().Where(seamasterbillent.IDEQ(located.MasterBillID), seamasterbillent.BusinessTypeEQ(string(order.BusinessType)), seamasterbillent.OrganizationIDEQ(orgID)).ForUpdate().Only(ctx)
 		if err != nil {
 			return mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
 		}

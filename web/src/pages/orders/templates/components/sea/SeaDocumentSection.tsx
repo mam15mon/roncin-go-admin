@@ -90,12 +90,14 @@ export function SeaDocumentSectionComponent({
   disabled = false,
   isDetail = false,
   organizationId,
+  businessType = OrderBusinessType.BUSINESS_TYPE_SE,
   documents,
   onOrderDataChanged,
 }: {
   disabled?: boolean;
   isDetail?: boolean;
   organizationId?: string;
+  businessType?: number;
   documents?: API.SeaOrderDocuments;
   onOrderDataChanged?: (
     document?: 'master' | 'house' | 'mode',
@@ -159,13 +161,10 @@ export function SeaDocumentSectionComponent({
       : loadedStructure;
   activeOrderIdRef.current = orderId;
 
-  const canReadReleasePods = access.canOrder(
-    OrderBusinessType.BUSINESS_TYPE_SE,
-    'release_pod.read',
-  );
+  const canReadReleasePods = access.canOrder(businessType, 'release_pod.read');
   const canChangeMode =
     access.canOperateOrganization(organizationId) &&
-    access.canOrder(OrderBusinessType.BUSINESS_TYPE_SE, 'update');
+    access.canOrder(businessType, 'update');
 
   const loadReleasePods = useCallback(async () => {
     const requestedOrderId = orderId;
@@ -544,6 +543,7 @@ export function SeaDocumentSectionComponent({
             </Col>
             <Col span={24} style={{ textAlign: 'right' }}>
               <SeaDocumentHistoryActions
+                businessType={businessType}
                 orderId={orderId}
                 orderVersion={String(orderVersion ?? '')}
                 documentType={SeaDocumentType.SEA_DOCUMENT_TYPE_MASTER_BILL}
@@ -624,6 +624,7 @@ export function SeaDocumentSectionComponent({
             <Col>
               {houseBill.id ? (
                 <SeaDocumentHistoryActions
+                  businessType={businessType}
                   orderId={orderId}
                   orderVersion={String(orderVersion ?? '')}
                   documentType={SeaDocumentType.SEA_DOCUMENT_TYPE_HOUSE_BILL}
@@ -900,6 +901,7 @@ export function buildSeaDocumentSection(props: TemplateProps): TemplateSection {
     title: '提单信息',
     content: (
       <SeaDocumentSectionComponent
+        businessType={props.businessType}
         disabled={props.readonly}
         isDetail={props.isDetail}
         organizationId={props.organizationId}

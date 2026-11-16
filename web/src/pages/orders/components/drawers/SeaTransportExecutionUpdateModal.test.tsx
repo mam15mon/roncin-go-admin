@@ -3,6 +3,7 @@ import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import dayjs from 'dayjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { OrderBusinessType } from '@/enums.generated';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import {
   seaOrderChangeServiceExecuteSeaTransportExecutionUpdate,
@@ -32,6 +33,8 @@ function renderModal(
         open
         order={{
           id: 'order-1',
+          businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+          organizationId: 'company',
           orderNo: 'SE-001',
           seaMasterBill: {
             transportExecutionId: 'te-1',
@@ -58,7 +61,12 @@ describe('SeaTransportExecutionUpdateModal', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(orderServiceGetOrder).mockImplementation(async ({ id }) => ({
-      data: { id, orderNo: id === 'order-1' ? 'SE-001' : 'SE-002' },
+      data: {
+        id,
+        businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+        organizationId: 'company',
+        orderNo: id === 'order-1' ? 'SE-001' : 'SE-002',
+      },
     }));
   });
   it('无需调整确认即可预览共享影响并执行统一航次调整', async () => {
@@ -93,6 +101,8 @@ describe('SeaTransportExecutionUpdateModal', () => {
           open
           order={{
             id: 'order-1',
+            businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+            organizationId: 'company',
             orderNo: 'SE-001',
             seaMasterBill: {
               transportExecutionId: 'te-1',
@@ -195,7 +205,14 @@ describe('SeaTransportExecutionUpdateModal', () => {
     });
     vi.mocked(orderServiceGetOrder).mockImplementation(async ({ id }) => {
       if (id === 'failed-order') throw new Error('读取失败');
-      return { data: { id, orderNo: 'SE-CROSS-MBL' } };
+      return {
+        data: {
+          id,
+          businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+          organizationId: 'company',
+          orderNo: 'SE-CROSS-MBL',
+        },
+      };
     });
     renderModal();
     fireEvent.click(screen.getByRole('button', { name: '预览影响' }));

@@ -60,11 +60,17 @@ function hasGlyph(character: string): boolean {
 
 /** 与实际嵌入字体的字符表校验，避免 PDF 引擎将未知字符输出为空白。 */
 export function validateHblPdfCharacters(model: HblPdfModel): string | null {
-  if (!model.issuerNameEn?.trim())
+  if (
+    model.outputKind === 'external-archive' &&
+    !model.issuerDisplayName?.trim()
+  )
+    return '外部提单缺少真实签发方资料，请先补齐后归档。';
+  if (model.outputKind !== 'external-archive' && !model.issuerNameEn?.trim())
     return '签发公司尚未维护英文名称，请在公司档案中补齐后输出。';
   const fields: [string, unknown][] = [
     ['HBL 号码', model.houseNo],
     ['签发公司英文名称', model.issuerNameEn],
+    ['外部签发方', model.issuerDisplayName],
     ...Object.entries(model.content ?? {}).map(
       ([key, value]): [string, unknown] => [
         CONTENT_LABELS[key as keyof API.SeaBillContent] ?? key,

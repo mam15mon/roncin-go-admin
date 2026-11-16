@@ -34,7 +34,7 @@ func (r *orderReleasePodRepo) order(ctx context.Context, organizationID, orderID
 }
 
 func validateReleasePodDocumentReference(ctx context.Context, client *ent.Client, order *ent.Order, input *biz.OrderReleasePod) error {
-	if order.BusinessType != orderent.BusinessTypeSE {
+	if !biz.OrderBusinessType(order.BusinessType).IsSea() {
 		if input.SeaDocumentType != "" || input.SeaDocumentID != nil {
 			return biz.ErrOrderReleasePodDocumentInvalid
 		}
@@ -76,7 +76,7 @@ func validateReleasePodDocumentReference(ctx context.Context, client *ent.Client
 		return err
 	}
 	mbl, err := client.SeaMasterBill.Query().
-		Where(seamasterbillent.IDEQ(candidate.MasterBillID), seamasterbillent.BusinessTypeEQ("SE"), seamasterbillent.OrganizationIDEQ(order.OrganizationID)).
+		Where(seamasterbillent.IDEQ(candidate.MasterBillID), seamasterbillent.BusinessTypeEQ(string(order.BusinessType)), seamasterbillent.OrganizationIDEQ(order.OrganizationID)).
 		ForUpdate().Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {

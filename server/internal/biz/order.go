@@ -86,6 +86,9 @@ var (
 // order_types.go，查询、创建、订单更新用例见 order_usecase.go，状态流转
 // 用例见 order_transition.go。
 type OrderRepo interface {
+	GetImportHandling(context.Context, uuid.UUID, uuid.UUID) (*OrderImportHandling, error)
+	SaveImportHandling(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, *OrderImportHandling, string) (*OrderImportHandling, error)
+	ListImportHandlingEvents(context.Context, uuid.UUID, uuid.UUID, int, int) ([]*ImportHandlingEvent, int, error)
 	Get(context.Context, uuid.UUID, uuid.UUID) (*Order, error)
 	FindAuthorized(context.Context, uuid.UUID, []OrderOrganizationScope) (*Order, error)
 	List(context.Context, []OrderOrganizationScope, OrderListOptions) (*OrderList, error)

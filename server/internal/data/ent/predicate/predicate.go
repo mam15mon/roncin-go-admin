@@ -225,6 +225,12 @@ type OrderFeeReviewEvent func(*sql.Selector)
 // OrderFeeSupplementRequest is the predicate function for orderfeesupplementrequest builders.
 type OrderFeeSupplementRequest func(*sql.Selector)
 
+// OrderImportHandling is the predicate function for orderimporthandling builders.
+type OrderImportHandling func(*sql.Selector)
+
+// OrderImportHandlingEvent is the predicate function for orderimporthandlingevent builders.
+type OrderImportHandlingEvent func(*sql.Selector)
+
 // OrderLifecycleEvent is the predicate function for orderlifecycleevent builders.
 type OrderLifecycleEvent func(*sql.Selector)
 

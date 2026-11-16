@@ -17,7 +17,7 @@ import {
 import OrderListPage from './list';
 
 const locationState = vi.hoisted(() => ({
-  pathname: '/orders/sea-import',
+  pathname: '/orders/air-import',
 }));
 
 vi.mock('react-router', async (importOriginal) => {
@@ -113,7 +113,7 @@ const mockListOrders = vi.mocked(orderServiceListOrders);
 describe('订单列表页未知业务类型 fail-closed', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    locationState.pathname = '/orders/sea-import';
+    locationState.pathname = '/orders/air-import';
   });
 
   it('未知 kind 展示 404 且不发起任何主数据或人员请求', () => {

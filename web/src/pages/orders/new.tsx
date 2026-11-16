@@ -117,7 +117,7 @@ function NewOrderContent({
     queryKey: [
       'orders',
       'sea-house-create-source',
-      { organizationId, sourceOrderId },
+      { organizationId, sourceOrderId, businessType: definition?.businessType },
     ],
     enabled: Boolean(sourceOrderId && !sourceRequest.error && canUseSource),
     refetchOnMount: 'always',
@@ -135,6 +135,7 @@ function NewOrderContent({
         response?.data,
         sourceOrderId,
         organizationId,
+        definition?.businessType,
       );
     },
     // 错误由页面 Result 展示，避免与查询全局通知重复。
@@ -170,6 +171,8 @@ function NewOrderContent({
 
   const templateProps = useMemo(
     () => ({
+      businessType: definition?.businessType,
+      orderKind: definition?.kind,
       cargoCategoryOptions,
       locationOptions,
       searchLocations,
@@ -199,6 +202,7 @@ function NewOrderContent({
         : undefined,
     }),
     [
+      definition,
       cargoCategoryOptions,
       locationOptions,
       searchLocations,

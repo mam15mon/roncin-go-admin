@@ -10,7 +10,7 @@ import {
 import { App, ConfigProvider } from 'antd';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { beforeEach, vi } from 'vitest';
-import { MasterDataKind } from '@/enums.generated';
+import { MasterDataKind, OrderBusinessType } from '@/enums.generated';
 import HblEditor from './HblEditor';
 import type { HblBundle } from './model';
 
@@ -99,6 +99,7 @@ beforeEach(() => {
   state.bundle = {
     order: {
       id: 'order-1',
+      businessType: OrderBusinessType.BUSINESS_TYPE_SE,
       orderNo: 'SE001',
       organizationId: 'org-1',
       version: '1',
@@ -158,12 +159,16 @@ export function renderEditor() {
   const router = createMemoryRouter(
     [
       {
-        path: '/orders/sea-export/:id/hbl',
+        path: '/orders/:kind/:id/hbl',
         element: <HblEditor initial={state.bundle} scope="user-1:org-1" />,
       },
       { path: '*', element: <div>已离开</div> },
     ],
-    { initialEntries: ['/orders/sea-export/order-1/hbl'] },
+    {
+      initialEntries: [
+        `/orders/${state.bundle.order.businessType === OrderBusinessType.BUSINESS_TYPE_SI ? 'sea-import' : 'sea-export'}/order-1/hbl`,
+      ],
+    },
   );
   const view = render(
     <ConfigProvider theme={{ token: { motion: false } }}>

@@ -426,6 +426,7 @@ func TestOrderOperationWritesClassifiesEveryDeclaredOperation(t *testing.T) {
 		access.OrderFeeDelete:            true,
 		access.OrderSplit:                true,
 		access.OrderReassign:             true,
+		access.OrderTransportUpdate:      true,
 		access.OrderLock:                 true,
 		access.OrderAmend:                true,
 		access.OrderVoid:                 true,
@@ -458,14 +459,16 @@ func TestCheckOrderReferenceRequiresCreateScopeInCurrentOrganization(t *testing.
 	}
 }
 
-func TestMatchSeaMasterBillCandidateUsesCurrentOrganizationSEReadScope(t *testing.T) {
+func TestMatchSeaMasterBillCandidateUsesActualBusinessReadScope(t *testing.T) {
 	rule := accessRule{orderOperation: access.OrderRead, scope: biz.DataScopeOrganization}
-	request := &orderv1.MatchSeaMasterBillCandidateRequest{}
-	if !hasPermission(request, principalWithOrderPermission(access.OrderBusinessSE, access.OrderRead), rule) {
-		t.Fatal("海运出口订单 read 权限应允许共享主单候选匹配")
-	}
-	if hasPermission(request, principalWithOrderPermission(access.OrderBusinessSI, access.OrderRead), rule) {
-		t.Fatal("海运进口订单 read 权限不得授权海运出口共享主单候选匹配")
+	for _, requested := range []string{"SE", "SI", "", "AE", "AI"} {
+		for _, granted := range []access.OrderBusinessType{access.OrderBusinessSE, access.OrderBusinessSI} {
+			request := &orderv1.MatchSeaMasterBillCandidateRequest{BusinessType: requested}
+			allowed := hasPermission(request, principalWithOrderPermission(granted, access.OrderRead), rule)
+			if allowed != (requested == string(granted)) {
+				t.Fatalf("候选身份=%s 授权=%s 放行=%v", requested, granted, allowed)
+			}
+		}
 	}
 }
 
@@ -530,6 +533,49 @@ func TestRequestOrderUsesPermissionScopedRepositoryQuery(t *testing.T) {
 	}
 	if len(repo.scopes) != 1 || repo.scopes[0].BusinessType != biz.OrderBusinessSE || len(repo.scopes[0].OrganizationIDs) != 1 || repo.scopes[0].OrganizationIDs[0] != organizationID {
 		t.Fatalf("鉴权查询范围 = %#v", repo.scopes)
+	}
+}
+
+func TestImportHandlingRequestsRequireMatchingOrderScope(t *testing.T) {
+	organizationID, orderID := uuid.New(), uuid.New()
+	usecase := biz.NewOrderUsecase(&anchorAwareOrderRepoStub{order: &biz.Order{
+		ID: orderID, OrganizationID: organizationID, BusinessType: biz.OrderBusinessSI,
+	}}, nil, nil, nil, nil)
+	for _, test := range []struct {
+		method    string
+		request   any
+		operation access.OrderOperation
+	}{
+		{"GetImportHandling", &orderv1.GetImportHandlingRequest{OrderId: orderID.String()}, access.OrderRead},
+		{"SaveImportHandling", &orderv1.SaveImportHandlingRequest{OrderId: orderID.String()}, access.OrderUpdate},
+		{"ListImportHandlingEvents", &orderv1.ListImportHandlingEventsRequest{OrderId: orderID.String()}, access.OrderRead},
+	} {
+		t.Run(test.method, func(t *testing.T) {
+			rule := operationAccessRules["/order.v1.OrderService/"+test.method]
+			if rule.mode != accessModeOrderPermission || rule.orderOperation != test.operation {
+				t.Fatalf("进口服务未绑定真实订单权限: %+v", rule)
+			}
+			for _, scope := range []struct {
+				name         string
+				businessType access.OrderBusinessType
+				companyID    uuid.UUID
+				allowed      bool
+			}{
+				{"本公司进口权限", access.OrderBusinessSI, organizationID, true},
+				{"不能借出口权限", access.OrderBusinessSE, organizationID, false},
+				{"不能跨公司", access.OrderBusinessSI, uuid.New(), false},
+			} {
+				t.Run(scope.name, func(t *testing.T) {
+					principal := principalWithOrderPermission(scope.businessType, test.operation)
+					principal.Organization.ID = scope.companyID
+					principal.OrganizationNodes = serverOrganizationNodes(scope.companyID)
+					order, direct := requestOrder(t.Context(), test.request, usecase, orderOrganizationScopes(principal, rule.orderOperation, orderOperationWrites(rule.orderOperation)))
+					if !direct || (order != nil) != scope.allowed {
+						t.Fatalf("进口服务资源范围错误: direct=%v order=%+v", direct, order)
+					}
+				})
+			}
+		})
 	}
 }
 

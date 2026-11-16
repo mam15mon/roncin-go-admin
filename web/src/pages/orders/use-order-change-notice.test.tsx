@@ -486,11 +486,13 @@ it('终态首次打开后本人关账可推进检查参考点，后续外部更�
   expect(result.current.changed).toBe(true);
 });
 
-function restoreSnapshots() {
+function restoreSnapshots(
+  businessType: OrderBusinessType = OrderBusinessType.BUSINESS_TYPE_SE,
+) {
   const terminated: API.Order = {
     id: 'order-1',
     version: snapshot().version,
-    businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+    businessType,
     terminationStatus:
       OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED,
     shippingLineId: 'line-1',
@@ -514,36 +516,43 @@ function restoreSnapshots() {
   return { terminated, restored, retainedDocuments };
 }
 
-it('本人恢复原关联可清除先到轮询误报，仍保留输入基线并识别更晚外部更新', async () => {
-  const { terminated, restored, retainedDocuments } = restoreSnapshots();
-  const { result, editing } = mount({
-    initialOrder: terminated,
-    retainedDocuments,
-  });
-  getOrder.mockResolvedValue({ data: restored });
-  await advance(15_000);
-  await advance(1);
-  expect(result.current.changed).toBe(true);
-  act(() => result.current.acceptTransition(terminated, restored));
-  expect(result.current.changed).toBe(false);
-  expect(editing.current.version).toBe(terminated.version);
-  expect(editing.current.seaDocumentLinkVersion).toBe('4');
-  await advance(15_000);
-  await advance(1);
-  expect(result.current.changed).toBe(false);
-  getOrder.mockResolvedValue({
-    data: {
-      ...restored,
-      seaMasterBill: {
-        ...restored.seaMasterBill,
-        transportExecutionVersion: '4',
+it.each([
+  OrderBusinessType.BUSINESS_TYPE_SE,
+  OrderBusinessType.BUSINESS_TYPE_SI,
+])(
+  '业务%s本人恢复原关联可清除先到轮询误报，仍保留输入基线并识别更晚外部更新',
+  async (businessType) => {
+    const { terminated, restored, retainedDocuments } =
+      restoreSnapshots(businessType);
+    const { result, editing } = mount({
+      initialOrder: terminated,
+      retainedDocuments,
+    });
+    getOrder.mockResolvedValue({ data: restored });
+    await advance(15_000);
+    await advance(1);
+    expect(result.current.changed).toBe(true);
+    act(() => result.current.acceptTransition(terminated, restored));
+    expect(result.current.changed).toBe(false);
+    expect(editing.current.version).toBe(terminated.version);
+    expect(editing.current.seaDocumentLinkVersion).toBe('4');
+    await advance(15_000);
+    await advance(1);
+    expect(result.current.changed).toBe(false);
+    getOrder.mockResolvedValue({
+      data: {
+        ...restored,
+        seaMasterBill: {
+          ...restored.seaMasterBill,
+          transportExecutionVersion: '4',
+        },
       },
-    },
-  });
-  await advance(15_000);
-  await advance(1);
-  expect(result.current.changed).toBe(true);
-});
+    });
+    await advance(15_000);
+    await advance(1);
+    expect(result.current.changed).toBe(true);
+  },
+);
 
 it.each([
   [

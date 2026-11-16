@@ -463,17 +463,21 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 	}
 
 	createGenericOrder := func(businessType biz.OrderBusinessType) *ent.Order {
+		flow, direction := orderent.FlowStatusDRAFT, orderent.TradeDirectionExport
+		if businessType.IsImport() {
+			flow, direction = orderent.FlowStatusIMPORT_NOT_APPLICABLE, orderent.TradeDirectionImport
+		}
 		o, err := data.db.Order.Create().
 			SetIdempotencyKey(uuid.NewString()).
 			SetOrganizationID(org.ID).
 			SetOrderNo(string(businessType) + "-" + suffix + "-" + strings.ReplaceAll(uuid.NewString(), "-", "")[:6]).
 			SetCustomerID(customer.ID).
 			SetBusinessType(orderent.BusinessType(businessType)).
-			SetTradeDirection(orderent.TradeDirectionExport).
+			SetTradeDirection(direction).
 			SetTradeTerm(orderent.TradeTermFOB).
 			SetPaymentTerm(orderent.PaymentTermPREPAID).
 			SetShipmentType(orderent.ShipmentTypeFCL).
-			SetFlowStatus(orderent.FlowStatusDRAFT).
+			SetFlowStatus(flow).
 			SetTerminationStatus(orderent.TerminationStatusACTIVE).
 			SetClosureStatus(orderent.ClosureStatusOPEN).
 			SetVersion(1).
@@ -485,7 +489,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 	}
 
 	genericOrders := make(map[biz.OrderBusinessType]*ent.Order)
-	for _, businessType := range []biz.OrderBusinessType{biz.OrderBusinessSI, biz.OrderBusinessAE, biz.OrderBusinessAI, biz.OrderBusinessLand, biz.OrderBusinessRail} {
+	for _, businessType := range []biz.OrderBusinessType{biz.OrderBusinessAE, biz.OrderBusinessAI, biz.OrderBusinessLand, biz.OrderBusinessRail} {
 		genericOrders[businessType] = createGenericOrder(businessType)
 	}
 
@@ -522,8 +526,8 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		}
 	})
 
-	t.Run("五种非SE订单共用锁定与角色直解且不创建海运快照", func(t *testing.T) {
-		for _, businessType := range []biz.OrderBusinessType{biz.OrderBusinessSI, biz.OrderBusinessAE, biz.OrderBusinessAI, biz.OrderBusinessLand, biz.OrderBusinessRail} {
+	t.Run("四种非海运订单共用锁定与角色直解且不创建海运快照", func(t *testing.T) {
+		for _, businessType := range []biz.OrderBusinessType{biz.OrderBusinessAE, biz.OrderBusinessAI, biz.OrderBusinessLand, biz.OrderBusinessRail} {
 			businessType := businessType
 			t.Run(string(businessType), func(t *testing.T) {
 				accessType := access.OrderBusinessType(businessType)
@@ -619,7 +623,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 
 	t.Run("通用装运单证新增与锁定并发不会在锁后写入", func(t *testing.T) {
 		repo := NewOrderShippingDocumentRepo(data)
-		o := createGenericOrder(biz.OrderBusinessSI)
+		o := createGenericOrder(biz.OrderBusinessLand)
 		documentID := uuid.Must(uuid.NewV7())
 		start := make(chan struct{})
 		var lockErr error
@@ -629,13 +633,13 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			<-start
-			_, lockErr = orderLockRepo.LockOrder(ctx, rolePrincipal, o.ID, 1, "idem-si-doc-race-lock-"+suffix, lockTestReviewInput(t, data, ctx, o.ID), nil)
+			_, lockErr = orderLockRepo.LockOrder(ctx, rolePrincipal, o.ID, 1, "idem-land-doc-race-lock-"+suffix, lockTestReviewInput(t, data, ctx, o.ID), nil)
 		}()
 		go func() {
 			defer wg.Done()
 			<-start
 			audit := &biz.AuditEvent{OrganizationID: &org.ID, UserID: &roleUser.ID, Action: "order.shipping_document.add", ResourceType: "order_shipping_document", Result: "success", Details: map[string]string{}}
-			_, addErr = repo.Add(ctx, org.ID, o.ID, &biz.OrderShippingDocument{ID: documentID, HouseNo: "SI-RACE-" + suffix}, audit)
+			_, addErr = repo.Add(ctx, org.ID, o.ID, &biz.OrderShippingDocument{ID: documentID, HouseNo: "LAND-RACE-" + suffix}, audit)
 		}()
 		close(start)
 		wg.Wait()

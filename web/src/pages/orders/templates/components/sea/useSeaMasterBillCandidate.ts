@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Form } from 'antd';
 import dayjs from 'dayjs';
 import { useCallback, useEffect, useState } from 'react';
-import { SeaDocumentStructure } from '@/enums.generated';
+import { OrderBusinessType, SeaDocumentStructure } from '@/enums.generated';
 import { orderServiceMatchSeaMasterBillCandidate } from '@/services/roncin/orderService';
 import type { SeaHouseOrderCreateSource, SelectOption } from '../../types';
 import {
@@ -55,6 +55,7 @@ export function useSeaMasterBillCandidate(
   isDetail: boolean,
   locationOptions: SelectOption[],
   createSource?: SeaHouseOrderCreateSource,
+  businessType: number = OrderBusinessType.BUSINESS_TYPE_SE,
 ) {
   const form = Form.useFormInstance();
   const masterNo = Form.useWatch('seaMasterBillMasterNo', {
@@ -114,7 +115,12 @@ export function useSeaMasterBillCandidate(
     identity && identity === debouncedIdentity && !unchanged,
   );
   const query = useQuery({
-    queryKey: ['orders', 'sea-master-bill-candidate', debouncedIdentity],
+    queryKey: [
+      'orders',
+      'sea-master-bill-candidate',
+      debouncedIdentity,
+      businessType,
+    ] as const,
     enabled,
     queryFn: async ({ signal, queryKey }) => {
       const queryIdentity = queryKey[2];
@@ -125,7 +131,8 @@ export function useSeaMasterBillCandidate(
       const current = form.getFieldsValue(true) as SeaVoyageValues;
       const response = await orderServiceMatchSeaMasterBillCandidate(
         {
-          businessType: 'SE',
+          businessType:
+            businessType === OrderBusinessType.BUSINESS_TYPE_SI ? 'SI' : 'SE',
           masterNo: queryMasterNo,
           shippingLineId: queryShippingLineId,
           originLocationId: current.originLocationId || undefined,

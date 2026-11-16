@@ -1,8 +1,11 @@
 import dayjs, { type Dayjs } from 'dayjs';
 import {
+  OrderBusinessType,
   SeaHouseBillIssuerSource,
   SeaHouseBillStatus,
 } from '@/enums.generated';
+import { sha256 } from '@/utils/hash';
+import { HBL_PDF_TEMPLATE_REVISION } from './pdf/types';
 
 export type HblBundle = {
   order: API.Order;
@@ -91,6 +94,8 @@ export function hblValuesFingerprint(values: HblFormValues): string {
 
 export function hblBundleFingerprint(bundle: HblBundle): string {
   return JSON.stringify([
+    HBL_PDF_TEMPLATE_REVISION,
+    sha256(hblValuesFingerprint(buildHblFormValues(bundle))),
     bundle.order.id,
     bundle.order.version,
     bundle.order.seaMasterBill?.masterBillId,
@@ -103,9 +108,23 @@ export function hblBundleFingerprint(bundle: HblBundle): string {
     bundle.documents.houseBill?.id,
     bundle.documents.houseBill?.version,
     bundle.documents.houseBill?.issuerOrganizationId,
+    bundle.documents.houseBill?.issuerPartnerId,
+    bundle.documents.houseBill?.issuerPartnerName,
     bundle.documents.houseBill?.issuerOrganizationNameEn,
     bundle.documents.houseBill?.printTemplate,
   ]);
+}
+
+export function isExternalHblArchive(bundle: HblBundle): boolean {
+  const house = bundle.documents.houseBill;
+  return (
+    bundle.order.businessType === OrderBusinessType.BUSINESS_TYPE_SI &&
+    house?.printTemplate === 'EXTERNAL_ARCHIVE' &&
+    (house.issuerSource ===
+      SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_CUSTOMER_PARTNER ||
+      house.issuerSource ===
+        SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_OTHER_PARTNER)
+  );
 }
 
 export function hblUnavailableReason(bundle: HblBundle): string | undefined {
@@ -113,6 +132,7 @@ export function hblUnavailableReason(bundle: HblBundle): string | undefined {
   if (!house?.id) return '当前订单没有可制作的 HBL，请先在订单资料中维护分单。';
   if (house.status === SeaHouseBillStatus.SEA_HOUSE_BILL_STATUS_VOIDED)
     return '当前 HBL 已作废，不能制作。';
+  if (isExternalHblArchive(bundle)) return undefined;
   if (
     house.issuerSource !==
       SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_SELF_ORGANIZATION ||
@@ -126,6 +146,11 @@ export function hblUnavailableReason(bundle: HblBundle): string | undefined {
 export function hblOutputBlockedReason(bundle: HblBundle): string | undefined {
   const unavailable = hblUnavailableReason(bundle);
   if (unavailable) return unavailable;
+  if (isExternalHblArchive(bundle))
+    return bundle.documents.houseBill?.issuerPartnerId &&
+      bundle.documents.houseBill.issuerPartnerName?.trim()
+      ? undefined
+      : '外部提单缺少真实签发方资料，请先补齐后归档。';
   if (!bundle.documents.houseBill?.issuerOrganizationNameEn?.trim())
     return '签发公司尚未维护英文名称，请在公司档案中补齐后输出。';
   return undefined;

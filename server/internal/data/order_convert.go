@@ -157,7 +157,7 @@ func orderToBiz(item *ent.Order) *biz.Order {
 				if te.Eta != nil {
 					summary.ETA = te.Eta.Format(time.RFC3339)
 				}
-				if result.BusinessType == biz.OrderBusinessSE {
+				if result.BusinessType.IsSea() {
 					result.ShippingLineID = &te.ShippingLineID
 					result.OriginLocationID = te.OriginLocationID
 					result.DischargeLocationID = te.DischargeLocationID
@@ -194,13 +194,13 @@ func orderAllowedActions(order *biz.Order) []biz.OrderAllowedAction {
 		if order.ClosureStatus == biz.OrderClosureOpen && order.LockedAt == nil {
 			result = append(result, biz.OrderActionEdit)
 		}
-		if order.FlowStatus != biz.OrderFlowDocumentReleased {
+		if !order.BusinessType.IsImport() && order.FlowStatus != biz.OrderFlowDocumentReleased {
 			result = append(result, biz.OrderActionTransitionFlow)
 		}
 		result = append(result, biz.OrderActionStartTermination)
 	} else if order.TerminationStatus == biz.OrderTerminationTerminating {
 		result = append(result, biz.OrderActionCompleteTermination, biz.OrderActionCancelTermination)
-	} else if order.BusinessType != biz.OrderBusinessAE && (order.BusinessType != biz.OrderBusinessSE || order.LockedAt == nil) {
+	} else if order.BusinessType != biz.OrderBusinessAE && (!order.BusinessType.IsSea() || order.LockedAt == nil) {
 		result = append(result, biz.OrderActionCancelTermination)
 	}
 	// 完结可从任意主流程节点发起，未完成节点由结案事务统一补齐。

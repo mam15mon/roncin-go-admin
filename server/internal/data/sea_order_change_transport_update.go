@@ -141,16 +141,35 @@ func (r *seaOrderChangeRepo) ExecuteTransportExecutionUpdate(ctx context.Context
 		// 共享航程的船期更新属全部成员订单的业务内容写入：逐单执行统一内容门禁，
 		// 任一成员被业务锁定或处于终止状态即整体回滚。
 		for _, memberOrder := range orders {
-			if memberOrder.BusinessType != orderent.BusinessTypeSE {
+			if !biz.OrderBusinessType(memberOrder.BusinessType).IsSea() {
 				return biz.ErrSeaDocumentStructureConflict
 			}
 			if err := ensureOrderBusinessEditable(ctx, tx, memberOrder); err != nil {
 				return err
 			}
 		}
-		masters, err := tx.SeaMasterBill.Query().Where(seamasterbillent.BusinessTypeEQ("SE"), seamasterbillent.OrganizationIDEQ(organizationID), seamasterbillent.IDIn(masterBillIDs...)).Order(seamasterbillent.ByID()).ForUpdate().All(ctx)
+		masters, err := tx.SeaMasterBill.Query().Where(seamasterbillent.BusinessTypeIn("SE", "SI"), seamasterbillent.OrganizationIDEQ(organizationID), seamasterbillent.IDIn(masterBillIDs...)).Order(seamasterbillent.ByID()).ForUpdate().All(ctx)
 		if err != nil {
 			return err
+		}
+		var requestOrder *ent.Order
+		for _, o := range orders {
+			if o.ID == input.OrderID {
+				requestOrder = o
+			}
+		}
+		if requestOrder == nil {
+			return biz.ErrOrderNotFound
+		}
+		for _, o := range orders {
+			if o.BusinessType != requestOrder.BusinessType {
+				return biz.ErrSeaDocumentStructureConflict
+			}
+		}
+		for _, m := range masters {
+			if m.BusinessType != string(requestOrder.BusinessType) {
+				return biz.ErrSeaDocumentStructureConflict
+			}
 		}
 		if len(masters) != len(masterBillIDs) {
 			return biz.ErrSeaDocumentStructureConflict

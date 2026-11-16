@@ -218,6 +218,32 @@ func TestOrderPermissionRequires(t *testing.T) {
 	}
 }
 
+func TestSeaTransportUpdateUsesExistingBusinessPermissions(t *testing.T) {
+	if !OrderTransportUpdate.Valid() {
+		t.Fatal("共享航程路由动作必须可用于Proto注解")
+	}
+	for _, businessType := range OrderBusinessTypes() {
+		expected := ""
+		switch businessType {
+		case OrderBusinessSE:
+			expected = OrderPermission(businessType, OrderReassign)
+		case OrderBusinessSI:
+			expected = OrderPermission(businessType, OrderUpdate)
+		}
+		if actual := OrderPermission(businessType, OrderTransportUpdate); actual != expected {
+			t.Fatalf("%s航程权限=%s 期望=%s", businessType, actual, expected)
+		}
+	}
+	if OrderPermission(OrderBusinessSI, OrderReassign) != "" {
+		t.Fatal("共享航程支持不能开放SI整票改配")
+	}
+	for _, permission := range Manifest() {
+		if strings.HasSuffix(permission.Key, ".transport.update") {
+			t.Fatal("共享航程动作应复用既有权限码")
+		}
+	}
+}
+
 func slicesEqual(a, b []string) bool {
 	if len(a) != len(b) {
 		return false

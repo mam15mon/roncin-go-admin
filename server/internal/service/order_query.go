@@ -13,7 +13,7 @@ import (
 )
 
 func (s *OrderService) MatchSeaMasterBillCandidate(ctx context.Context, request *v1.MatchSeaMasterBillCandidateRequest) (*v1.MatchSeaMasterBillCandidateResponse, error) {
-	if request.GetBusinessType() != "SE" {
+	if !biz.OrderBusinessType(request.GetBusinessType()).IsSea() {
 		return nil, biz.ErrSeaMasterBillInvalidArgument
 	}
 	principal, principalErr := biz.RequirePrincipal(ctx)
@@ -62,7 +62,7 @@ func (s *OrderService) MatchSeaMasterBillCandidate(ctx context.Context, request 
 		orderVoyage.TransitLocationID = transitLocationID
 	}
 
-	result, err := s.usecase.MatchSeaMasterBillCandidate(ctx, principal.Organization.ID, shippingLineID, request.GetMasterNo(), orderVoyage)
+	result, err := s.usecase.MatchSeaMasterBillCandidate(ctx, principal.Organization.ID, shippingLineID, request.GetMasterNo(), orderVoyage, biz.OrderBusinessType(request.GetBusinessType()))
 	if err != nil {
 		return nil, err
 	}

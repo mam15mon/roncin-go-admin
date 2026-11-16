@@ -21,7 +21,7 @@ func TestFinanceReportAuthoritativeAirAndImportDatePostgres(t *testing.T) {
 	master := d.db.AirMasterWaybill.Create().SetBusinessType("AE").SetOrganizationID(f.org).SetMasterNo("99912345678").SetAirlineID(airline.ID).SetOriginAirportID(airport.ID).SetDestinationAirportID(airport.ID).SetEtd("2026-04-30T17:00:00Z").SaveX(ctx)
 	d.db.AirMasterWaybillOrderLink.Create().SetDocumentMode("DIRECT").SetOrganizationID(f.org).SetOrderID(f.order.ID).SetMasterWaybillID(master.ID).SaveX(ctx)
 	f.fee(f.order.ID, feeent.DirectionRECEIVABLE, "100", "100")
-	imported := d.db.Order.Create().SetOrganizationID(f.org).SetIdempotencyKey(uuid.NewString()).SetOrderNo("IMPORT").SetCustomerID(f.party).SetBusinessType(orderent.BusinessTypeSI).SetTradeDirection(orderent.TradeDirectionImport).SetPaymentTerm(orderent.PaymentTermPREPAID).SetEtd("2026-01-01T00:00:00Z").SetEta("2026-05-01T03:00:00+08:00").SaveX(ctx)
+	imported := d.db.Order.Create().SetOrganizationID(f.org).SetIdempotencyKey(uuid.NewString()).SetOrderNo("IMPORT").SetCustomerID(f.party).SetBusinessType(orderent.BusinessTypeSI).SetFlowStatus(orderent.FlowStatusIMPORT_NOT_APPLICABLE).SetTradeDirection(orderent.TradeDirectionImport).SetPaymentTerm(orderent.PaymentTermPREPAID).SetEtd("2026-01-01T00:00:00Z").SetEta("2026-05-01T03:00:00+08:00").SaveX(ctx)
 	f.fee(imported.ID, feeent.DirectionPAYABLE, "40", "40")
 	report, err := NewFinanceReportRepo(d).Profit(ctx, f.org, biz.FinanceReportFilter{Page: 1, PageSize: 20, DateFrom: "2026-05-01", DateTo: "2026-05-01"}, false)
 	if err != nil {

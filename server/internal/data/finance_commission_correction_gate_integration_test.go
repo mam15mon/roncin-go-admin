@@ -41,11 +41,11 @@ func correctedCommissionGateFixture(t *testing.T, operation string, billReplacem
 			t.Fatal(err)
 		}
 	}
-	// 此夹具不含海运单证，使用与既有更正提成夹具一致的 SI 品类满足正式锁快照约束。
-	if _, err = f.data.db.Order.UpdateOneID(f.orderID).SetBusinessType(orderent.BusinessTypeSI).Save(ctx); err != nil {
+	// 此夹具验证通用费用与提成更正，使用LAND品类；海运SI须具备真实单证快照。
+	if _, err = f.data.db.Order.UpdateOneID(f.orderID).SetBusinessType(orderent.BusinessTypeLAND).Save(ctx); err != nil {
 		t.Fatal(err)
 	}
-	(&workbenchIntegrationFixture{t: t, data: f.data, organizationID: f.organizationID, suffix: f.suffix}).grantWorkbenchPermission(employee, "business.order.si.lock", "business.order.si.read", "business.order.si.update", "business.order.si.fee.read")
+	(&workbenchIntegrationFixture{t: t, data: f.data, organizationID: f.organizationID, suffix: f.suffix}).grantWorkbenchPermission(employee, "business.order.land.lock", "business.order.land.read", "business.order.land.update", "business.order.land.fee.read")
 	seedManualOrderReviewForTest(t, f.data, f.orderID, f.actorID)
 	current, err := NewOrderFeeCorrectionRepo(f.data).CurrentFees(ctx, f.orderID)
 	if err != nil {

@@ -26,7 +26,7 @@ type seaMasterBillUpdateLockContext struct {
 }
 
 func orderUpdateNeedsSharedMasterBillMemberLocks(input *biz.Order) bool {
-	if input == nil || input.BusinessType != biz.OrderBusinessSE {
+	if input == nil || !input.BusinessType.IsSea() {
 		return false
 	}
 	return input.SeaMasterBillInput != nil ||
@@ -34,7 +34,7 @@ func orderUpdateNeedsSharedMasterBillMemberLocks(input *biz.Order) bool {
 }
 
 // lockOrderDraftUpdateTarget 为共享 MBL 更新预先按主键升序锁定全部活动成员 Order。
-// 非海运出口或未修改共享 MBL 身份、航程、内容时只锁定目标订单。
+// 非海运或未修改共享 MBL 身份、航程、内容时只锁定目标订单。
 func lockOrderDraftUpdateTarget(
 	ctx context.Context,
 	tx *ent.Tx,
@@ -219,7 +219,7 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 		}
 
 		if existing.CustomerID != input.CustomerID {
-			if existing.BusinessType == orderent.BusinessTypeSE {
+			if biz.OrderBusinessType(existing.BusinessType).IsSea() {
 				hasCustomerHBL, checkErr := tx.SeaHouseBill.Query().Where(
 					seahousebill.OrderIDEQ(id),
 					seahousebill.OrganizationIDEQ(organizationID),

@@ -41,9 +41,16 @@ func (v OrderBusinessType) DisplayName() string {
 	}
 }
 
+func (v OrderBusinessType) IsSea() bool    { return v == OrderBusinessSE || v == OrderBusinessSI }
+func (v OrderBusinessType) IsImport() bool { return v == OrderBusinessSI || v == OrderBusinessAI }
+
 type OrderFlowStatus string
 
 const (
+	OrderFlowImportNotApplicable        OrderFlowStatus = "IMPORT_NOT_APPLICABLE"
+	OrderFlowImportNotStarted           OrderFlowStatus = "IMPORT_NOT_STARTED"
+	OrderFlowImportInProgress           OrderFlowStatus = "IMPORT_IN_PROGRESS"
+	OrderFlowImportCompleted            OrderFlowStatus = "IMPORT_COMPLETED"
 	OrderFlowDraft                      OrderFlowStatus = "DRAFT"
 	OrderFlowBooked                     OrderFlowStatus = "BOOKED"
 	OrderFlowSpaceAllocated             OrderFlowStatus = "SPACE_ALLOCATED"
@@ -55,7 +62,7 @@ const (
 
 func (v OrderFlowStatus) Valid() bool {
 	switch v {
-	case OrderFlowDraft, OrderFlowBooked, OrderFlowSpaceAllocated, OrderFlowTruckingArranged, OrderFlowDocumentCutoff, OrderFlowCustomsDeclarationArranged, OrderFlowDocumentReleased:
+	case OrderFlowImportNotApplicable, OrderFlowImportNotStarted, OrderFlowImportInProgress, OrderFlowImportCompleted, OrderFlowDraft, OrderFlowBooked, OrderFlowSpaceAllocated, OrderFlowTruckingArranged, OrderFlowDocumentCutoff, OrderFlowCustomsDeclarationArranged, OrderFlowDocumentReleased:
 		return true
 	default:
 		return false

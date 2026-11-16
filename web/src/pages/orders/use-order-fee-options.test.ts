@@ -4,6 +4,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { OrderBusinessType } from '@/enums.generated';
 import { orderFeeServiceListFeeOptions } from '@/services/roncin/orderFeeService';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import { useOrderFeeOptions } from './use-order-fee-options';
@@ -57,14 +58,88 @@ describe('useOrderFeeOptions', () => {
     } as any);
   });
 
+  it.each([undefined, 0, OrderBusinessType.BUSINESS_TYPE_SE])(
+    'SI费用页拒绝缺失或错配真实类型%s',
+    async (businessType) => {
+      mockGetOrder.mockResolvedValueOnce({
+        data: { id: 'si-order', organizationId: 'org-1', businessType },
+      });
+      const { result } = renderHook(
+        () =>
+          useOrderFeeOptions(
+            'si-order',
+            OrderBusinessType.BUSINESS_TYPE_SI,
+            'org-1',
+          ),
+        { wrapper: createHookWrapper().wrapper },
+      );
+      await waitFor(() => expect(result.current.loading).toBe(false));
+      expect(result.current.order).toBeUndefined();
+    },
+  );
+
+  it.each([
+    { id: 'wrong-order', organizationId: 'org-1' },
+    { id: 'si-order', organizationId: 'wrong-company' },
+    { id: 'si-order', organizationId: undefined },
+  ])('成功响应身份错误时拒绝采纳 %j', async (identity) => {
+    mockGetOrder.mockResolvedValueOnce({
+      data: { ...identity, businessType: OrderBusinessType.BUSINESS_TYPE_SI },
+    });
+    const { result } = renderHook(
+      () =>
+        useOrderFeeOptions(
+          'si-order',
+          OrderBusinessType.BUSINESS_TYPE_SI,
+          'org-1',
+        ),
+      { wrapper: createHookWrapper().wrapper },
+    );
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.order).toBeUndefined();
+  });
+
+  it.each([undefined, ''])(
+    '当前公司缺失%s时不请求且不陷入加载状态',
+    async (organizationId) => {
+      const { result } = renderHook(
+        () =>
+          useOrderFeeOptions(
+            'si-order',
+            OrderBusinessType.BUSINESS_TYPE_SI,
+            organizationId,
+          ),
+        { wrapper: createHookWrapper().wrapper },
+      );
+      expect(result.current.loading).toBe(false);
+      await result.current.loadData();
+      expect(mockGetOrder).not.toHaveBeenCalled();
+      expect(mockListFeeOptions).not.toHaveBeenCalled();
+    },
+  );
+
   it('成功加载指定订单的费用选项', async () => {
     mockGetOrder.mockResolvedValue({
-      data: { id: 'ord-1', orderNo: 'SE001', version: '1' },
+      data: {
+        businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+        organizationId: 'org-1',
+        id: 'ord-1',
+        orderNo: 'SE001',
+        version: '1',
+      },
     } as any);
 
-    const { result } = renderHook(() => useOrderFeeOptions('ord-1'), {
-      wrapper: createHookWrapper().wrapper,
-    });
+    const { result } = renderHook(
+      () =>
+        useOrderFeeOptions(
+          'ord-1',
+          OrderBusinessType.BUSINESS_TYPE_SE,
+          'org-1',
+        ),
+      {
+        wrapper: createHookWrapper().wrapper,
+      },
+    );
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.order?.id).toBe('ord-1');
@@ -74,14 +149,28 @@ describe('useOrderFeeOptions', () => {
 
   it('请求被全局错误处理器消费后 resolve undefined 时，抛出明确业务错误而非 TypeError', async () => {
     mockGetOrder.mockResolvedValueOnce({
-      data: { id: 'ord-1', orderNo: 'SE001', version: '1' },
+      data: {
+        businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+        organizationId: 'org-1',
+        id: 'ord-1',
+        orderNo: 'SE001',
+        version: '1',
+      },
     } as any);
     mockListFeeOptions.mockResolvedValueOnce(undefined as unknown as any);
 
     const { queryClient, wrapper } = createHookWrapper();
-    const { result } = renderHook(() => useOrderFeeOptions('ord-1'), {
-      wrapper,
-    });
+    const { result } = renderHook(
+      () =>
+        useOrderFeeOptions(
+          'ord-1',
+          OrderBusinessType.BUSINESS_TYPE_SE,
+          'org-1',
+        ),
+      {
+        wrapper,
+      },
+    );
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.order).toBeUndefined();
@@ -100,7 +189,12 @@ describe('useOrderFeeOptions', () => {
 
     let currentId = 'ord-A';
     const { result, rerender } = renderHook(
-      () => useOrderFeeOptions(currentId),
+      () =>
+        useOrderFeeOptions(
+          currentId,
+          OrderBusinessType.BUSINESS_TYPE_SE,
+          'org-1',
+        ),
       { wrapper: createHookWrapper().wrapper },
     );
 
@@ -110,7 +204,13 @@ describe('useOrderFeeOptions', () => {
 
     // 2. A 响应成功
     deferA.resolve({
-      data: { id: 'ord-A', orderNo: 'ORDER-A', version: '1' },
+      data: {
+        businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+        organizationId: 'org-1',
+        id: 'ord-A',
+        orderNo: 'ORDER-A',
+        version: '1',
+      },
     });
     await waitFor(() => expect(result.current.order?.id).toBe('ord-A'));
     expect(result.current.loading).toBe(false);
@@ -125,7 +225,13 @@ describe('useOrderFeeOptions', () => {
 
     // 4. B 返回成功
     deferB.resolve({
-      data: { id: 'ord-B', orderNo: 'ORDER-B', version: '1' },
+      data: {
+        businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+        organizationId: 'org-1',
+        id: 'ord-B',
+        orderNo: 'ORDER-B',
+        version: '1',
+      },
     });
     await waitFor(() => expect(result.current.order?.id).toBe('ord-B'));
     expect(result.current.loading).toBe(false);
@@ -134,13 +240,24 @@ describe('useOrderFeeOptions', () => {
   it('切换到订单 B 且 B 请求失败时，保持为空状态，不得回退显示订单 A 的数据', async () => {
     mockGetOrder
       .mockResolvedValueOnce({
-        data: { id: 'ord-A', orderNo: 'ORDER-A', version: '1' },
+        data: {
+          businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+          organizationId: 'org-1',
+          id: 'ord-A',
+          orderNo: 'ORDER-A',
+          version: '1',
+        },
       } as any)
       .mockRejectedValueOnce(new Error('订单 B 加载失败'));
 
     let currentId = 'ord-A';
     const { result, rerender } = renderHook(
-      () => useOrderFeeOptions(currentId),
+      () =>
+        useOrderFeeOptions(
+          currentId,
+          OrderBusinessType.BUSINESS_TYPE_SE,
+          'org-1',
+        ),
       { wrapper: createHookWrapper().wrapper },
     );
 
@@ -166,7 +283,12 @@ describe('useOrderFeeOptions', () => {
 
     let currentId = 'ord-A';
     const { result, rerender } = renderHook(
-      () => useOrderFeeOptions(currentId),
+      () =>
+        useOrderFeeOptions(
+          currentId,
+          OrderBusinessType.BUSINESS_TYPE_SE,
+          'org-1',
+        ),
       { wrapper: createHookWrapper().wrapper },
     );
 
@@ -176,13 +298,25 @@ describe('useOrderFeeOptions', () => {
 
     // B 先返回
     deferB.resolve({
-      data: { id: 'ord-B', orderNo: 'ORDER-B', version: '1' },
+      data: {
+        businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+        organizationId: 'org-1',
+        id: 'ord-B',
+        orderNo: 'ORDER-B',
+        version: '1',
+      },
     });
     await waitFor(() => expect(result.current.order?.id).toBe('ord-B'));
 
     // 迟到的 A 响应到达
     deferA.resolve({
-      data: { id: 'ord-A', orderNo: 'ORDER-A', version: '1' },
+      data: {
+        businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+        organizationId: 'org-1',
+        id: 'ord-A',
+        orderNo: 'ORDER-A',
+        version: '1',
+      },
     });
 
     // 依然保持为 B，A 响应被正确丢弃

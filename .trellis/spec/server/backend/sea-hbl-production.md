@@ -2,13 +2,13 @@
 
 ## 1. 适用范围
 
-修改海运出口 HBL 的制作资料、入口、PDF 模板或历史版本时，除海运单证原有契约外同时遵循本文。业务结果为同一份真实 HBL 的编辑、预览、打印与 PDF 下载，不是另一份打印稿，也不是放货凭证登记。
+修改海运进出口 HBL 的制作资料、入口、PDF 模板或历史版本时，除海运单证原有契约外同时遵循本文。业务结果为同一份真实 HBL 的编辑、预览、打印与 PDF 下载，不是另一份打印稿，也不是放货凭证登记。
 
-自签模板统一为 `RONCIN_SELF`：适用于真实签发主体为公司（`kind=company`）的本公司签发 HBL，不按 `BJ` 等公司编码限制。英文抬头来自该 HBL 的真实签发公司 `name_en`；不能用当前工作台、订单归属公司或固定北京名称代替。公司字段及迁移规则见[公司英文名称](./company-english-name.md)。客户和其他代理签发模板不在本期范围。
+自签模板统一为 `RONCIN_SELF`：适用于真实签发主体为公司（`kind=company`）的本公司签发 HBL，不按 `BJ` 等公司编码限制。英文抬头来自该 HBL 的真实签发公司 `name_en`；不能用当前工作台、订单归属公司或固定北京名称代替。公司字段及迁移规则见[公司英文名称](./company-english-name.md)。SI外部主体只提供 `EXTERNAL_ARCHIVE` 登记资料归档，按[进口订单合同](./order-import-handling.md)保存真实主体及输出资料页，不仿制外部法律提单或借本公司自签。
 
 ## 2. 签名与入口
 
-- 制作页：`/orders/sea-export/:id/hbl`；路由沿用 `canReadSEOrders`，切换组织回海运列表。
+- 制作页：`/orders/sea-export/:id/hbl`、`/orders/sea-import/:id/hbl`；使用实际SE/SI读取权限，成功读取严格匹配路由类型和当前公司，切换组织回对应海运列表。
 - 查询沿用 `GET /api/v1/orders/{order_id}/sea-documents` 与订单详情。
 - 保存沿用 `PUT /api/v1/orders/{order_id}/sea-documents/house-bills/{id}`，请求带 `expected_version`、`expected_link_version` 和完整 `house_bill`。
 - Protobuf 源：`server/api/order/v1/sea_document.proto`，新增 `SeaHouseBillPrintDetails`；`SeaHouseBill`、`SeaHouseBillInput`、`SeaDocumentVersion` 携带 `print_details`，当前 HBL 另返回只读 `print_template` 和 `issuer_organization_name_en`。
@@ -38,6 +38,8 @@
 使用按需加载的 `@react-pdf/renderer`，同一个生成 Blob 用于预览、下载和浏览器 PDF 打印入口。不得另画一份网页打印版导致内容不一致，也不把表单本身当提单打印。
 
 公司名称作为 `HblPdfModel.issuerNameEn` 传入页眉、作者、条款和签发区，缺名或字体不支持明确阻止输出。页眉按实际名称折行数预留空间，不截断正式英文名。
+上述自签公司规则只用于 RONCIN_SELF；EXTERNAL_ARCHIVE 展示真实 `issuerPartnerName`，
+保留当前HBL正文/印字/版本，不以公司英文名缺失阻断外部归档，也不输出四类自签法律版本。
 
 模板为 A4 竖版，常规数据单页，长地址/货描/箱号/联系人正常续页；各页显示 HBL 号、版本标识和页码。大段正文不能整体设成 `wrap={false}`，不能靠隐藏溢出、截图或无限缩小字体保单页。固定页眉页脚只放有界标识，长联系方式/参考应进入可分页正文。
 
@@ -74,6 +76,7 @@
 - data/PostgreSQL：正式迁移仅增加目标列；普通更新/整单保存、哈希、版本冲突、锁定阻断、审计原子性、历史快照及拆票原票/新票语义。
 - Web：公司英文名维护/清空、缺名输出阻止但仍可保存、英文名外部变化与输入保护、入口、真实目标、模板范围、保存失败/冲突保留输入、四版本不受利润审核限制、15 秒及回焦检查、组织/订单隔离和首次初始化不标脏。
 - PDF/浏览器：中英文实际字形、正常单页、超长字段续页、末尾文字不丢、HBL 号/页码/版本标识、同一 Blob 下载打印、字体同域及失败重试。
+- SI 外部归档另验证真实外部主体、全部登记字段和长文完整；真实提字/图片核查行高与字符坐标，不能仅检查布局树存在文字。
 - 新增 PDF 依赖、字体和路由需要生产构建验证；普通页面首屏不应拉取 PDF 字体和渲染器。
 
 ## 7. 错误与正确实现

@@ -59,7 +59,7 @@ func loadCurrentDocumentBase(ctx context.Context, client *ent.Client, orgID, ord
 	if err != nil {
 		return nil, nil, mapEntError(err, biz.ErrSeaDocumentNoActiveLink, nil)
 	}
-	master, err := client.SeaMasterBill.Query().Where(seamasterbillent.IDEQ(link.MasterBillID), seamasterbillent.OrganizationIDEQ(orgID), seamasterbillent.BusinessTypeEQ("SE")).Only(ctx)
+	master, err := client.SeaMasterBill.Query().Where(seamasterbillent.IDEQ(link.MasterBillID), seamasterbillent.OrganizationIDEQ(orgID), seamasterbillent.BusinessTypeEQ(string(order.BusinessType))).Only(ctx)
 	if err != nil || string(order.BusinessType) != master.BusinessType {
 		return nil, nil, biz.ErrSeaDocumentStructureConflict
 	}
@@ -68,7 +68,7 @@ func loadCurrentDocumentBase(ctx context.Context, client *ent.Client, orgID, ord
 		if link.MasterBillID != documentID {
 			return nil, nil, biz.ErrSeaDocumentVersionConflict
 		}
-		mbl, err := client.SeaMasterBill.Query().Where(seamasterbillent.IDEQ(documentID), seamasterbillent.BusinessTypeEQ("SE"), seamasterbillent.OrganizationIDEQ(orgID)).Only(ctx)
+		mbl, err := client.SeaMasterBill.Query().Where(seamasterbillent.IDEQ(documentID), seamasterbillent.BusinessTypeEQ(string(order.BusinessType)), seamasterbillent.OrganizationIDEQ(orgID)).Only(ctx)
 		if err != nil {
 			return nil, nil, mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
 		}
@@ -294,7 +294,7 @@ func lockHouseDocument(ctx context.Context, tx *ent.Tx, orgID, orderID, hblID uu
 	if err != nil {
 		return nil, nil, nil, nil, mapEntError(err, biz.ErrSeaDocumentNoActiveLink, nil)
 	}
-	mbl, err := tx.SeaMasterBill.Query().Where(seamasterbillent.IDEQ(located.MasterBillID), seamasterbillent.BusinessTypeEQ("SE"), seamasterbillent.OrganizationIDEQ(orgID)).ForUpdate().Only(ctx)
+	mbl, err := tx.SeaMasterBill.Query().Where(seamasterbillent.IDEQ(located.MasterBillID), seamasterbillent.BusinessTypeEQ(string(order.BusinessType)), seamasterbillent.OrganizationIDEQ(orgID)).ForUpdate().Only(ctx)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}

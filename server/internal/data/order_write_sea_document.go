@@ -15,7 +15,7 @@ import (
 )
 
 func syncOrderSeaDocumentOnCreate(ctx context.Context, tx *ent.Tx, organizationID, actorID uuid.UUID, order *ent.Order, input *biz.Order, audit *biz.AuditEvent) error {
-	if input.BusinessType != biz.OrderBusinessSE || input.SeaDocumentInput == nil {
+	if !input.BusinessType.IsSea() || input.SeaDocumentInput == nil {
 		return nil
 	}
 	docInput := input.SeaDocumentInput
@@ -155,7 +155,7 @@ func syncOrderSeaDocumentOnUpdate(
 	audit *biz.AuditEvent,
 	lockContext *seaMasterBillUpdateLockContext,
 ) error {
-	if input.BusinessType != biz.OrderBusinessSE || input.SeaDocumentInput == nil {
+	if !input.BusinessType.IsSea() || input.SeaDocumentInput == nil {
 		return nil
 	}
 	docInput := input.SeaDocumentInput
@@ -180,7 +180,7 @@ func syncOrderSeaDocumentOnUpdate(
 	mbl, err := tx.SeaMasterBill.Query().
 		Where(
 			seamasterbill.IDEQ(activeLinkQuery.MasterBillID),
-			seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ("SE"),
+			seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ(string(input.BusinessType)),
 		).
 		ForUpdate().
 		Only(ctx)

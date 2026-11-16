@@ -355,6 +355,9 @@ export function buildOrderStatusSection(
 ): OrderFormTemplateSection {
   const allowedTargets = new Set(order?.allowedTargetFlowStatuses ?? []);
   const isAir = order?.businessType === OrderBusinessType.BUSINESS_TYPE_AE;
+  const isImport =
+    order?.businessType === OrderBusinessType.BUSINESS_TYPE_SI ||
+    order?.businessType === OrderBusinessType.BUSINESS_TYPE_AI;
   const steps = STEPS.map((step) => ({
     ...step,
     label:
@@ -389,7 +392,11 @@ export function buildOrderStatusSection(
         {buildClosureBadge(order, actions)}
       </Space>
     ),
-    content: (
+    content: isImport ? (
+      <Col span={24}>
+        进口操作进度由本票承接服务的完成事实自动汇总，请在进口服务区维护。
+      </Col>
+    ) : (
       <Col span={24}>
         <div
           style={{

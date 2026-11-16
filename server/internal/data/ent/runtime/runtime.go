@@ -80,6 +80,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeereviewevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderimporthandling"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderimporthandlingevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockhousebillsnapshot"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
@@ -6575,6 +6577,34 @@ func init() {
 	orderfeesupplementrequestDescID := orderfeesupplementrequestMixinFields0[0].Descriptor()
 	// orderfeesupplementrequest.DefaultID holds the default value on creation for the id field.
 	orderfeesupplementrequest.DefaultID = orderfeesupplementrequestDescID.Default.(func() uuid.UUID)
+	orderimporthandlingMixin := schema.OrderImportHandling{}.Mixin()
+	orderimporthandlingMixinFields0 := orderimporthandlingMixin[0].Fields()
+	_ = orderimporthandlingMixinFields0
+	orderimporthandlingFields := schema.OrderImportHandling{}.Fields()
+	_ = orderimporthandlingFields
+	// orderimporthandlingDescID is the schema descriptor for id field.
+	orderimporthandlingDescID := orderimporthandlingMixinFields0[0].Descriptor()
+	// orderimporthandling.DefaultID holds the default value on creation for the id field.
+	orderimporthandling.DefaultID = orderimporthandlingDescID.Default.(func() uuid.UUID)
+	orderimporthandlingeventMixin := schema.OrderImportHandlingEvent{}.Mixin()
+	orderimporthandlingeventMixinFields0 := orderimporthandlingeventMixin[0].Fields()
+	_ = orderimporthandlingeventMixinFields0
+	orderimporthandlingeventFields := schema.OrderImportHandlingEvent{}.Fields()
+	_ = orderimporthandlingeventFields
+	// orderimporthandlingeventDescOccurredAt is the schema descriptor for occurred_at field.
+	orderimporthandlingeventDescOccurredAt := orderimporthandlingeventFields[2].Descriptor()
+	// orderimporthandlingevent.DefaultOccurredAt holds the default value on creation for the occurred_at field.
+	orderimporthandlingevent.DefaultOccurredAt = orderimporthandlingeventDescOccurredAt.Default.(func() time.Time)
+	// orderimporthandlingeventDescReason is the schema descriptor for reason field.
+	orderimporthandlingeventDescReason := orderimporthandlingeventFields[3].Descriptor()
+	// orderimporthandlingevent.DefaultReason holds the default value on creation for the reason field.
+	orderimporthandlingevent.DefaultReason = orderimporthandlingeventDescReason.Default.(string)
+	// orderimporthandlingevent.ReasonValidator is a validator for the "reason" field. It is called by the builders before save.
+	orderimporthandlingevent.ReasonValidator = orderimporthandlingeventDescReason.Validators[0].(func(string) error)
+	// orderimporthandlingeventDescID is the schema descriptor for id field.
+	orderimporthandlingeventDescID := orderimporthandlingeventMixinFields0[0].Descriptor()
+	// orderimporthandlingevent.DefaultID holds the default value on creation for the id field.
+	orderimporthandlingevent.DefaultID = orderimporthandlingeventDescID.Default.(func() uuid.UUID)
 	orderlifecycleeventMixin := schema.OrderLifecycleEvent{}.Mixin()
 	orderlifecycleeventMixinFields0 := orderlifecycleeventMixin[0].Fields()
 	_ = orderlifecycleeventMixinFields0

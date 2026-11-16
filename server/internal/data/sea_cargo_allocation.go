@@ -111,7 +111,7 @@ func (r *seaSharedContainerRepo) ListCandidates(ctx context.Context, organizatio
 	}
 	query := client.Order.Query().Where(
 		orderent.OrganizationIDEQ(organizationID),
-		orderent.BusinessTypeEQ(orderent.BusinessTypeSE),
+		orderent.BusinessTypeIn(orderent.BusinessTypeSE, orderent.BusinessTypeSI),
 		orderent.HasSeaMasterBillLinksWith(
 			seamasterbillorderlinkent.OrganizationIDEQ(organizationID),
 			seamasterbillorderlinkent.TransportExecutionIDEQ(executionID),
@@ -416,7 +416,7 @@ func (r *seaSharedContainerRepo) mutateAllocations(ctx context.Context, organiza
 			masterBillIDs = sortedUUIDs(masterBillIDs)
 			linkIDs = sortedUUIDs(linkIDs)
 			if len(masterBillIDs) > 0 {
-				locked, err := client.SeaMasterBill.Query().Where(seamasterbillent.IDIn(masterBillIDs...), seamasterbillent.BusinessTypeEQ("SE"), seamasterbillent.OrganizationIDEQ(organizationID)).Order(seamasterbillent.ByID()).ForUpdate().All(txCtx)
+				locked, err := client.SeaMasterBill.Query().Where(seamasterbillent.IDIn(masterBillIDs...), seamasterbillent.BusinessTypeIn("SE", "SI"), seamasterbillent.OrganizationIDEQ(organizationID)).Order(seamasterbillent.ByID()).ForUpdate().All(txCtx)
 				if err != nil {
 					return err
 				}
@@ -546,7 +546,7 @@ func (r *seaSharedContainerRepo) mutateAllocations(ctx context.Context, organiza
 				link := lockedLinks[input.OrderID]
 				houseBill := houseBills[input.HouseBillID]
 				cargo := cargoRows[input.CargoItemID]
-				if order == nil || link == nil || houseBill == nil || cargo == nil || order.BusinessType != orderent.BusinessTypeSE || link.Status != seamasterbillorderlinkent.StatusACTIVE || link.DocumentStructure != seamasterbillorderlinkent.DocumentStructureHOUSE || link.TransportExecutionID != target.TransportExecutionID || houseBill.OrderID != order.ID || houseBill.MasterBillID != link.MasterBillID || houseBill.Status == seahousebillent.StatusVOIDED || cargo.OrderID != order.ID {
+				if order == nil || link == nil || houseBill == nil || cargo == nil || !biz.OrderBusinessType(order.BusinessType).IsSea() || link.Status != seamasterbillorderlinkent.StatusACTIVE || link.DocumentStructure != seamasterbillorderlinkent.DocumentStructureHOUSE || link.TransportExecutionID != target.TransportExecutionID || houseBill.OrderID != order.ID || houseBill.MasterBillID != link.MasterBillID || houseBill.Status == seahousebillent.StatusVOIDED || cargo.OrderID != order.ID {
 					return biz.ErrSeaSharedContainerInvalidReference
 				}
 				// 保存草稿与确认共用同一套乐观锁契约：四个期望版本逐项比对，陈旧上下文一律 409。
@@ -718,6 +718,22 @@ func ensureSharedAnchorExecution(ctx context.Context, client *ent.Client, organi
 		// 仅“无活动 Link”映射为业务引用错误；多条活动 Link（数据不变量破坏）、
 		// 连接中断、超时等数据库故障经 mapEntError 原样上抛。
 		return mapEntError(err, biz.ErrSeaSharedContainerInvalidReference, nil)
+	}
+	anchor, err := client.Order.Query().Where(orderent.IDEQ(anchorOrderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx)
+	if err != nil {
+		return mapEntError(err, biz.ErrOrderNotFound, nil)
+	}
+	if !biz.OrderBusinessType(anchor.BusinessType).IsSea() {
+		return biz.ErrSeaSharedContainerInvalidReference
+	}
+	links, err := client.SeaMasterBillOrderLink.Query().Where(seamasterbillorderlinkent.TransportExecutionIDEQ(executionID), seamasterbillorderlinkent.StatusEQ(seamasterbillorderlinkent.StatusACTIVE)).WithOrder().WithMasterBill().All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, member := range links {
+		if member.OrganizationID != organizationID || member.Edges.Order == nil || member.Edges.MasterBill == nil || member.Edges.Order.BusinessType != anchor.BusinessType || member.Edges.Order.OrganizationID != organizationID || member.Edges.MasterBill.BusinessType != string(anchor.BusinessType) || member.Edges.MasterBill.OrganizationID != organizationID {
+			return biz.ErrSeaSharedContainerInvalidReference
+		}
 	}
 	if link.TransportExecutionID != executionID {
 		return biz.ErrSeaSharedContainerInvalidReference

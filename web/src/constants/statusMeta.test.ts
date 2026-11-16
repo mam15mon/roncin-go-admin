@@ -1,8 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { AdminUserStatus } from '@/enums.generated';
+import {
+  AdminUserStatus,
+  OrderBusinessType,
+  OrderFlowStatus,
+} from '@/enums.generated';
 import {
   adminUserStatusMeta,
   businessTypeMeta,
+  getOrderFlowStatusText,
   makeValueEnum,
   normalizeBusinessType,
   statusText,
@@ -27,4 +32,15 @@ describe('状态展示元数据', () => {
       adminUserStatusMeta[AdminUserStatus.ADMIN_USER_STATUS_PENDING_ASSIGNMENT],
     ).toEqual({ text: '待分配', color: 'warning' });
   });
+});
+
+it.each([
+  [OrderFlowStatus.ORDER_FLOW_STATUS_IMPORT_NOT_APPLICABLE, '不适用'],
+  [OrderFlowStatus.ORDER_FLOW_STATUS_IMPORT_NOT_STARTED, '未开始'],
+  [OrderFlowStatus.ORDER_FLOW_STATUS_IMPORT_IN_PROGRESS, '进行中'],
+  [OrderFlowStatus.ORDER_FLOW_STATUS_IMPORT_COMPLETED, '已完成'],
+])('SI服务派生摘要%s保持明确中文%s', (status, text) => {
+  expect(
+    getOrderFlowStatusText(status, OrderBusinessType.BUSINESS_TYPE_SI),
+  ).toBe(text);
 });

@@ -35,6 +35,9 @@ func (r *orderRepo) TransitionStatus(ctx context.Context, organizationID, id uui
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
 		}
+		if biz.OrderBusinessType(existing.BusinessType).IsImport() {
+			return biz.ErrOrderStatusInvalid
+		}
 		if existing.Version != expectedVersion || biz.OrderFlowStatus(existing.FlowStatus) != event.FromStatus {
 			return biz.ErrOrderStatusConflict
 		}
@@ -73,7 +76,7 @@ func (r *orderRepo) TransitionTermination(ctx context.Context, organizationID, i
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
 		}
-		if located.BusinessType == orderent.BusinessTypeSE && located.TerminationStatus == orderent.TerminationStatusTERMINATED && target == biz.OrderTerminationActive {
+		if biz.OrderBusinessType(located.BusinessType).IsSea() && located.TerminationStatus == orderent.TerminationStatusTERMINATED && target == biz.OrderTerminationActive {
 			_, source, err := readableSeaOrderDocumentLink(ctx, tx.Client(), organizationID, id)
 			if err != nil {
 				if ent.IsNotSingular(err) {
@@ -172,7 +175,7 @@ const orderTerminationLinkEndedReason = "订单退关"
 // 写入 UTC ended_at、固定中文 ended_reason 并递增 Link 版本；不修改 MBL 与
 // TransportExecution 的内容版本。非 SE 订单没有 Link 操作。
 func endActiveSeaMasterBillLinksOnTermination(ctx context.Context, tx *ent.Tx, order *ent.Order, occurredAt time.Time) error {
-	if order.BusinessType != orderent.BusinessTypeSE {
+	if !biz.OrderBusinessType(order.BusinessType).IsSea() {
 		return nil
 	}
 	activeLinks, err := tx.SeaMasterBillOrderLink.Query().
@@ -258,7 +261,17 @@ func (r *orderRepo) TransitionClosure(ctx context.Context, organizationID, id uu
 			// 未完结订单直接结案：主流程未完成的先在同一事务补齐全部节点
 			// （含已放单，时间均为操作时刻）；已退关（TERMINATED）订单不补主流程。
 			currentFlow := biz.OrderFlowStatus(existing.FlowStatus)
-			if existing.TerminationStatus != orderent.TerminationStatusTERMINATED && currentFlow != biz.OrderFlowDocumentReleased {
+			if biz.OrderBusinessType(existing.BusinessType).IsImport() {
+				handling, err := readImportHandling(ctx, tx.Client(), existing)
+				if err != nil {
+					return err
+				}
+				flow := biz.ImportHandlingFlow(handling)
+				if existing.TerminationStatus != orderent.TerminationStatusTERMINATED && flow != biz.OrderFlowImportNotApplicable && flow != biz.OrderFlowImportCompleted {
+					return biz.ErrOrderClosureBlocked
+				}
+			}
+			if !biz.OrderBusinessType(existing.BusinessType).IsImport() && existing.TerminationStatus != orderent.TerminationStatusTERMINATED && currentFlow != biz.OrderFlowDocumentReleased {
 				if flowErr := appendFlowTransitionEvents(ctx, tx, id, actorID, currentFlow, biz.OrderFlowDocumentReleased, event.OccurredAt, "结案自动补齐主流程"); flowErr != nil {
 					return flowErr
 				}

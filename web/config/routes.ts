@@ -137,6 +137,14 @@ const routes: UmiRoute[] = [
         component: './orders/list',
       },
       {
+        path: '/orders/sea-import',
+        organizationSwitch: { keep: true },
+        name: '海运进口',
+        pageTitle: '海运进口订单列表',
+        access: 'canReadSIOrders',
+        component: './orders/list',
+      },
+      {
         path: '/orders/air-export',
         organizationSwitch: { keep: true },
         name: '空运出口',
@@ -159,9 +167,11 @@ const routes: UmiRoute[] = [
         pageTitle: ({ kind }) =>
           kind === 'sea-export'
             ? 'SE 新建订单'
-            : kind === 'air-export'
-              ? 'AE 新建订单'
-              : '订单管理',
+            : kind === 'sea-import'
+              ? 'SI 新建订单'
+              : kind === 'air-export'
+                ? 'AE 新建订单'
+                : '订单管理',
         access: 'canCreateAnyOrders',
         hideInMenu: true,
         component: './orders/new',
@@ -191,6 +201,14 @@ const routes: UmiRoute[] = [
         access: 'canAccessAnyOrderFees',
         hideInMenu: true,
         component: './orders/fees',
+      },
+      {
+        path: '/orders/sea-import/:id/hbl',
+        organizationSwitch: { list: '/orders/sea-import' },
+        name: '进口 HBL 制作归档',
+        access: 'canReadSIOrders',
+        hideInMenu: true,
+        component: './orders/hbl',
       },
       {
         path: '/orders/sea-export/:id/hbl',

@@ -165,7 +165,8 @@ export function confirmOrderTermination(
     content: (
       <Space vertical style={{ width: '100%', marginTop: 12 }}>
         {isRestore &&
-          order.businessType === OrderBusinessType.BUSINESS_TYPE_SE && (
+          (order.businessType === OrderBusinessType.BUSINESS_TYPE_SE ||
+            order.businessType === OrderBusinessType.BUSINESS_TYPE_SI) && (
             <div>
               恢复到退关前的原主单和原航程，保留原退关记录；原运输安排不再适用时将拒绝恢复。
             </div>

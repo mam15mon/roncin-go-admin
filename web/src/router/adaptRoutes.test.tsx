@@ -1,13 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import access from '@/access';
+import configuredRoutes from '../../config/routes';
 import { buildMenuData, buildRouterConfig } from './adaptRoutes';
 
 // 路由适配层冒烟：锁死「routes.ts → RouterConfig + 菜单」两端完整性。
 // 背景：import.meta.glob 的相对路径错级（../../pages vs ../pages）不会被
 // tsc/build 捕获（lazy 不在构建期求值），只有真实加载才能暴露。
 describe('adaptRoutes 路由适配', () => {
-  it('全部 41 个页面和 1 个布局路由均能解析并加载模块', async () => {
+  it('全部配置页面和布局路由均能解析并加载模块', async () => {
     interface FlatRoute {
+      path?: string;
       lazy?: () => Promise<unknown>;
       children?: FlatRoute[];
       errorElement?: unknown;
@@ -24,8 +26,22 @@ describe('adaptRoutes 路由适配', () => {
     expect(flat.every((route) => route.errorElement)).toBe(true);
 
     const lazyRoutes = flat.filter((route) => typeof route.lazy === 'function');
-    // 包含独立 HBL 制作页与四个财务报表：41 个页面组件 + 1 个 AppLayout 布局壳。
-    expect(lazyRoutes.length).toBe(42);
+    // 从唯一配置核对所有组件声明，缺失 loader 不能因菜单增减而被固定数量掩盖。
+    const countComponents = (routes: typeof configuredRoutes): number =>
+      routes.reduce(
+        (count, route) =>
+          count +
+          Number(Boolean(route.component)) +
+          (route.routes ? countComponents(route.routes) : 0),
+        0,
+      );
+    expect(lazyRoutes).toHaveLength(countComponents(configuredRoutes) + 1);
+    expect(
+      lazyRoutes.some((route) => route.path === '/orders/sea-import'),
+    ).toBe(true);
+    expect(
+      lazyRoutes.some((route) => route.path === '/orders/sea-import/:id/hbl'),
+    ).toBe(true);
 
     await Promise.all(
       lazyRoutes.map((route) =>

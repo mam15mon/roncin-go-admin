@@ -1,0 +1,82 @@
+syntax = "proto3";
+package order.v1;
+import "google/api/field_behavior.proto";
+option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
+
+// ImportHandlingStepKind 固定进口承接服务，可并行完成。
+enum ImportHandlingStepKind {
+  IMPORT_HANDLING_STEP_KIND_UNSPECIFIED = 0;
+  IMPORT_HANDLING_STEP_KIND_ARRIVAL = 1;
+  IMPORT_HANDLING_STEP_KIND_EXCHANGE = 2;
+  IMPORT_HANDLING_STEP_KIND_CUSTOMS = 3;
+  IMPORT_HANDLING_STEP_KIND_PICKUP = 4;
+  IMPORT_HANDLING_STEP_KIND_DELIVERY = 5;
+}
+message ImportHandlingStep {
+  ImportHandlingStepKind kind = 1;
+  bool undertaken = 2;
+  optional string occurred_at = 3;
+  optional string responsible_user_id = 4;
+  string reference_no = 5;
+  string notes = 6;
+  repeated string attachment_ids = 7;
+  string responsible_user_name = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+message OrderImportHandling {
+  string order_id = 1;
+  // 唯一提交基线，等于订单 version。
+  uint64 order_version = 2;
+  optional string exchange_agent_id = 3;
+  string exchange_agent_name = 4;
+  repeated ImportHandlingStep steps = 5;
+}
+message GetImportHandlingRequest { string order_id = 1; }
+message SaveImportHandlingRequest {
+  string order_id = 1;
+  uint64 expected_version = 2;
+  optional string exchange_agent_id = 3;
+  // 完整五环节快照；普通订单保存不写此资源。
+  repeated ImportHandlingStep steps = 4;
+  // 撤回、取消或纠正已有完成事实时必填。
+  string reason = 5;
+}
+message GetImportHandlingResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  OrderImportHandling data = 4;
+  string trace_id = 5;
+}
+message SaveImportHandlingResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  OrderImportHandling data = 4;
+  string trace_id = 5;
+}
+message ImportHandlingEvent {
+  string id = 1;
+  string order_id = 2;
+  string actor_id = 3;
+  string occurred_at = 4;
+  string reason = 5;
+  OrderImportHandling before = 6;
+  OrderImportHandling after = 7;
+  string actor_name = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+message ListImportHandlingEventsRequest {
+  string order_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+message ListImportHandlingEventsData {
+  repeated ImportHandlingEvent items = 1;
+  int32 total = 2;
+}
+message ListImportHandlingEventsResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  ListImportHandlingEventsData data = 4;
+  string trace_id = 5;
+}

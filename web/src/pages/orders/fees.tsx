@@ -112,6 +112,8 @@ export default function OrderFeesPage() {
     access.canOrder(definition?.businessType ?? '', 'fee.read')
       ? targetOrderId
       : undefined,
+    definition?.businessType,
+    currentUser?.currentOrganization?.id,
   );
   const {
     state: lockState,

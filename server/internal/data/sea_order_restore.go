@@ -49,7 +49,7 @@ func lockSeaOrderRestore(ctx context.Context, tx *ent.Tx, org, orderID uuid.UUID
 		if order.ID == orderID {
 			target = order
 		}
-		if order.BusinessType != orderent.BusinessTypeSE {
+		if !biz.OrderBusinessType(order.BusinessType).IsSea() {
 			return nil, nil, biz.ErrSeaDocumentStructureConflict
 		}
 		if order.LockedAt != nil {
@@ -62,7 +62,7 @@ func lockSeaOrderRestore(ctx context.Context, tx *ent.Tx, org, orderID uuid.UUID
 	if target == nil {
 		return nil, nil, biz.ErrOrderNotFound
 	}
-	master, err := tx.SeaMasterBill.Query().Where(masterent.IDEQ(located.MasterBillID), masterent.OrganizationIDEQ(org), masterent.BusinessTypeEQ("SE")).ForUpdate().Only(ctx)
+	master, err := tx.SeaMasterBill.Query().Where(masterent.IDEQ(located.MasterBillID), masterent.OrganizationIDEQ(org), masterent.BusinessTypeEQ(string(target.BusinessType))).ForUpdate().Only(ctx)
 	if err != nil {
 		return nil, nil, mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
 	}
@@ -186,7 +186,7 @@ func (d *Data) RepairSeaOrderRestoreLink(ctx context.Context, in SeaOrderRestore
 		if err != nil {
 			return err
 		}
-		if order.BusinessType != orderent.BusinessTypeSE || order.TerminationStatus != orderent.TerminationStatusACTIVE || order.ClosureStatus != orderent.ClosureStatusOPEN || order.Version != in.ExpectedVersion {
+		if !biz.OrderBusinessType(order.BusinessType).IsSea() || order.TerminationStatus != orderent.TerminationStatusACTIVE || order.ClosureStatus != orderent.ClosureStatusOPEN || order.Version != in.ExpectedVersion {
 			return biz.ErrOrderStatusConflict
 		}
 		events, err := tx.OrderLifecycleEvent.Query().Where(lifecycle.OrderIDEQ(order.ID), lifecycle.DimensionEQ(lifecycle.DimensionTERMINATION)).Order(ent.Desc(lifecycle.FieldChangedAt), ent.Desc(lifecycle.FieldID)).Limit(3).All(ctx)

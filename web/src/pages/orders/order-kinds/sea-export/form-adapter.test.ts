@@ -19,17 +19,6 @@ import {
   seaExportFormAdapter,
 } from './form-adapter';
 
-const traditionalForwardingServiceOptions = [
-  'BOOKING',
-  'TRUCKING',
-  'CUSTOMS_EXPORT',
-  'STUFFING',
-  'CUSTOMS_IMPORT',
-  'OVERSEA_SEGMENT',
-  'INSURANCE',
-  'WAREHOUSING',
-].map((code) => ({ label: code, value: `st-${code}`, code }));
-
 describe('buildSeaExportCreateDefaults', () => {
   const creator = {
     userId: 'user-1',
@@ -895,7 +884,7 @@ describe('SE 适配器完整固定夹具等价', () => {
     expect(result.insuranceCurrency).toBeUndefined();
   });
 
-  it('只有货值与币种两者均有值时创建与更新才记录，单边有值时忽略并输出 undefined', () => {
+  it('货值及币种独立保留，半对输入交由表单与服务端明确校验', () => {
     // 只有币种无金额
     const createOnlyCurrency = buildSeaExportCreatePayload({
       customerId: 'cust-1',
@@ -904,9 +893,9 @@ describe('SE 适配器完整固定夹具等价', () => {
       insuranceCurrency: 'CNY',
     });
     expect(createOnlyCurrency.cargoValue).toBeUndefined();
-    expect(createOnlyCurrency.cargoCurrency).toBeUndefined();
+    expect(createOnlyCurrency.cargoCurrency).toBe('USD');
     expect(createOnlyCurrency.insurancePremium).toBeUndefined();
-    expect(createOnlyCurrency.insuranceCurrency).toBeUndefined();
+    expect(createOnlyCurrency.insuranceCurrency).toBe('CNY');
 
     // 只有金额无币种
     const updateOnlyAmount = buildSeaExportUpdatePayload('order-1', '1', {
@@ -915,10 +904,10 @@ describe('SE 适配器完整固定夹具等价', () => {
       cargoValue: '5000',
       insurancePremium: '200',
     });
-    expect(updateOnlyAmount.cargoValue).toBeUndefined();
-    expect(updateOnlyAmount.cargoCurrency).toBeUndefined();
-    expect(updateOnlyAmount.insurancePremium).toBeUndefined();
-    expect(updateOnlyAmount.insuranceCurrency).toBeUndefined();
+    expect(updateOnlyAmount.cargoValue).toBe('5000');
+    expect(updateOnlyAmount.cargoCurrency).toBe('');
+    expect(updateOnlyAmount.insurancePremium).toBe('200');
+    expect(updateOnlyAmount.insuranceCurrency).toBe('');
 
     // 两者均有值
     const updateBoth = buildSeaExportUpdatePayload('order-1', '1', {
@@ -935,7 +924,7 @@ describe('SE 适配器完整固定夹具等价', () => {
     expect(updateBoth.insuranceCurrency).toBe('CNY');
   });
 
-  it('更新请求对空 receivedAt 显式输出 undefined，不误传默认日期', () => {
+  it('更新请求对空 receivedAt 显式清除，不误传默认日期', () => {
     const result = buildSeaExportUpdatePayload('order-1', '1', {
       customerId: 'customer-1',
       paymentTerm: 1,
@@ -943,7 +932,7 @@ describe('SE 适配器完整固定夹具等价', () => {
       receivedAt: undefined,
     });
 
-    expect(result).toHaveProperty('receivedAt', undefined);
+    expect(result).toHaveProperty('receivedAt', '');
     expect(result.cargoReadyAt).toBe('2026-08-20T01:00:00.000Z');
   });
 

@@ -1,5 +1,5 @@
 import { ProFormDigit, ProFormTextArea } from '@ant-design/pro-components';
-import { Alert, Form, Input } from 'antd';
+import { Alert, Form } from 'antd';
 import React from 'react';
 import { FormCell, FormRow, PackageCountInput } from '@/components/ui';
 import { resolveSeaOrderFormPolicy } from '../../../sea-order-policy';
@@ -27,13 +27,10 @@ export function SeaCargoMeasurementFields() {
   return <SeaRevenueTonAlert />;
 }
 
-/** 委托品名与特殊要求行；隐藏的付款方式字段随货物区常驻注册。 */
+/** 委托品名与特殊要求行；业务付款方式由商业区单独注册。 */
 export function SeaCargoDescriptionFields() {
   return (
     <>
-      <Form.Item name="paymentTerm" hidden>
-        <Input />
-      </Form.Item>
       {/* 品名与特殊要求（FormRow row-2 对半，与后续行共享列边界） */}
       <FormRow cols={2}>
         <ProFormTextArea

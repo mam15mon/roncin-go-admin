@@ -93,8 +93,10 @@ export function buildSeaExportCreateDefaults(
 }
 
 /** 将海运出口新建表单值整理为创建请求 payload（含岗位人员装配）。 */
-export function buildSeaExportCreatePayload(
+export function buildSeaCreatePayload(
   values: CreateOrderFormValues,
+  businessType: OrderBusinessType,
+  tradeDirection: TradeDirection,
 ): API.CreateOrderRequest {
   const personnelAssignments: API.OrderPersonnelAssignmentInput[] = [];
   const addPersonnel = (role: OrderPersonnelRole, userId?: string) => {
@@ -208,8 +210,8 @@ export function buildSeaExportCreatePayload(
     customerReferenceNo: values.customerReferenceNo?.trim() || undefined,
     bookingNo: values.bookingNo?.trim() || undefined,
     internalReferenceNo: values.internalReferenceNo?.trim() || undefined,
-    businessType: SEA_EXPORT_BUSINESS_TYPE,
-    tradeDirection: SEA_EXPORT_TRADE_DIRECTION,
+    businessType,
+    tradeDirection,
     tradeTerm:
       values.tradeTerm !== undefined && values.tradeTerm !== null
         ? Number(values.tradeTerm)
@@ -220,22 +222,10 @@ export function buildSeaExportCreatePayload(
     foreignAgentId: values.foreignAgentId || undefined,
     shippingAgentId: values.shippingAgentId || undefined,
     contractNo: values.contractNo?.trim() || undefined,
-    cargoValue:
-      values.cargoValue?.trim() && values.cargoCurrency
-        ? values.cargoValue.trim()
-        : undefined,
-    cargoCurrency:
-      values.cargoValue?.trim() && values.cargoCurrency
-        ? values.cargoCurrency
-        : undefined,
-    insurancePremium:
-      values.insurancePremium?.trim() && values.insuranceCurrency
-        ? values.insurancePremium.trim()
-        : undefined,
-    insuranceCurrency:
-      values.insurancePremium?.trim() && values.insuranceCurrency
-        ? values.insuranceCurrency
-        : undefined,
+    cargoValue: values.cargoValue?.trim() || undefined,
+    cargoCurrency: values.cargoCurrency?.trim() || undefined,
+    insurancePremium: values.insurancePremium?.trim() || undefined,
+    insuranceCurrency: values.insuranceCurrency?.trim() || undefined,
     unNumber: values.unNumber?.trim() || undefined,
     hazardClass: values.hazardClass?.trim() || undefined,
     factoryName: values.factoryName?.trim() || undefined,
@@ -438,46 +428,34 @@ export function buildSeaExportUpdatePayload(
     id: orderId,
     expectedVersion: orderVersion || '0',
     customerId: values.customerId,
-    customerReferenceNo: values.customerReferenceNo?.trim() || undefined,
-    bookingNo: values.bookingNo?.trim() || undefined,
-    internalReferenceNo: values.internalReferenceNo?.trim() || undefined,
+    customerReferenceNo: values.customerReferenceNo?.trim() || '',
+    bookingNo: values.bookingNo?.trim() || '',
+    internalReferenceNo: values.internalReferenceNo?.trim() || '',
     tradeTerm:
-      values.tradeTerm !== undefined ? Number(values.tradeTerm) : undefined,
+      values.tradeTerm != null
+        ? Number(values.tradeTerm)
+        : TradeTerm.TRADE_TERM_UNSPECIFIED,
     paymentTerm:
       values.paymentTerm !== undefined ? Number(values.paymentTerm) : undefined,
     shippingLineId: values.shippingLineId || undefined,
-    bookingAgentId: values.bookingAgentId || undefined,
-    foreignAgentId: values.foreignAgentId || undefined,
-    shippingAgentId: values.shippingAgentId || undefined,
-    contractNo: values.contractNo?.trim() || undefined,
-    cargoValue:
-      values.cargoValue?.trim() && values.cargoCurrency
-        ? values.cargoValue.trim()
-        : undefined,
-    cargoCurrency:
-      values.cargoValue?.trim() && values.cargoCurrency
-        ? values.cargoCurrency
-        : undefined,
-    insurancePremium:
-      values.insurancePremium?.trim() && values.insuranceCurrency
-        ? values.insurancePremium.trim()
-        : undefined,
-    insuranceCurrency:
-      values.insurancePremium?.trim() && values.insuranceCurrency
-        ? values.insuranceCurrency
-        : undefined,
-    unNumber: values.unNumber?.trim() || undefined,
-    hazardClass: values.hazardClass?.trim() || undefined,
-    factoryName: values.factoryName?.trim() || undefined,
+    bookingAgentId: values.bookingAgentId || '',
+    foreignAgentId: values.foreignAgentId || '',
+    shippingAgentId: values.shippingAgentId || '',
+    contractNo: values.contractNo?.trim() || '',
+    cargoValue: values.cargoValue?.trim() || '',
+    cargoCurrency: values.cargoCurrency?.trim() || '',
+    insurancePremium: values.insurancePremium?.trim() || '',
+    insuranceCurrency: values.insuranceCurrency?.trim() || '',
+    unNumber: values.unNumber?.trim() || '',
+    hazardClass: values.hazardClass?.trim() || '',
+    factoryName: values.factoryName?.trim() || '',
     cargoReadyAt: values.cargoReadyAt
       ? dayjs(values.cargoReadyAt).toISOString()
-      : undefined,
+      : '',
     declarationCutoffAt: values.declarationCutoffAt
       ? dayjs(values.declarationCutoffAt).toISOString()
-      : undefined,
-    receivedAt: values.receivedAt
-      ? dayjs(values.receivedAt).toISOString()
-      : undefined,
+      : '',
+    receivedAt: values.receivedAt ? dayjs(values.receivedAt).toISOString() : '',
     shipmentType:
       values.shipmentType !== undefined
         ? Number(values.shipmentType)
@@ -502,20 +480,14 @@ export function buildSeaExportUpdatePayload(
     eta: values.eta
       ? dayjs(values.eta).startOf('day').toISOString()
       : undefined,
-    siCutoff: values.siCutoff
-      ? dayjs(values.siCutoff).toISOString()
-      : undefined,
-    docCutoff: values.docCutoff
-      ? dayjs(values.docCutoff).toISOString()
-      : undefined,
+    siCutoff: values.siCutoff ? dayjs(values.siCutoff).toISOString() : '',
+    docCutoff: values.docCutoff ? dayjs(values.docCutoff).toISOString() : '',
     customsCutoff: values.customsCutoff
       ? dayjs(values.customsCutoff).toISOString()
-      : undefined,
-    vgmCutoff: values.vgmCutoff
-      ? dayjs(values.vgmCutoff).toISOString()
-      : undefined,
-    goodsDescription: values.goodsDescription?.trim() || undefined,
-    specialRequirements: values.specialRequirements?.trim() || undefined,
+      : '',
+    vgmCutoff: values.vgmCutoff ? dayjs(values.vgmCutoff).toISOString() : '',
+    goodsDescription: values.goodsDescription?.trim() || '',
+    specialRequirements: values.specialRequirements?.trim() || '',
     totalPackages:
       values.totalPackages !== undefined
         ? Number(values.totalPackages)
@@ -528,11 +500,11 @@ export function buildSeaExportUpdatePayload(
       values.totalVolumeCbm !== undefined
         ? Number(values.totalVolumeCbm)
         : undefined,
-    totalPackageUnit: values.totalPackageUnit?.trim() || undefined,
-    notes: values.notes?.trim() || undefined,
-    bookingNotes: values.bookingNotes?.trim() || undefined,
-    allocationNotes: values.allocationNotes?.trim() || undefined,
-    operationNotes: values.operationNotes?.trim() || undefined,
+    totalPackageUnit: values.totalPackageUnit?.trim() || '',
+    notes: values.notes?.trim() || '',
+    bookingNotes: values.bookingNotes?.trim() || '',
+    allocationNotes: values.allocationNotes?.trim() || '',
+    operationNotes: values.operationNotes?.trim() || '',
     shippingDocuments: undefined,
     containerRequests: values.containerRequests
       ?.filter(
@@ -561,6 +533,15 @@ export function buildSeaExportUpdatePayload(
       : undefined,
     seaDocument: values.seaDocument,
   };
+}
+
+/** 海运两方向共用字段映射，创建身份由注册项显式指定。 */
+export function buildSeaExportCreatePayload(values: CreateOrderFormValues) {
+  return buildSeaCreatePayload(
+    values,
+    SEA_EXPORT_BUSINESS_TYPE,
+    SEA_EXPORT_TRADE_DIRECTION,
+  );
 }
 
 export const seaExportFormAdapter: OrderKindFormAdapter = {

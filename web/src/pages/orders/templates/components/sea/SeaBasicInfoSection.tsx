@@ -25,6 +25,7 @@ import {
 import { orderServiceCheckOrderReference } from '@/services/roncin/orderService';
 import { partnerServiceGetPartner } from '@/services/roncin/partnerService';
 import {
+  paymentTermOptions,
   shipmentModeOptions,
   shipmentTypeOptions,
   tradeTermOptions,
@@ -731,6 +732,16 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
         label="贸易条款"
         options={tradeTermOptions}
         placeholder="请选择"
+      />
+    ),
+    payment: (
+      <ProFormSelect
+        name="paymentTerm"
+        label="业务付款方式"
+        options={paymentTermOptions}
+        allowClear={false}
+        disabled={props.readonly}
+        rules={[{ required: true, message: '请选择业务付款方式' }]}
       />
     ),
     agents: (

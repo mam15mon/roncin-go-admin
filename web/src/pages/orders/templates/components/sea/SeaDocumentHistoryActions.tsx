@@ -50,6 +50,7 @@ type ChangePreview =
   | API.SeaDocumentVoidPreview;
 
 interface SeaDocumentHistoryActionsProps {
+  businessType?: number;
   orderId: string;
   orderVersion: string;
   documentType: SeaDocumentType;
@@ -196,6 +197,7 @@ function PreviewResult({ preview }: { preview: ChangePreview }) {
 }
 
 export default function SeaDocumentHistoryActions({
+  businessType = OrderBusinessType.BUSINESS_TYPE_SE,
   orderId,
   orderVersion,
   documentType,
@@ -536,7 +538,7 @@ export default function SeaDocumentHistoryActions({
         <Button size="small" icon={<HistoryOutlined />} onClick={openHistory}>
           版本与事件
         </Button>
-        {access.canOrder(OrderBusinessType.BUSINESS_TYPE_SE, 'amend') ? (
+        {access.canOrder(businessType, 'amend') ? (
           <Button
             size="small"
             disabled={disabled || !commandReady}
@@ -545,7 +547,7 @@ export default function SeaDocumentHistoryActions({
             单改
           </Button>
         ) : null}
-        {access.canOrder(OrderBusinessType.BUSINESS_TYPE_SE, 'void') ? (
+        {access.canOrder(businessType, 'void') ? (
           <Button
             size="small"
             danger

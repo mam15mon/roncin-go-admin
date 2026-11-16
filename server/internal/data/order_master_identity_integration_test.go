@@ -21,7 +21,7 @@ func TestSeaMasterIdentityCandidatesAndDirectIDPostgres(t *testing.T) {
 	in := f.validInput()
 	no := in.SeaMasterBillInput.MasterNo
 	importMaster := d.db.SeaMasterBill.Create().SetOrganizationID(f.organizationID).SetBusinessType("SI").SetShippingLineID(f.shippingLineID).SetMasterNo(no).SetNormalizedMasterNo(no).SaveX(ctx)
-	match, err := uc.MatchSeaMasterBillCandidate(ctx, f.organizationID, f.shippingLineID, no, nil)
+	match, err := uc.MatchSeaMasterBillCandidate(ctx, f.organizationID, f.shippingLineID, no, nil, biz.OrderBusinessSE)
 	if err != nil || match.Matched {
 		t.Fatalf("进口孤立主单被当作出口候选: %+v %v", match, err)
 	}
@@ -33,7 +33,7 @@ func TestSeaMasterIdentityCandidatesAndDirectIDPostgres(t *testing.T) {
 	if master.ID == importMaster.ID || master.BusinessType != "SE" {
 		t.Fatal("跨方向同号未创建独立出口主单")
 	}
-	match, err = uc.MatchSeaMasterBillCandidate(ctx, f.organizationID, f.shippingLineID, no, nil)
+	match, err = uc.MatchSeaMasterBillCandidate(ctx, f.organizationID, f.shippingLineID, no, nil, biz.OrderBusinessSE)
 	if err != nil || !match.Matched || match.Candidate.ID != master.ID || match.Candidate.BusinessType != biz.OrderBusinessSE {
 		t.Fatalf("出口候选身份错误: %+v %v", match, err)
 	}
@@ -58,7 +58,7 @@ func TestSeaMasterIdentityCandidatesAndDirectIDPostgres(t *testing.T) {
 	d.db.SeaMasterBillOrderLink.UpdateOneID(link.ID).SetMasterBillID(master.ID).SaveX(ctx)
 	// 主单身份不从活动成员推导；清空关系后仍可按其自身类型匹配。
 	d.db.SeaMasterBillOrderLink.Update().Where(sealink.MasterBillIDEQ(master.ID)).SetStatus(sealink.StatusENDED).SaveX(ctx)
-	match, err = uc.MatchSeaMasterBillCandidate(ctx, f.organizationID, f.shippingLineID, no, nil)
+	match, err = uc.MatchSeaMasterBillCandidate(ctx, f.organizationID, f.shippingLineID, no, nil, biz.OrderBusinessSE)
 	if err != nil || !match.Matched || match.Candidate.ID != master.ID || match.Candidate.MemberCount != 0 {
 		t.Fatalf("无活动成员主单丢失自身身份: %+v %v", match, err)
 	}
@@ -82,13 +82,13 @@ func TestSeaMasterIdentitySharedMembersAndRestorePostgres(t *testing.T) {
 	if _, err := d.sqlDB.ExecContext(ctx, "UPDATE sea_master_bills SET business_type = 'SE' WHERE id = $1", source.MasterBillID); err != nil {
 		t.Fatal(err)
 	}
-	member := d.db.Order.Create().SetOrganizationID(f.organizationID).SetBusinessType(orderent.BusinessTypeSI).SetTradeDirection(orderent.TradeDirectionImport).SetCustomerID(f.partnerID).SetOrderNo("SI-" + uuid.NewString()).SetTradeTerm(orderent.TradeTermFOB).SetPaymentTerm(orderent.PaymentTermPREPAID).SetIdempotencyKey(uuid.NewString()).SaveX(ctx)
+	member := d.db.Order.Create().SetOrganizationID(f.organizationID).SetBusinessType(orderent.BusinessTypeSI).SetFlowStatus(orderent.FlowStatusIMPORT_NOT_APPLICABLE).SetTradeDirection(orderent.TradeDirectionImport).SetCustomerID(f.partnerID).SetOrderNo("SI-" + uuid.NewString()).SetTradeTerm(orderent.TradeTermFOB).SetPaymentTerm(orderent.PaymentTermPREPAID).SetIdempotencyKey(uuid.NewString()).SaveX(ctx)
 	link := d.db.SeaMasterBillOrderLink.Create().SetOrganizationID(f.organizationID).SetOrderID(member.ID).SetMasterBillID(source.MasterBillID).SetTransportExecutionID(source.TransportExecutionID).SetDocumentStructure(sealink.DocumentStructureHOUSE).SaveX(ctx)
 	if err := d.WithTx(ctx, func(tx *ent.Tx) error { _, err := ensureSharedMBLNotLocked(ctx, tx, source.MasterBillID); return err }); err == nil {
 		t.Fatal("共享主单隐藏了跨方向成员")
 	}
 	// Link 公司错误同样阻断，不能被当前公司查询静默过滤。
-	d.db.Order.UpdateOneID(member.ID).SetBusinessType(orderent.BusinessTypeSE).SetTradeDirection(orderent.TradeDirectionExport).SaveX(ctx)
+	d.db.Order.UpdateOneID(member.ID).SetBusinessType(orderent.BusinessTypeSE).SetFlowStatus(orderent.FlowStatusDRAFT).SetTradeDirection(orderent.TradeDirectionExport).SaveX(ctx)
 	otherOrg := d.db.Organization.Create().SetCode(uuid.NewString()).SetName("另一公司").SetKind("company").SetBaseCurrency("CNY").SaveX(ctx)
 	t.Cleanup(func() {
 		d.db.SeaMasterBillOrderLink.UpdateOneID(link.ID).SetOrganizationID(f.organizationID).SaveX(ctx)

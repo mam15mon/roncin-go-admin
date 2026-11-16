@@ -3701,7 +3701,7 @@ var (
 		{Name: "shipment_type", Type: field.TypeEnum, Nullable: true, Enums: []string{"FCL", "LCL", "BREAK_BULK"}},
 		{Name: "container_ownership", Type: field.TypeEnum, Nullable: true, Enums: []string{"COC", "SOC"}},
 		{Name: "shipment_mode", Type: field.TypeEnum, Nullable: true, Enums: []string{"TRADITIONAL_FORWARDING", "CROSS_BORDER"}},
-		{Name: "flow_status", Type: field.TypeEnum, Enums: []string{"DRAFT", "BOOKED", "SPACE_ALLOCATED", "TRUCKING_ARRANGED", "DOCUMENT_CUTOFF", "CUSTOMS_DECLARATION_ARRANGED", "DOCUMENT_RELEASED"}, Default: "DRAFT"},
+		{Name: "flow_status", Type: field.TypeEnum, Enums: []string{"DRAFT", "BOOKED", "SPACE_ALLOCATED", "TRUCKING_ARRANGED", "DOCUMENT_CUTOFF", "CUSTOMS_DECLARATION_ARRANGED", "DOCUMENT_RELEASED", "IMPORT_NOT_APPLICABLE", "IMPORT_NOT_STARTED", "IMPORT_IN_PROGRESS", "IMPORT_COMPLETED"}, Default: "DRAFT"},
 		{Name: "termination_status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "TERMINATING", "TERMINATED"}, Default: "ACTIVE"},
 		{Name: "termination_type", Type: field.TypeEnum, Nullable: true, Enums: []string{"CUSTOMER_CANCEL", "CARRIER_CANCEL", "CUSTOMS_RETURN", "OPERATION_CANCEL", "OTHER"}},
 		{Name: "termination_reason", Type: field.TypeString, Nullable: true, Size: 500},
@@ -4686,6 +4686,70 @@ var (
 				Annotation: &entsql.IndexAnnotation{
 					Where: "status = 'PENDING'",
 				},
+			},
+		},
+	}
+	// OrderImportHandlingsColumns holds the columns for the "order_import_handlings" table.
+	OrderImportHandlingsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "state", Type: field.TypeJSON},
+		{Name: "order_id", Type: field.TypeUUID},
+	}
+	// OrderImportHandlingsTable holds the schema information for the "order_import_handlings" table.
+	OrderImportHandlingsTable = &schema.Table{
+		Name:       "order_import_handlings",
+		Columns:    OrderImportHandlingsColumns,
+		PrimaryKey: []*schema.Column{OrderImportHandlingsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "order_import_handlings_orders_order",
+				Columns:    []*schema.Column{OrderImportHandlingsColumns[2]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "orderimporthandling_order_id",
+				Unique:  true,
+				Columns: []*schema.Column{OrderImportHandlingsColumns[2]},
+			},
+		},
+	}
+	// OrderImportHandlingEventsColumns holds the columns for the "order_import_handling_events" table.
+	OrderImportHandlingEventsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "occurred_at", Type: field.TypeTime},
+		{Name: "reason", Type: field.TypeString, Size: 500, Default: ""},
+		{Name: "before", Type: field.TypeJSON},
+		{Name: "after", Type: field.TypeJSON},
+		{Name: "actor_id", Type: field.TypeUUID},
+		{Name: "order_id", Type: field.TypeUUID},
+	}
+	// OrderImportHandlingEventsTable holds the schema information for the "order_import_handling_events" table.
+	OrderImportHandlingEventsTable = &schema.Table{
+		Name:       "order_import_handling_events",
+		Columns:    OrderImportHandlingEventsColumns,
+		PrimaryKey: []*schema.Column{OrderImportHandlingEventsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "order_import_handling_events_users_actor",
+				Columns:    []*schema.Column{OrderImportHandlingEventsColumns[5]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_import_handling_events_orders_order",
+				Columns:    []*schema.Column{OrderImportHandlingEventsColumns[6]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "orderimporthandlingevent_order_id_occurred_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrderImportHandlingEventsColumns[6], OrderImportHandlingEventsColumns[1]},
 			},
 		},
 	}
@@ -7689,6 +7753,8 @@ var (
 		OrderFeeCorrectionRequestsTable,
 		OrderFeeReviewEventsTable,
 		OrderFeeSupplementRequestsTable,
+		OrderImportHandlingsTable,
+		OrderImportHandlingEventsTable,
 		OrderLifecycleEventsTable,
 		OrderLockHouseBillSnapshotsTable,
 		OrderLockRecordsTable,
@@ -7976,8 +8042,10 @@ func init() {
 	OrdersTable.ForeignKeys[3].RefTable = UsersTable
 	OrdersTable.Annotation = &entsql.Annotation{}
 	OrdersTable.Annotation.Checks = map[string]string{
-		"orders_fee_review_status_check": "fee_review_status IN ('UNSUBMITTED', 'PENDING', 'APPROVED', 'REJECTED', 'REVOKED')",
-		"orders_lock_source_check":       "(locked_at IS NULL AND locked_by IS NULL AND lock_source IS NULL AND auto_lock_trigger_type IS NULL AND auto_lock_trigger_resource_id IS NULL AND auto_lock_triggered_by IS NULL) OR (locked_at IS NOT NULL AND lock_source = 'MANUAL' AND locked_by IS NOT NULL AND auto_lock_trigger_type IS NULL AND auto_lock_trigger_resource_id IS NULL AND auto_lock_triggered_by IS NULL) OR (locked_at IS NOT NULL AND lock_source = 'AUTO_SETTLEMENT' AND locked_by IS NULL AND auto_lock_trigger_type IS NOT NULL AND auto_lock_trigger_resource_id IS NOT NULL AND auto_lock_triggered_by IS NOT NULL)",
+		"orders_fee_review_status_check":         "fee_review_status IN ('UNSUBMITTED', 'PENDING', 'APPROVED', 'REJECTED', 'REVOKED')",
+		"orders_flow_status_check":               "flow_status IN ('DRAFT', 'BOOKED', 'SPACE_ALLOCATED', 'TRUCKING_ARRANGED', 'DOCUMENT_CUTOFF', 'CUSTOMS_DECLARATION_ARRANGED', 'DOCUMENT_RELEASED', 'IMPORT_NOT_APPLICABLE', 'IMPORT_NOT_STARTED', 'IMPORT_IN_PROGRESS', 'IMPORT_COMPLETED')",
+		"orders_import_flow_applicability_check": "(business_type IN ('SI', 'AI') AND flow_status IN ('IMPORT_NOT_APPLICABLE', 'IMPORT_NOT_STARTED', 'IMPORT_IN_PROGRESS', 'IMPORT_COMPLETED')) OR (business_type NOT IN ('SI', 'AI') AND flow_status NOT IN ('IMPORT_NOT_APPLICABLE', 'IMPORT_NOT_STARTED', 'IMPORT_IN_PROGRESS', 'IMPORT_COMPLETED'))",
+		"orders_lock_source_check":               "(locked_at IS NULL AND locked_by IS NULL AND lock_source IS NULL AND auto_lock_trigger_type IS NULL AND auto_lock_trigger_resource_id IS NULL AND auto_lock_triggered_by IS NULL) OR (locked_at IS NOT NULL AND lock_source = 'MANUAL' AND locked_by IS NOT NULL AND auto_lock_trigger_type IS NULL AND auto_lock_trigger_resource_id IS NULL AND auto_lock_triggered_by IS NULL) OR (locked_at IS NOT NULL AND lock_source = 'AUTO_SETTLEMENT' AND locked_by IS NULL AND auto_lock_trigger_type IS NOT NULL AND auto_lock_trigger_resource_id IS NOT NULL AND auto_lock_triggered_by IS NOT NULL)",
 	}
 	OrderAbnormalCasesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderAttachmentsTable.ForeignKeys[0].RefTable = OrdersTable
@@ -8038,6 +8106,9 @@ func init() {
 		"order_fee_supplement_requests_lock_basis_check": "(lock_basis = 'APPROVAL' AND approved_fee_review_event_id IS NOT NULL AND approved_fee_content_version > 0) OR (lock_basis = 'BUSINESS' AND business_lock_generation IS NOT NULL AND business_lock_generation > 0 AND financial_lock_evidence_version IS NULL AND financial_lock_evidence_hash IS NULL AND financial_lock_net_amount_snapshot IS NULL) OR (lock_basis = 'FINANCIAL' AND business_lock_generation IS NULL AND financial_lock_evidence_version IS NOT NULL AND financial_lock_evidence_hash IS NOT NULL AND financial_lock_net_amount_snapshot IS NOT NULL AND financial_lock_net_amount_snapshot > 0) OR (lock_basis = 'BOTH' AND business_lock_generation IS NOT NULL AND business_lock_generation > 0 AND financial_lock_evidence_version IS NOT NULL AND financial_lock_evidence_hash IS NOT NULL AND financial_lock_net_amount_snapshot IS NOT NULL AND financial_lock_net_amount_snapshot > 0)",
 		"order_fee_supplement_requests_status_check":     "status IN ('PENDING', 'APPROVED', 'REJECTED', 'WITHDRAWN')",
 	}
+	OrderImportHandlingsTable.ForeignKeys[0].RefTable = OrdersTable
+	OrderImportHandlingEventsTable.ForeignKeys[0].RefTable = UsersTable
+	OrderImportHandlingEventsTable.ForeignKeys[1].RefTable = OrdersTable
 	OrderLifecycleEventsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderLifecycleEventsTable.Annotation = &entsql.Annotation{}
 	OrderLifecycleEventsTable.Annotation.Checks = map[string]string{
@@ -8059,7 +8130,7 @@ func init() {
 	OrderLockRecordsTable.ForeignKeys[9].RefTable = UsersTable
 	OrderLockRecordsTable.Annotation = &entsql.Annotation{}
 	OrderLockRecordsTable.Annotation.Checks = map[string]string{
-		"order_lock_records_business_type_document_refs_check": "(business_type = 'SE' AND master_bill_id IS NOT NULL AND master_bill_version_id IS NOT NULL AND transport_execution_id IS NOT NULL AND transport_execution_version_id IS NOT NULL) OR (business_type IN ('SI', 'AE', 'AI', 'LAND', 'RAIL') AND master_bill_id IS NULL AND master_bill_version_id IS NULL AND transport_execution_id IS NULL AND transport_execution_version_id IS NULL)",
+		"order_lock_records_business_type_document_refs_check": "(business_type IN ('SE', 'SI') AND master_bill_id IS NOT NULL AND master_bill_version_id IS NOT NULL AND transport_execution_id IS NOT NULL AND transport_execution_version_id IS NOT NULL) OR (business_type IN ('AE', 'AI', 'LAND', 'RAIL') AND master_bill_id IS NULL AND master_bill_version_id IS NULL AND transport_execution_id IS NULL AND transport_execution_version_id IS NULL)",
 		"order_lock_records_fee_review_snapshot_check":         "(fee_snapshot IS NULL AND fee_content_version IS NULL AND fee_content_fingerprint IS NULL AND review_comment IS NULL) OR (fee_snapshot IS NOT NULL AND fee_content_version IS NOT NULL AND fee_content_fingerprint IS NOT NULL AND length(fee_content_fingerprint) = 64 AND review_comment IS NOT NULL)",
 		"order_lock_records_lock_source_check":                 "(lock_source = 'MANUAL' AND locked_by IS NOT NULL AND trigger_type IS NULL AND trigger_resource_id IS NULL AND triggered_by IS NULL) OR (lock_source = 'AUTO_SETTLEMENT' AND locked_by IS NULL AND trigger_type IS NOT NULL AND trigger_resource_id IS NOT NULL AND triggered_by IS NOT NULL)",
 	}

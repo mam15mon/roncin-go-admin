@@ -149,14 +149,14 @@ export default function OrderListPage() {
         }}
         actionRef={actionRef}
         title={definition.title}
-        showBillRelations={definition.kind === 'sea-export'}
+        showBillRelations={definition.transportMode === 'sea'}
         subTitle={`统一维护${definition.title}全流程状态、主分单据、箱量配载、费用核算与业务履约轨迹`}
         columnSettingsKey={`orders:${definition.kind}`}
         extraColumns={
-          definition.kind === 'sea-export' ? seaExportListColumns : []
+          definition.transportMode === 'sea' ? seaExportListColumns : []
         }
         defaultHiddenColumnKeys={
-          definition.kind === 'sea-export' ? SEA_EXPORT_HIDDEN_COLUMNS : []
+          definition.transportMode === 'sea' ? SEA_EXPORT_HIDDEN_COLUMNS : []
         }
         trailingColumns={reviewColumns}
         options={{

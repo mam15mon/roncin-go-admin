@@ -25,6 +25,22 @@ export const businessTypeMeta: Record<number, StatusMeta> = {
 };
 
 export const orderFlowStatusMeta: Record<number, StatusMeta> = {
+  [OrderFlowStatus.ORDER_FLOW_STATUS_IMPORT_NOT_APPLICABLE]: {
+    text: '不适用',
+    color: 'default',
+  },
+  [OrderFlowStatus.ORDER_FLOW_STATUS_IMPORT_NOT_STARTED]: {
+    text: '未开始',
+    color: 'default',
+  },
+  [OrderFlowStatus.ORDER_FLOW_STATUS_IMPORT_IN_PROGRESS]: {
+    text: '进行中',
+    color: 'processing',
+  },
+  [OrderFlowStatus.ORDER_FLOW_STATUS_IMPORT_COMPLETED]: {
+    text: '已完成',
+    color: 'success',
+  },
   [OrderFlowStatus.ORDER_FLOW_STATUS_DRAFT]: {
     text: '草稿',
     color: 'default',

@@ -72,6 +72,9 @@ export default function SeaExportDetailFeatures({
     ensureBusinessWriteAllowed,
   } = context;
 
+  const isExport = kind === 'sea-export';
+  const canMaintainVoyage = canOrder(isExport ? 'reassign' : 'update');
+
   // —— 拆票/改配动作资格：请求序号 + 目标身份 + 实例存活三重门禁 ——
   // 订单切换由页面按 orderFormIdentity 重挂载扩展；旧实例卸载后，仍在等待的
   // 同步任务续体不得再对旧订单发起请求或写回状态。
@@ -106,7 +109,7 @@ export default function SeaExportDetailFeatures({
   const loadChangeActions = useCallback(async () => {
     const requestOrderId = orderId;
     const requestTargetKey = changeActionsTargetKey;
-    if (!requestOrderId || !requestTargetKey) {
+    if (!isExport || !requestOrderId || !requestTargetKey) {
       changeActionsRequestIdRef.current += 1;
       setChangeActionsState(null);
       return;
@@ -147,7 +150,7 @@ export default function SeaExportDetailFeatures({
         error instanceof Error ? error.message : '加载拆票与改配动作失败',
       );
     }
-  }, [changeActionsTargetKey, message, orderId]);
+  }, [changeActionsTargetKey, message, orderId, isExport]);
 
   useEffect(() => {
     aliveRef.current = true;
@@ -173,10 +176,14 @@ export default function SeaExportDetailFeatures({
     }
   }, [businessWritesDisabled]);
 
+  useEffect(() => {
+    if (!canMaintainVoyage) setVoyageUpdateModalOpen(false);
+  }, [canMaintainVoyage]);
+
   // —— 更多菜单：共享航次、共享箱、拆票/改配历史 ——
   const moreMenuItems: MenuProps['items'] = useMemo(
     () => [
-      ...(!businessWritesDisabled && canOrder('reassign')
+      ...(!businessWritesDisabled && canMaintainVoyage
         ? [
             {
               key: 'shared-voyage-update',
@@ -202,14 +209,26 @@ export default function SeaExportDetailFeatures({
           setSharedContainerDrawerOpen(true);
         },
       },
-      {
-        key: 'change-history',
-        icon: <HistoryOutlined />,
-        label: '拆票与改配历史',
-        onClick: () => setHistoryDrawerOpen(true),
-      },
+      ...(isExport
+        ? [
+            {
+              key: 'change-history',
+              icon: <HistoryOutlined />,
+              label: '拆票与改配历史',
+              onClick: () => setHistoryDrawerOpen(true),
+            },
+          ]
+        : []),
     ],
-    [businessWritesDisabled, canOrder, message, order, orderId],
+    [
+      businessWritesDisabled,
+      canOrder,
+      message,
+      order,
+      orderId,
+      isExport,
+      canMaintainVoyage,
+    ],
   );
 
   // 类型专属动作以菜单项贡献，权限、阻断原因和写入口校验仍由本模块持有。
@@ -229,12 +248,12 @@ export default function SeaExportDetailFeatures({
           {
             key: 'hbl-production',
             icon: <FileDoneOutlined />,
-            label: 'HBL 制作',
+            label: isExport ? 'HBL 制作' : 'HBL 制作归档',
             onClick: () => history.push(`/orders/${kind}/${orderId}/hbl`),
           },
         ]
       : []),
-    ...(canOrder('split')
+    ...(isExport && canOrder('split')
       ? [
           {
             key: 'split',
@@ -253,7 +272,7 @@ export default function SeaExportDetailFeatures({
           },
         ]
       : []),
-    ...(canOrder('reassign')
+    ...(isExport && canOrder('reassign')
       ? [
           {
             key: 'reassign',
@@ -338,7 +357,7 @@ export default function SeaExportDetailFeatures({
               : '以上仅作资料提示，不单独阻止保存。'}
           </Typography.Text>
         ) : null}
-        {businessWritesDisabled || !canOrder('reassign') ? (
+        {businessWritesDisabled || !canMaintainVoyage ? (
           <Typography.Text type="secondary" style={{ fontSize: 12 }}>
             {businessWriteBlockedReason ||
               '当前账号无共同航程修改权限，请联系有权限的人员补齐。'}
@@ -348,7 +367,7 @@ export default function SeaExportDetailFeatures({
           title={
             businessWritesDisabled
               ? businessWriteBlockedReason
-              : !canOrder('reassign')
+              : !canMaintainVoyage
                 ? '当前账号无共同航程修改权限'
                 : !order.seaMasterBill?.transportExecutionId
                   ? '当前订单未关联共同航程'
@@ -361,7 +380,7 @@ export default function SeaExportDetailFeatures({
               size="small"
               disabled={
                 businessWritesDisabled ||
-                !canOrder('reassign') ||
+                !canMaintainVoyage ||
                 !order.seaMasterBill?.transportExecutionId
               }
               onClick={() => {
@@ -389,7 +408,9 @@ export default function SeaExportDetailFeatures({
     ),
     actionMenuItems,
     moreMenuItems,
-    appendTabs,
+    appendTabs: isExport
+      ? appendTabs
+      : appendTabs.filter((tab) => tab.key === 'same-batch-orders'),
     refreshTypeState: loadChangeActions,
     overlays: (
       <>

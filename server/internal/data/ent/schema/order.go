@@ -18,6 +18,8 @@ func (Order) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} }
 func (Order) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entsql.Checks(map[string]string{
+			"orders_flow_status_check":               "flow_status IN ('DRAFT', 'BOOKED', 'SPACE_ALLOCATED', 'TRUCKING_ARRANGED', 'DOCUMENT_CUTOFF', 'CUSTOMS_DECLARATION_ARRANGED', 'DOCUMENT_RELEASED', 'IMPORT_NOT_APPLICABLE', 'IMPORT_NOT_STARTED', 'IMPORT_IN_PROGRESS', 'IMPORT_COMPLETED')",
+			"orders_import_flow_applicability_check": "(business_type IN ('SI', 'AI') AND flow_status IN ('IMPORT_NOT_APPLICABLE', 'IMPORT_NOT_STARTED', 'IMPORT_IN_PROGRESS', 'IMPORT_COMPLETED')) OR (business_type NOT IN ('SI', 'AI') AND flow_status NOT IN ('IMPORT_NOT_APPLICABLE', 'IMPORT_NOT_STARTED', 'IMPORT_IN_PROGRESS', 'IMPORT_COMPLETED'))",
 			// 锁定来源一致性：未锁定时全部锁字段为空；MANUAL 必须有 locked_by
 			// 且自动触发字段为空；AUTO_SETTLEMENT 必须 locked_by 为空且触发
 			// 类型、触发单据与触发操作人完整。
@@ -64,7 +66,7 @@ func (Order) Fields() []ent.Field {
 		field.Enum("shipment_type").Values("FCL", "LCL", "BREAK_BULK").Optional().Nillable(),
 		field.Enum("container_ownership").Values("COC", "SOC").Optional().Nillable(),
 		field.Enum("shipment_mode").Values("TRADITIONAL_FORWARDING", "CROSS_BORDER").Optional().Nillable(),
-		field.Enum("flow_status").Values("DRAFT", "BOOKED", "SPACE_ALLOCATED", "TRUCKING_ARRANGED", "DOCUMENT_CUTOFF", "CUSTOMS_DECLARATION_ARRANGED", "DOCUMENT_RELEASED").Default("DRAFT"),
+		field.Enum("flow_status").Values("DRAFT", "BOOKED", "SPACE_ALLOCATED", "TRUCKING_ARRANGED", "DOCUMENT_CUTOFF", "CUSTOMS_DECLARATION_ARRANGED", "DOCUMENT_RELEASED", "IMPORT_NOT_APPLICABLE", "IMPORT_NOT_STARTED", "IMPORT_IN_PROGRESS", "IMPORT_COMPLETED").Default("DRAFT"),
 		field.Enum("termination_status").Values("ACTIVE", "TERMINATING", "TERMINATED").Default("ACTIVE"),
 		field.Enum("termination_type").Values("CUSTOMER_CANCEL", "CARRIER_CANCEL", "CUSTOMS_RETURN", "OPERATION_CANCEL", "OTHER").Optional().Nillable(),
 		field.String("termination_reason").Optional().Nillable().MaxLen(500),

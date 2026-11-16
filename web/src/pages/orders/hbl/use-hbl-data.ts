@@ -6,6 +6,7 @@ import { type HblBundle, hblBundleFingerprint } from './model';
 
 export async function fetchHblBundle(
   orderId: string,
+  identity: Pick<API.Order, 'businessType' | 'organizationId'>,
   signal?: AbortSignal,
 ): Promise<HblBundle> {
   const [order, documents] = await Promise.all([
@@ -18,7 +19,11 @@ export async function fetchHblBundle(
   if (
     order?.success === false ||
     documents?.success === false ||
+    !identity.businessType ||
+    !identity.organizationId ||
     order?.data?.id !== orderId ||
+    order.data.businessType !== identity.businessType ||
+    order.data.organizationId !== identity.organizationId ||
     documents?.data?.orderId !== orderId
   )
     throw new Error('HBL 制作资料读取失败，请重试。');
@@ -39,7 +44,7 @@ export function useHblChangeNotice(
   const query = useQuery({
     queryKey: ['orders', 'hbl-change-notice', { scope, base }],
     queryFn: ({ signal }) =>
-      fetchHblBundle(baseline.order.id as string, signal),
+      fetchHblBundle(baseline.order.id as string, baseline.order, signal),
     initialData: baseline,
     staleTime: Infinity,
     enabled: foreground && !paused,

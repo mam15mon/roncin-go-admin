@@ -60,7 +60,10 @@ function generateIdempotencyKey(): string {
 export function getOrderLockConfirmationDescription(
   businessType?: number,
 ): string {
-  if (businessType === OrderBusinessType.BUSINESS_TYPE_SE) {
+  if (
+    businessType === OrderBusinessType.BUSINESS_TYPE_SE ||
+    businessType === OrderBusinessType.BUSINESS_TYPE_SI
+  ) {
     return '确认锁定后将固定 MBL/HBL 提单不可变版本，并自动锁定订单业务资料和费用。后续费用变更须申请补录并补审，已建账费用须先完成账务回退。';
   }
   return '确认锁定后将自动锁定订单业务资料和费用。后续费用变更须申请补录并补审，已建账费用须先完成账务回退。';

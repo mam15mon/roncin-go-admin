@@ -19,6 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
+	OrderService_GetImportHandling_FullMethodName           = "/order.v1.OrderService/GetImportHandling"
+	OrderService_SaveImportHandling_FullMethodName          = "/order.v1.OrderService/SaveImportHandling"
+	OrderService_ListImportHandlingEvents_FullMethodName    = "/order.v1.OrderService/ListImportHandlingEvents"
 	OrderService_MatchSeaMasterBillCandidate_FullMethodName = "/order.v1.OrderService/MatchSeaMasterBillCandidate"
 	OrderService_GetOrder_FullMethodName                    = "/order.v1.OrderService/GetOrder"
 	OrderService_ListOrders_FullMethodName                  = "/order.v1.OrderService/ListOrders"
@@ -39,6 +42,9 @@ const (
 //
 // OrderService 订单核心服务。
 type OrderServiceClient interface {
+	GetImportHandling(ctx context.Context, in *GetImportHandlingRequest, opts ...grpc.CallOption) (*GetImportHandlingResponse, error)
+	SaveImportHandling(ctx context.Context, in *SaveImportHandlingRequest, opts ...grpc.CallOption) (*SaveImportHandlingResponse, error)
+	ListImportHandlingEvents(ctx context.Context, in *ListImportHandlingEventsRequest, opts ...grpc.CallOption) (*ListImportHandlingEventsResponse, error)
 	MatchSeaMasterBillCandidate(ctx context.Context, in *MatchSeaMasterBillCandidateRequest, opts ...grpc.CallOption) (*MatchSeaMasterBillCandidateResponse, error)
 	GetOrder(ctx context.Context, in *GetOrderRequest, opts ...grpc.CallOption) (*GetOrderResponse, error)
 	ListOrders(ctx context.Context, in *ListOrdersRequest, opts ...grpc.CallOption) (*ListOrdersResponse, error)
@@ -59,6 +65,36 @@ type orderServiceClient struct {
 
 func NewOrderServiceClient(cc grpc.ClientConnInterface) OrderServiceClient {
 	return &orderServiceClient{cc}
+}
+
+func (c *orderServiceClient) GetImportHandling(ctx context.Context, in *GetImportHandlingRequest, opts ...grpc.CallOption) (*GetImportHandlingResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetImportHandlingResponse)
+	err := c.cc.Invoke(ctx, OrderService_GetImportHandling_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orderServiceClient) SaveImportHandling(ctx context.Context, in *SaveImportHandlingRequest, opts ...grpc.CallOption) (*SaveImportHandlingResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SaveImportHandlingResponse)
+	err := c.cc.Invoke(ctx, OrderService_SaveImportHandling_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orderServiceClient) ListImportHandlingEvents(ctx context.Context, in *ListImportHandlingEventsRequest, opts ...grpc.CallOption) (*ListImportHandlingEventsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListImportHandlingEventsResponse)
+	err := c.cc.Invoke(ctx, OrderService_ListImportHandlingEvents_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *orderServiceClient) MatchSeaMasterBillCandidate(ctx context.Context, in *MatchSeaMasterBillCandidateRequest, opts ...grpc.CallOption) (*MatchSeaMasterBillCandidateResponse, error) {
@@ -187,6 +223,9 @@ func (c *orderServiceClient) TransitionOrderClosure(ctx context.Context, in *Tra
 //
 // OrderService 订单核心服务。
 type OrderServiceServer interface {
+	GetImportHandling(context.Context, *GetImportHandlingRequest) (*GetImportHandlingResponse, error)
+	SaveImportHandling(context.Context, *SaveImportHandlingRequest) (*SaveImportHandlingResponse, error)
+	ListImportHandlingEvents(context.Context, *ListImportHandlingEventsRequest) (*ListImportHandlingEventsResponse, error)
 	MatchSeaMasterBillCandidate(context.Context, *MatchSeaMasterBillCandidateRequest) (*MatchSeaMasterBillCandidateResponse, error)
 	GetOrder(context.Context, *GetOrderRequest) (*GetOrderResponse, error)
 	ListOrders(context.Context, *ListOrdersRequest) (*ListOrdersResponse, error)
@@ -209,6 +248,15 @@ type OrderServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedOrderServiceServer struct{}
 
+func (UnimplementedOrderServiceServer) GetImportHandling(context.Context, *GetImportHandlingRequest) (*GetImportHandlingResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetImportHandling not implemented")
+}
+func (UnimplementedOrderServiceServer) SaveImportHandling(context.Context, *SaveImportHandlingRequest) (*SaveImportHandlingResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveImportHandling not implemented")
+}
+func (UnimplementedOrderServiceServer) ListImportHandlingEvents(context.Context, *ListImportHandlingEventsRequest) (*ListImportHandlingEventsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListImportHandlingEvents not implemented")
+}
 func (UnimplementedOrderServiceServer) MatchSeaMasterBillCandidate(context.Context, *MatchSeaMasterBillCandidateRequest) (*MatchSeaMasterBillCandidateResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method MatchSeaMasterBillCandidate not implemented")
 }
@@ -264,6 +312,60 @@ func RegisterOrderServiceServer(s grpc.ServiceRegistrar, srv OrderServiceServer)
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&OrderService_ServiceDesc, srv)
+}
+
+func _OrderService_GetImportHandling_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetImportHandlingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderServiceServer).GetImportHandling(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderService_GetImportHandling_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderServiceServer).GetImportHandling(ctx, req.(*GetImportHandlingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrderService_SaveImportHandling_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveImportHandlingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderServiceServer).SaveImportHandling(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderService_SaveImportHandling_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderServiceServer).SaveImportHandling(ctx, req.(*SaveImportHandlingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrderService_ListImportHandlingEvents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListImportHandlingEventsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderServiceServer).ListImportHandlingEvents(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderService_ListImportHandlingEvents_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderServiceServer).ListImportHandlingEvents(ctx, req.(*ListImportHandlingEventsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _OrderService_MatchSeaMasterBillCandidate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -489,6 +591,18 @@ var OrderService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "order.v1.OrderService",
 	HandlerType: (*OrderServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetImportHandling",
+			Handler:    _OrderService_GetImportHandling_Handler,
+		},
+		{
+			MethodName: "SaveImportHandling",
+			Handler:    _OrderService_SaveImportHandling_Handler,
+		},
+		{
+			MethodName: "ListImportHandlingEvents",
+			Handler:    _OrderService_ListImportHandlingEvents_Handler,
+		},
 		{
 			MethodName: "MatchSeaMasterBillCandidate",
 			Handler:    _OrderService_MatchSeaMasterBillCandidate_Handler,

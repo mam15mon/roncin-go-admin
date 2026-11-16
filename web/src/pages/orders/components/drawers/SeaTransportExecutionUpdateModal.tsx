@@ -28,6 +28,7 @@ import {
 import { isWriteResponse } from '@/utils/api';
 import { formatDate } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
+import { getOrderKindDefinitionByBusinessType } from '../../order-kinds/registry';
 import './SeaTransportExecutionUpdateModal.less';
 
 const { Text } = Typography;
@@ -440,7 +441,7 @@ export default function SeaTransportExecutionUpdateModal({
                 return result?.data?.orderNo ? (
                   <Typography.Link
                     key={id}
-                    href={`/orders/sea-export/${id}`}
+                    href={`/orders/${getOrderKindDefinitionByBusinessType(result.data.businessType ?? 0)?.kind}/${id}`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >

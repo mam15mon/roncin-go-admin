@@ -182,7 +182,7 @@ export async function queryOrderList(
         order.airExport?.master?.content?.masterNo ||
         order.seaMasterBill?.masterNo,
       billRelation:
-        definition.kind === 'sea-export'
+        definition.transportMode === 'sea'
           ? {
               kind:
                 order.seaDocumentSummary?.documentStructure ===

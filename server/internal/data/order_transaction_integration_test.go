@@ -17,6 +17,8 @@ import (
 	numbersequenceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	ordercommissionattributionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
+	handlingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderimporthandling"
+	handlingeventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderimporthandlingevent"
 	orderlifecycleeventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	ordershippingdocumentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
@@ -35,15 +37,17 @@ import (
 )
 
 type orderPostgresFixture struct {
-	t              *testing.T
-	data           *Data
-	headquartersID uuid.UUID
-	organizationID uuid.UUID
-	partnerID      uuid.UUID
-	shippingLineID uuid.UUID
-	actorID        uuid.UUID
-	suffix         string
-	portIDs        []uuid.UUID
+	// 复杂跨层验收由getIntegrationData清理整个专属Schema。
+	deferCleanupToSchema bool
+	t                    *testing.T
+	data                 *Data
+	headquartersID       uuid.UUID
+	organizationID       uuid.UUID
+	partnerID            uuid.UUID
+	shippingLineID       uuid.UUID
+	actorID              uuid.UUID
+	suffix               string
+	portIDs              []uuid.UUID
 }
 
 type orderWriteResult struct {
@@ -440,7 +444,7 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 		}
 
 		// 3. 调用候选匹配查询
-		matchResult, err := usecase.MatchSeaMasterBillCandidate(ctx, fixture.organizationID, fixture.shippingLineID, "cosco999901", nil)
+		matchResult, err := usecase.MatchSeaMasterBillCandidate(ctx, fixture.organizationID, fixture.shippingLineID, "cosco999901", nil, biz.OrderBusinessSE)
 		if err != nil {
 			t.Fatalf("匹配主单候选失败: %v", err)
 		}
@@ -1136,12 +1140,23 @@ func (f *orderPostgresFixture) requireDraftUpdateResult() {
 }
 
 func (f *orderPostgresFixture) cleanup() {
+	if f.deferCleanupToSchema {
+		return
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	steps := []struct {
 		name string
 		run  func() error
 	}{
+		{name: "进口服务事件", run: func() error {
+			_, err := f.data.db.OrderImportHandlingEvent.Delete().Where(handlingeventent.HasOrderWith(orderent.OrganizationIDEQ(f.organizationID))).Exec(ctx)
+			return err
+		}},
+		{name: "进口服务", run: func() error {
+			_, err := f.data.db.OrderImportHandling.Delete().Where(handlingent.HasOrderWith(orderent.OrganizationIDEQ(f.organizationID))).Exec(ctx)
+			return err
+		}},
 		{name: "订单人员", run: func() error {
 			_, err := f.data.db.OrderPersonnel.Delete().Where(orderpersonnelent.OrganizationIDEQ(f.organizationID)).Exec(ctx)
 			return err

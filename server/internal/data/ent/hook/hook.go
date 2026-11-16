@@ -885,6 +885,30 @@ func (f OrderFeeSupplementRequestFunc) Mutate(ctx context.Context, m ent.Mutatio
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderFeeSupplementRequestMutation", m)
 }
 
+// The OrderImportHandlingFunc type is an adapter to allow the use of ordinary
+// function as OrderImportHandling mutator.
+type OrderImportHandlingFunc func(context.Context, *ent.OrderImportHandlingMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OrderImportHandlingFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.OrderImportHandlingMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderImportHandlingMutation", m)
+}
+
+// The OrderImportHandlingEventFunc type is an adapter to allow the use of ordinary
+// function as OrderImportHandlingEvent mutator.
+type OrderImportHandlingEventFunc func(context.Context, *ent.OrderImportHandlingEventMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OrderImportHandlingEventFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.OrderImportHandlingEventMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderImportHandlingEventMutation", m)
+}
+
 // The OrderLifecycleEventFunc type is an adapter to allow the use of ordinary
 // function as OrderLifecycleEvent mutator.
 type OrderLifecycleEventFunc func(context.Context, *ent.OrderLifecycleEventMutation) (ent.Value, error)

@@ -3,11 +3,13 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { OrderTerminationStatus } from '@/enums.generated';
+import { OrderBusinessType, OrderTerminationStatus } from '@/enums.generated';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import { orderShippingDocumentServiceListShippingDocuments } from '@/services/roncin/orderShippingDocumentService';
+import { seaDocumentServiceGetSeaOrderDocuments } from '@/services/roncin/seaDocumentService';
 import { fetchOrderMasterData, searchOrderLocations } from './common';
 import { seaExportDefinition } from './order-kinds/sea-export/definition';
+import { seaImportDefinition } from './order-kinds/sea-import/definition';
 import { useOrderDetailData } from './use-order-detail-data';
 
 let mockCurrentUser: any = {
@@ -108,9 +110,72 @@ describe('useOrderDetailData', () => {
     mockSearchLocations.mockResolvedValue([]);
   });
 
+  it('SI加载真实海运单证且不请求旧通用提单，按SI读取人员候选', async () => {
+    mockGetOrder.mockResolvedValueOnce({
+      data: {
+        id: 'si-order',
+        businessType: OrderBusinessType.BUSINESS_TYPE_SI,
+        organizationId: 'org-1',
+      },
+    });
+    const { wrapper } = createHookWrapper();
+    const { result } = renderHook(
+      () => useOrderDetailData('si-order', seaImportDefinition),
+      { wrapper },
+    );
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.error).toBeNull();
+    expect(seaDocumentServiceGetSeaOrderDocuments).toHaveBeenCalledWith({
+      orderId: 'si-order',
+    });
+    expect(mockListShippingDocuments).not.toHaveBeenCalled();
+    expect(result.current.seaDocuments).toMatchObject({ linkVersion: '1' });
+  });
+
+  it.each([undefined, 0, OrderBusinessType.BUSINESS_TYPE_SE])(
+    'SI响应缺失或错配真实类型%s时显式失败，不展示另一类型订单',
+    async (businessType) => {
+      mockGetOrder.mockResolvedValueOnce({
+        data: { id: 'si-order', organizationId: 'org-1', businessType },
+      });
+      const { wrapper } = createHookWrapper();
+      const { result } = renderHook(
+        () => useOrderDetailData('si-order', seaImportDefinition),
+        { wrapper },
+      );
+      await waitFor(() => expect(result.current.loading).toBe(false));
+      expect(result.current.error?.message).toContain(
+        '订单业务类型与当前页面不一致',
+      );
+      expect(result.current.order).toBeUndefined();
+    },
+  );
+
+  it.each([
+    { id: 'wrong-order', organizationId: 'org-1' },
+    { id: 'si-order', organizationId: 'wrong-company' },
+    { id: 'si-order', organizationId: undefined },
+  ])('成功响应身份错误时拒绝采纳 %j', async (identity) => {
+    mockGetOrder.mockResolvedValueOnce({
+      data: { ...identity, businessType: OrderBusinessType.BUSINESS_TYPE_SI },
+    });
+    const { result } = renderHook(
+      () => useOrderDetailData('si-order', seaImportDefinition),
+      { wrapper: createHookWrapper().wrapper },
+    );
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.order).toBeUndefined();
+  });
+
   it('成功加载指定订单的数据', async () => {
     mockGetOrder.mockResolvedValue({
-      data: { id: 'ord-1', orderNo: 'SE001', version: '1' },
+      data: {
+        businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+        organizationId: 'org-1',
+        id: 'ord-1',
+        orderNo: 'SE001',
+        version: '1',
+      },
     } as any);
 
     const { wrapper } = createHookWrapper();
@@ -127,6 +192,8 @@ describe('useOrderDetailData', () => {
   it('已完成退关订单仍将保留单证与终态完整加载', async () => {
     mockGetOrder.mockResolvedValueOnce({
       data: {
+        businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+        organizationId: 'org-1',
         id: 'ord-1',
         version: '5',
         terminationStatus:
@@ -165,7 +232,13 @@ describe('useOrderDetailData', () => {
 
   it('海运出口订单详情不调用旧提单列表接口，shippingDocs 为空且不影响加载', async () => {
     mockGetOrder.mockResolvedValueOnce({
-      data: { id: 'ord-1', orderNo: 'SE001', version: '1' },
+      data: {
+        businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+        organizationId: 'org-1',
+        id: 'ord-1',
+        orderNo: 'SE001',
+        version: '1',
+      },
     } as any);
 
     const { wrapper } = createHookWrapper();
@@ -179,9 +252,15 @@ describe('useOrderDetailData', () => {
     expect(mockListShippingDocuments).not.toHaveBeenCalled();
   });
 
-  it('非海运出口订单继续拉取旧提单列表', async () => {
+  it('未开放的航空进口配置继续使用其旧提单分支', async () => {
     mockGetOrder.mockResolvedValueOnce({
-      data: { id: 'ord-1', orderNo: 'AE001', version: '1' },
+      data: {
+        businessType: OrderBusinessType.BUSINESS_TYPE_AI,
+        organizationId: 'org-1',
+        id: 'ord-1',
+        orderNo: 'AE001',
+        version: '1',
+      },
     } as any);
     mockListShippingDocuments.mockResolvedValueOnce({
       data: [{ id: 'doc-1', houseNo: 'HBL001' }],
@@ -190,7 +269,7 @@ describe('useOrderDetailData', () => {
     const legacyConfig = {
       ...config,
       transportMode: 'air' as const,
-      businessType: (config.businessType + 1) as typeof config.businessType,
+      businessType: OrderBusinessType.BUSINESS_TYPE_AI,
     };
     const { wrapper } = createHookWrapper();
     const { result } = renderHook(
@@ -209,17 +288,23 @@ describe('useOrderDetailData', () => {
 
   it('单证列表请求 resolve undefined 时，抛出明确业务错误而非 TypeError', async () => {
     mockGetOrder.mockResolvedValueOnce({
-      data: { id: 'ord-1', orderNo: 'AE001', version: '1' },
+      data: {
+        businessType: OrderBusinessType.BUSINESS_TYPE_AI,
+        organizationId: 'org-1',
+        id: 'ord-1',
+        orderNo: 'AE001',
+        version: '1',
+      },
     } as any);
     mockListShippingDocuments.mockResolvedValueOnce(
       undefined as unknown as any,
     );
 
-    // 旧提单列表仅非海运出口业务类型拉取；此处合成空运配置触发该分支。
+    // 海空运已使用真实专属单证；此处验证尚未开放航空进口的独立分支，后续AI任务将替换为真实航空实体。
     const legacyConfig = {
       ...config,
       transportMode: 'air' as const,
-      businessType: (config.businessType + 1) as typeof config.businessType,
+      businessType: OrderBusinessType.BUSINESS_TYPE_AI,
     };
     const { queryClient, wrapper } = createHookWrapper();
     const { result } = renderHook(
@@ -255,7 +340,13 @@ describe('useOrderDetailData', () => {
 
     // 2. A 响应成功
     deferA.resolve({
-      data: { id: 'ord-A', orderNo: 'ORDER-A', version: '1' },
+      data: {
+        businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+        organizationId: 'org-1',
+        id: 'ord-A',
+        orderNo: 'ORDER-A',
+        version: '1',
+      },
     });
     await waitFor(() => expect(result.current.order?.id).toBe('ord-A'));
     expect(result.current.loading).toBe(false);
@@ -270,7 +361,13 @@ describe('useOrderDetailData', () => {
 
     // 4. B 返回成功
     deferB.resolve({
-      data: { id: 'ord-B', orderNo: 'ORDER-B', version: '1' },
+      data: {
+        businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+        organizationId: 'org-1',
+        id: 'ord-B',
+        orderNo: 'ORDER-B',
+        version: '1',
+      },
     });
     await waitFor(() => expect(result.current.order?.id).toBe('ord-B'));
     expect(result.current.loading).toBe(false);
@@ -279,7 +376,13 @@ describe('useOrderDetailData', () => {
   it('切换到订单 B 且 B 请求失败时，保持为空状态，不得回退显示订单 A 的数据', async () => {
     mockGetOrder
       .mockResolvedValueOnce({
-        data: { id: 'ord-A', orderNo: 'ORDER-A', version: '1' },
+        data: {
+          businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+          organizationId: 'org-1',
+          id: 'ord-A',
+          orderNo: 'ORDER-A',
+          version: '1',
+        },
       } as any)
       .mockRejectedValueOnce(new Error('订单 B 不存在或请求超时'));
 
@@ -324,13 +427,25 @@ describe('useOrderDetailData', () => {
 
     // B 先返回
     deferB.resolve({
-      data: { id: 'ord-B', orderNo: 'ORDER-B', version: '1' },
+      data: {
+        businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+        organizationId: 'org-1',
+        id: 'ord-B',
+        orderNo: 'ORDER-B',
+        version: '1',
+      },
     });
     await waitFor(() => expect(result.current.order?.id).toBe('ord-B'));
 
     // 随后迟到的 A 响应到达：A 的结果写入 A 自己的 queryKey 缓存，不影响当前键
     deferA.resolve({
-      data: { id: 'ord-A', orderNo: 'ORDER-A', version: '1' },
+      data: {
+        businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+        organizationId: 'org-1',
+        id: 'ord-A',
+        orderNo: 'ORDER-A',
+        version: '1',
+      },
     });
 
     // 依然保持为 B，A 的旧响应被成功丢弃
@@ -367,13 +482,25 @@ describe('useOrderDetailData', () => {
 
     // 组织 B 先返回
     deferOrgB.resolve({
-      data: { id: 'ord-1', orderNo: 'SE-B', version: '1' },
+      data: {
+        businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+        organizationId: 'org-B',
+        id: 'ord-1',
+        orderNo: 'SE-B',
+        version: '1',
+      },
     });
     await waitFor(() => expect(result.current.order?.orderNo).toBe('SE-B'));
 
     // 随后组织 A 迟到的响应到达
     deferOrgA.resolve({
-      data: { id: 'ord-1', orderNo: 'SE-A', version: '1' },
+      data: {
+        businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+        organizationId: 'org-A',
+        id: 'ord-1',
+        orderNo: 'SE-A',
+        version: '1',
+      },
     });
 
     // 依然保持 B，A 被成功丢弃
@@ -405,7 +532,13 @@ describe('useOrderDetailData', () => {
       currentOrganization: { id: 'org-A', name: '组织A' },
     };
     mockGetOrder.mockResolvedValueOnce({
-      data: { id: 'ord-1', orderNo: 'ORDER-A-001', version: '1' },
+      data: {
+        businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+        organizationId: 'org-A',
+        id: 'ord-1',
+        orderNo: 'ORDER-A-001',
+        version: '1',
+      },
     } as any);
 
     const { wrapper } = createHookWrapper();
@@ -433,7 +566,13 @@ describe('useOrderDetailData', () => {
 
     // 组织 B 响应后，正常展示组织 B 数据
     deferOrgB.resolve({
-      data: { id: 'ord-1', orderNo: 'ORDER-B-002', version: '1' },
+      data: {
+        businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+        organizationId: 'org-B',
+        id: 'ord-1',
+        orderNo: 'ORDER-B-002',
+        version: '1',
+      },
     });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -442,7 +581,13 @@ describe('useOrderDetailData', () => {
 
   it('地点搜索为空或仅含空白时复用当前详情首批候选项，不发起远程请求', async () => {
     mockGetOrder.mockResolvedValue({
-      data: { id: 'ord-1', orderNo: 'SE001', version: '1' },
+      data: {
+        businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+        organizationId: 'org-1',
+        id: 'ord-1',
+        orderNo: 'SE001',
+        version: '1',
+      },
     } as any);
     const { wrapper } = createHookWrapper();
     const { result } = renderHook(() => useOrderDetailData('ord-1', config), {
@@ -466,7 +611,13 @@ describe('useOrderDetailData', () => {
       currentOrganization: { id: 'org-A', name: '组织A' },
     };
     mockGetOrder.mockResolvedValue({
-      data: { id: 'ord-1', orderNo: 'SE001', version: '1' },
+      data: {
+        businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+        organizationId: 'org-A',
+        id: 'ord-1',
+        orderNo: 'SE001',
+        version: '1',
+      },
     } as any);
     const { wrapper } = createHookWrapper();
     const { result, rerender } = renderHook(
@@ -543,7 +694,13 @@ describe('useOrderDetailData', () => {
     );
 
     orgBRequest.resolve({
-      data: { id: 'ord-1', orderNo: 'SE-B', version: '1' },
+      data: {
+        businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+        organizationId: 'org-B',
+        id: 'ord-1',
+        orderNo: 'SE-B',
+        version: '1',
+      },
     });
     await waitFor(() => expect(result.current.loading).toBe(false));
   });
@@ -569,7 +726,7 @@ describe('useOrderDetailData', () => {
     currentConfig = {
       ...config,
       transportMode: 'air',
-      businessType: (config.businessType + 1) as typeof config.businessType,
+      businessType: OrderBusinessType.BUSINESS_TYPE_AE,
     };
     rerender();
 
@@ -581,7 +738,13 @@ describe('useOrderDetailData', () => {
     await expect(searchPromise).resolves.toEqual([]);
 
     nextOrderRequest.resolve({
-      data: { id: 'ord-1', orderNo: 'AIR-001', version: '1' },
+      data: {
+        businessType: OrderBusinessType.BUSINESS_TYPE_AE,
+        organizationId: 'org-1',
+        id: 'ord-1',
+        orderNo: 'AIR-001',
+        version: '1',
+      },
     });
     await waitFor(() => expect(result.current.loading).toBe(false));
   });

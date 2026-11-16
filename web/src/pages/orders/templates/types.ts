@@ -22,6 +22,9 @@ export interface SeaHouseOrderCreateSource {
 }
 
 export interface TemplateProps {
+  /** 注册项指定的真实订单类型，候选及权限不得借用另一方向。 */
+  businessType?: number;
+  orderKind?: string;
   cargoCategoryOptions: SelectOption[];
   locationOptions: SelectOption[];
   searchLocations: (keyword?: string) => Promise<SelectOption[]>;

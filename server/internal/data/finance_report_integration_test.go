@@ -92,7 +92,7 @@ func TestFinanceReportProfitPostgres(t *testing.T) {
 		t.Fatalf("同源导出失败: %#v %v", exported, err)
 	}
 	// 缺日期不回退到创建时间，且不应因完整CTE中日期参数与缺日期统计并用而发生绑定错误。
-	undated := d.db.Order.Create().SetOrganizationID(f.org).SetIdempotencyKey(uuid.NewString()).SetOrderNo("UNDATED").SetCustomerID(f.party).SetBusinessType(orderent.BusinessTypeSI).SetTradeDirection(orderent.TradeDirectionImport).SetPaymentTerm(orderent.PaymentTermPREPAID).SaveX(ctx)
+	undated := d.db.Order.Create().SetOrganizationID(f.org).SetIdempotencyKey(uuid.NewString()).SetOrderNo("UNDATED").SetCustomerID(f.party).SetBusinessType(orderent.BusinessTypeSI).SetFlowStatus(orderent.FlowStatusIMPORT_NOT_APPLICABLE).SetTradeDirection(orderent.TradeDirectionImport).SetPaymentTerm(orderent.PaymentTermPREPAID).SaveX(ctx)
 	f.fee(undated.ID, feeent.DirectionRECEIVABLE, "100", "100")
 	filters.SalesID, filters.OperatorID = nil, nil
 	report, err = repo.Profit(ctx, f.org, filters, false)

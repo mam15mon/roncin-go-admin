@@ -437,6 +437,10 @@ export const OrderFlowStatus = {
   ORDER_FLOW_STATUS_DOCUMENT_CUTOFF: 5,
   ORDER_FLOW_STATUS_CUSTOMS_DECLARATION_ARRANGED: 6,
   ORDER_FLOW_STATUS_DOCUMENT_RELEASED: 7,
+  ORDER_FLOW_STATUS_IMPORT_NOT_APPLICABLE: 8,
+  ORDER_FLOW_STATUS_IMPORT_NOT_STARTED: 9,
+  ORDER_FLOW_STATUS_IMPORT_IN_PROGRESS: 10,
+  ORDER_FLOW_STATUS_IMPORT_COMPLETED: 11,
 } as const;
 
 export type OrderFlowStatus = (typeof OrderFlowStatus)[keyof typeof OrderFlowStatus];
@@ -506,6 +510,17 @@ export const OrderFeeCorrectionOperation = {
 } as const;
 
 export type OrderFeeCorrectionOperation = (typeof OrderFeeCorrectionOperation)[keyof typeof OrderFeeCorrectionOperation];
+
+export const ImportHandlingStepKind = {
+  IMPORT_HANDLING_STEP_KIND_UNSPECIFIED: 0,
+  IMPORT_HANDLING_STEP_KIND_ARRIVAL: 1,
+  IMPORT_HANDLING_STEP_KIND_EXCHANGE: 2,
+  IMPORT_HANDLING_STEP_KIND_CUSTOMS: 3,
+  IMPORT_HANDLING_STEP_KIND_PICKUP: 4,
+  IMPORT_HANDLING_STEP_KIND_DELIVERY: 5,
+} as const;
+
+export type ImportHandlingStepKind = (typeof ImportHandlingStepKind)[keyof typeof ImportHandlingStepKind];
 
 export const OrderPersonnelRole = {
   ORDER_PERSONNEL_ROLE_UNSPECIFIED: 0,

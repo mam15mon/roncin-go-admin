@@ -5527,7 +5527,7 @@ const file_order_v1_sea_order_change_proto_rawDesc = "" +
 	" \x01(\v2#.order.v1.SeaOrderSplitEventSummaryH\x00R\fsplitSummary\x88\x01\x01\x12b\n" +
 	"\x14reassignment_summary\x18\v \x01(\v2*.order.v1.SeaOrderReassignmentEventSummaryH\x01R\x13reassignmentSummary\x88\x01\x01B\x10\n" +
 	"\x0e_split_summaryB\x17\n" +
-	"\x15_reassignment_summary2\xaa\x10\n" +
+	"\x15_reassignment_summary2\xba\x10\n" +
 	"\x15SeaOrderChangeService\x12\xbb\x01\n" +
 	"\x18GetSeaOrderChangeActions\x12).order.v1.GetSeaOrderChangeActionsRequest\x1a*.order.v1.GetSeaOrderChangeActionsResponse\"H\x82\xb5\x18\n" +
 	"\b\x04\x1a\x04read \x02\x82\xd3\xe4\x93\x024\x122/api/v1/orders/{order_id}/sea-order-change/actions\x12\xbf\x01\n" +
@@ -5535,9 +5535,9 @@ const file_order_v1_sea_order_change_proto_rawDesc = "" +
 	"\x14PreviewSeaOrderSplit\x12%.order.v1.PreviewSeaOrderSplitRequest\x1a&.order.v1.PreviewSeaOrderSplitResponse\"R\x82\xb5\x18\v\b\x04\x1a\x05split \x02\x82\xd3\xe4\x93\x02=:\x01*\"8/api/v1/orders/{order_id}/sea-order-change/split/preview\x12\xb9\x01\n" +
 	"\x14ExecuteSeaOrderSplit\x12%.order.v1.ExecuteSeaOrderSplitRequest\x1a&.order.v1.ExecuteSeaOrderSplitResponse\"R\x82\xb5\x18\v\b\x04\x1a\x05split \x02\x82\xd3\xe4\x93\x02=:\x01*\"8/api/v1/orders/{order_id}/sea-order-change/split/execute\x12\xd8\x01\n" +
 	"\x1bPreviewSeaOrderReassignment\x12,.order.v1.PreviewSeaOrderReassignmentRequest\x1a-.order.v1.PreviewSeaOrderReassignmentResponse\"\\\x82\xb5\x18\x0e\b\x04\x1a\breassign \x02\x82\xd3\xe4\x93\x02D:\x01*\"?/api/v1/orders/{order_id}/sea-order-change/reassignment/preview\x12\xd8\x01\n" +
-	"\x1bExecuteSeaOrderReassignment\x12,.order.v1.ExecuteSeaOrderReassignmentRequest\x1a-.order.v1.ExecuteSeaOrderReassignmentResponse\"\\\x82\xb5\x18\x0e\b\x04\x1a\breassign \x02\x82\xd3\xe4\x93\x02D:\x01*\"?/api/v1/orders/{order_id}/sea-order-change/reassignment/execute\x12\xf4\x01\n" +
-	"\"PreviewSeaTransportExecutionUpdate\x123.order.v1.PreviewSeaTransportExecutionUpdateRequest\x1a4.order.v1.PreviewSeaTransportExecutionUpdateResponse\"c\x82\xb5\x18\x0e\b\x04\x1a\breassign \x02\x82\xd3\xe4\x93\x02K:\x01*\"F/api/v1/orders/{order_id}/sea-order-change/transport-execution/preview\x12\xec\x01\n" +
-	"\"ExecuteSeaTransportExecutionUpdate\x123.order.v1.ExecuteSeaTransportExecutionUpdateRequest\x1a4.order.v1.ExecuteSeaTransportExecutionUpdateResponse\"[\x82\xb5\x18\x0e\b\x04\x1a\breassign \x02\x82\xd3\xe4\x93\x02C:\x01*\">/api/v1/orders/{order_id}/sea-order-change/transport-execution\x12\xba\x01\n" +
+	"\x1bExecuteSeaOrderReassignment\x12,.order.v1.ExecuteSeaOrderReassignmentRequest\x1a-.order.v1.ExecuteSeaOrderReassignmentResponse\"\\\x82\xb5\x18\x0e\b\x04\x1a\breassign \x02\x82\xd3\xe4\x93\x02D:\x01*\"?/api/v1/orders/{order_id}/sea-order-change/reassignment/execute\x12\xfc\x01\n" +
+	"\"PreviewSeaTransportExecutionUpdate\x123.order.v1.PreviewSeaTransportExecutionUpdateRequest\x1a4.order.v1.PreviewSeaTransportExecutionUpdateResponse\"k\x82\xb5\x18\x16\b\x04\x1a\x10transport.update \x02\x82\xd3\xe4\x93\x02K:\x01*\"F/api/v1/orders/{order_id}/sea-order-change/transport-execution/preview\x12\xf4\x01\n" +
+	"\"ExecuteSeaTransportExecutionUpdate\x123.order.v1.ExecuteSeaTransportExecutionUpdateRequest\x1a4.order.v1.ExecuteSeaTransportExecutionUpdateResponse\"c\x82\xb5\x18\x16\b\x04\x1a\x10transport.update \x02\x82\xd3\xe4\x93\x02C:\x01*\">/api/v1/orders/{order_id}/sea-order-change/transport-execution\x12\xba\x01\n" +
 	"\x18ListSeaOrderChangeEvents\x12).order.v1.ListSeaOrderChangeEventsRequest\x1a*.order.v1.ListSeaOrderChangeEventsResponse\"G\x82\xb5\x18\n" +
 	"\b\x04\x1a\x04read \x02\x82\xd3\xe4\x93\x023\x121/api/v1/orders/{order_id}/sea-order-change/events\x12\xbf\x01\n" +
 	"\x16GetSeaOrderChangeEvent\x12'.order.v1.GetSeaOrderChangeEventRequest\x1a(.order.v1.GetSeaOrderChangeEventResponse\"R\x82\xb5\x18\n" +

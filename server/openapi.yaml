@@ -6754,6 +6754,75 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/order.v1.SaveOrderFeesResponse'
+    /api/v1/orders/{orderId}/import-handling:
+        get:
+            tags:
+                - OrderService
+            operationId: OrderService_GetImportHandling
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.GetImportHandlingResponse'
+        put:
+            tags:
+                - OrderService
+            operationId: OrderService_SaveImportHandling
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/order.v1.SaveImportHandlingRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.SaveImportHandlingResponse'
+    /api/v1/orders/{orderId}/import-handling/events:
+        get:
+            tags:
+                - OrderService
+            operationId: OrderService_ListImportHandlingEvents
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.ListImportHandlingEventsResponse'
     /api/v1/orders/{orderId}/lock:
         post:
             tags:
@@ -19164,6 +19233,20 @@ components:
                     $ref: '#/components/schemas/order.v1.AttachmentAccess'
                 traceId:
                     type: string
+        order.v1.GetImportHandlingResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/order.v1.OrderImportHandling'
+                traceId:
+                    type: string
         order.v1.GetOrderFeeCorrectionRequestResponse:
             type: object
             properties:
@@ -19319,6 +19402,49 @@ components:
                 data:
                     $ref: '#/components/schemas/order.v1.SeaSharedContainer'
                 traceId:
+                    type: string
+        order.v1.ImportHandlingEvent:
+            type: object
+            properties:
+                id:
+                    type: string
+                orderId:
+                    type: string
+                actorId:
+                    type: string
+                occurredAt:
+                    type: string
+                reason:
+                    type: string
+                before:
+                    $ref: '#/components/schemas/order.v1.OrderImportHandling'
+                after:
+                    $ref: '#/components/schemas/order.v1.OrderImportHandling'
+                actorName:
+                    readOnly: true
+                    type: string
+        order.v1.ImportHandlingStep:
+            type: object
+            properties:
+                kind:
+                    type: integer
+                    format: enum
+                undertaken:
+                    type: boolean
+                occurredAt:
+                    type: string
+                responsibleUserId:
+                    type: string
+                referenceNo:
+                    type: string
+                notes:
+                    type: string
+                attachmentIds:
+                    type: array
+                    items:
+                        type: string
+                responsibleUserName:
+                    readOnly: true
                     type: string
         order.v1.LinkAirMasterWaybillRequest:
             type: object
@@ -19555,6 +19681,30 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/order.v1.OrderFee'
+                traceId:
+                    type: string
+        order.v1.ListImportHandlingEventsData:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.ImportHandlingEvent'
+                total:
+                    type: integer
+                    format: int32
+        order.v1.ListImportHandlingEventsResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/order.v1.ListImportHandlingEventsData'
                 traceId:
                     type: string
         order.v1.ListOrderConsolidationsResponse:
@@ -20956,6 +21106,22 @@ components:
             description: |-
                 OrderFeeSupplementRequestData 是补录申请及其不可变费用快照的投影。
                  批准依据由服务端在 Order 行锁内固化，业务锁与提成财务锁不授予审批资格。
+        order.v1.OrderImportHandling:
+            type: object
+            properties:
+                orderId:
+                    type: string
+                orderVersion:
+                    type: string
+                    description: 唯一提交基线，等于订单 version。
+                exchangeAgentId:
+                    type: string
+                exchangeAgentName:
+                    type: string
+                steps:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.ImportHandlingStep'
         order.v1.OrderLockHouseBillSnapshotData:
             type: object
             properties:
@@ -21959,6 +22125,37 @@ components:
                 createdAt:
                     type: string
             description: SameBatchOrderSummary 同批订单只读摘要。
+        order.v1.SaveImportHandlingRequest:
+            type: object
+            properties:
+                orderId:
+                    type: string
+                expectedVersion:
+                    type: string
+                exchangeAgentId:
+                    type: string
+                steps:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.ImportHandlingStep'
+                    description: 完整五环节快照；普通订单保存不写此资源。
+                reason:
+                    type: string
+                    description: 撤回、取消或纠正已有完成事实时必填。
+        order.v1.SaveImportHandlingResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/order.v1.OrderImportHandling'
+                traceId:
+                    type: string
         order.v1.SaveOrderFeeRow:
             required:
                 - clientRowId

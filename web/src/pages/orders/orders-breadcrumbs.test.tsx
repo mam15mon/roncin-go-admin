@@ -5,6 +5,7 @@ import { App } from 'antd';
 import React, { type ReactElement } from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { OrderBusinessType } from '@/enums.generated';
 import { orderFeeServiceListFeeOptions } from '@/services/roncin/orderFeeService';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import OrderDetailPage from './detail';
@@ -243,7 +244,7 @@ describe('订单模块面包屑与异常路由校验', () => {
     expect(mockUseOrderLockState).toHaveBeenCalledWith(undefined);
   });
 
-  it('详情页在加载中与订单不存在状态下均正确渲染公共页头且无多余重复返回按钮', async () => {
+  it('详情页在加载中与读取失败时均正确渲染公共页头且无多余重复返回按钮', async () => {
     let resolveOrder!: (value: any) => void;
     mockGetOrder.mockImplementation(
       () =>
@@ -267,10 +268,13 @@ describe('订单模块面包屑与异常路由校验', () => {
       screen.getByRole('button', { name: /返回列表/ }),
     ).toBeInTheDocument();
 
-    // 2. 订单不存在（空结果）
-    resolveOrder({ data: undefined });
+    // 2. 详情失败由请求层消费后返回 undefined，不能构造无身份的成功订单。
+    resolveOrder(undefined);
     await waitFor(() => {
-      expect(screen.getByText('未找到对应的订单档案')).toBeInTheDocument();
+      expect(screen.getByText('加载订单详情失败')).toBeInTheDocument();
+      expect(
+        screen.getByText('订单详情加载失败，请稍后重试'),
+      ).toBeInTheDocument();
     });
 
     // 验证：OrderPageHeader 的“返回列表”存在，但卡片内部无重复的“返回订单列表”按钮
@@ -319,6 +323,8 @@ describe('订单模块面包屑与异常路由校验', () => {
     mockGetOrder.mockResolvedValue({
       data: {
         id: 'ord-detail-1',
+        businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+        organizationId: 'org-1',
         orderNo: 'SE20260905001',
         version: '1',
       },

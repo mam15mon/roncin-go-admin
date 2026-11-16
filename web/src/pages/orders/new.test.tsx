@@ -10,15 +10,32 @@ import {
   saveFormDraft,
 } from '@/components/layout/formDraft';
 import { _clearAllTabCloseGuards } from '@/components/layout/tabCloseGuard';
-import { ContainerOwnership, TradeTerm } from '@/enums.generated';
+import {
+  ContainerOwnership,
+  OrderBusinessType,
+  SeaDocumentStructure,
+  TradeDirection,
+  TradeTerm,
+} from '@/enums.generated';
+import { history } from '@/router/history';
+import { orderServiceCreateOrder } from '@/services/roncin/orderService';
 import NewOrderPage from './new';
 import { useOrderCreateOptions } from './use-order-create-options';
+
+const routeState = vi.hoisted(() => ({ kind: 'sea-export' }));
+vi.mock('@/services/roncin/orderService', () => ({
+  orderServiceCreateOrder: vi.fn(),
+  orderServiceGetOrder: vi.fn(),
+  orderServiceMatchSeaMasterBillCandidate: vi
+    .fn()
+    .mockResolvedValue({ matched: false }),
+}));
 
 vi.mock('react-router', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react-router')>();
   return {
     ...actual,
-    useParams: () => ({ kind: 'sea-export' }),
+    useParams: () => ({ kind: routeState.kind }),
     Link: ({ to, children, ...rest }: any) => (
       <a href={to} {...rest}>
         {children}
@@ -121,6 +138,7 @@ describe('NewOrderPage', () => {
     _clearAllTabCloseGuards();
     lastTemplateProps = null;
     accessControl.canCreate = true;
+    routeState.kind = 'sea-export';
     mockUseOptions.mockReturnValue({
       loading: false,
       error: null,
@@ -141,6 +159,40 @@ describe('NewOrderPage', () => {
     sessionStorage.clear();
     _clearAllTabCloseGuards();
     cleanup();
+  });
+
+  it('SI新建使用独立草稿身份与SI/IMPORT请求，成功进入进口详情', async () => {
+    routeState.kind = 'sea-import';
+    vi.mocked(orderServiceCreateOrder).mockResolvedValueOnce({
+      success: true,
+      data: { id: 'si-created' },
+    });
+    renderWithApp(<NewOrderPage />);
+    await flushMountRequests();
+    expect(lastTemplateProps.draftPathname).toBe('/orders/sea-import/new');
+    expect(
+      lastTemplateProps.initialValues.seaHouseBill?.issuerSource,
+    ).toBeUndefined();
+    await act(async () => {
+      await lastTemplateProps.onFinish({
+        customerId: 'import-customer',
+        paymentTerm: 2,
+        seaDocumentStructure:
+          SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT,
+        seaMasterBillMasterNo: 'IMPORT-MBL',
+        shippingLineId: 'carrier',
+      });
+    });
+    expect(orderServiceCreateOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        businessType: OrderBusinessType.BUSINESS_TYPE_SI,
+        tradeDirection: TradeDirection.TRADE_DIRECTION_IMPORT,
+        seaMasterBill: expect.objectContaining({ masterNo: 'IMPORT-MBL' }),
+        idempotencyKey: expect.any(String),
+      }),
+      { skipErrorHandler: true },
+    );
+    expect(history.push).toHaveBeenCalledWith('/orders/sea-import/si-created');
   });
 
   it('无 create 权限时渲染 403 兜底，并以 canCreate=false 门控候选项加载', async () => {

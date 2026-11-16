@@ -2,7 +2,7 @@
 
 ## 前置
 
-.trellis/tasks/11-15-hgj-air-documents、.trellis/tasks/11-15-hgj-sea-import
+.trellis/tasks/archive/2026-11/11-15-hgj-air-documents、.trellis/tasks/11-15-hgj-sea-import
 
 父最终方案已批准；确认前置交付验收通过后运行task.py start。
 

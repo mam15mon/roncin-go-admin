@@ -180,10 +180,12 @@ const (
 	OrderFeeDelete            OrderOperation = "fee.delete"
 	OrderSplit                OrderOperation = "split"
 	OrderReassign             OrderOperation = "reassign"
-	OrderLock                 OrderOperation = "lock"
-	OrderAmend                OrderOperation = "amend"
-	OrderVoid                 OrderOperation = "void"
-	OrderSwitch               OrderOperation = "switch"
+	// 共享航程路由动作按真实品类复用既有权限，不单独登记权限码。
+	OrderTransportUpdate OrderOperation = "transport.update"
+	OrderLock            OrderOperation = "lock"
+	OrderAmend           OrderOperation = "amend"
+	OrderVoid            OrderOperation = "void"
+	OrderSwitch          OrderOperation = "switch"
 )
 
 var manifest = append([]Permission{
@@ -321,6 +323,16 @@ var orderPermissionDefinitions = []orderPermissionDefinition{
 }
 
 func OrderPermission(businessType OrderBusinessType, operation OrderOperation) string {
+	if operation == OrderTransportUpdate {
+		switch businessType {
+		case OrderBusinessSE:
+			operation = OrderReassign
+		case OrderBusinessSI:
+			operation = OrderUpdate
+		default:
+			return ""
+		}
+	}
 	if !businessType.Valid() || !operation.Valid() {
 		return ""
 	}
@@ -378,6 +390,9 @@ func OrderBusinessTypes() []OrderBusinessType {
 }
 
 func (v OrderOperation) Valid() bool {
+	if v == OrderTransportUpdate {
+		return true
+	}
 	for _, definition := range orderPermissionDefinitions {
 		if definition.operation == v {
 			return true

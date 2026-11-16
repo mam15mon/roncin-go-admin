@@ -26,7 +26,7 @@ import (
 )
 
 func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, order *ent.Order, input *biz.Order) error {
-	if input.BusinessType != biz.OrderBusinessSE {
+	if !input.BusinessType.IsSea() {
 		return nil
 	}
 	if input.SeaMasterBillInput == nil {
@@ -76,8 +76,38 @@ func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizatio
 			return biz.ErrSeaMasterBillInvalidArgument
 		}
 		candidateTEID := *mblInput.CandidateTEID
+
+		// 加票先按主键锁定完整现有成员，再锁MBL；不得在MBL锁后补锁订单。
+		if _, e := tx.SeaMasterBill.Query().Where(seamasterbill.IDEQ(candidateID), seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ(string(input.BusinessType))).Only(ctx); e != nil {
+			return mapEntError(e, biz.ErrSeaMasterBillNotFound, nil)
+		}
+		locatedLinks, e := tx.SeaMasterBillOrderLink.Query().Where(seamasterbillorderlink.MasterBillIDEQ(candidateID), seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE)).All(ctx)
+		if e != nil {
+			return e
+		}
+		memberIDs := make([]uuid.UUID, 0, len(locatedLinks))
+		for _, l := range locatedLinks {
+			memberIDs = append(memberIDs, l.OrderID)
+		}
+		memberIDs = sortAndDeduplicateUUIDs(memberIDs)
+		members, e := tx.Order.Query().Where(orderent.IDIn(memberIDs...)).Order(orderent.ByID()).ForUpdate().All(ctx)
+		if e != nil {
+			return e
+		}
+		if len(members) != len(memberIDs) {
+			return biz.ErrSeaDocumentStructureConflict
+		}
+		for _, member := range members {
+			if member.OrganizationID != organizationID || string(member.BusinessType) != string(input.BusinessType) {
+				return biz.ErrSeaDocumentStructureConflict
+			}
+			// 加票只建立新关联，不修改已审核成员及共享正文；保留既有允许加票的合同。
+			if member.TerminationStatus != orderent.TerminationStatusACTIVE {
+				return biz.ErrSeaDocumentStructureConflict
+			}
+		}
 		targetMBL, err := tx.SeaMasterBill.Query().
-			Where(seamasterbill.IDEQ(candidateID), seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ("SE")).
+			Where(seamasterbill.IDEQ(candidateID), seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ(string(input.BusinessType))).
 			ForUpdate().
 			Only(ctx)
 		if err != nil {
@@ -96,6 +126,13 @@ func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizatio
 		activeLinks, err := querySeaMasterBillActiveMemberLinks(ctx, tx.Client(), organizationID, targetMBL.ID, true)
 		if err != nil {
 			return err
+		}
+		actualIDs := make([]uuid.UUID, 0, len(activeLinks))
+		for _, l := range activeLinks {
+			actualIDs = append(actualIDs, l.OrderID)
+		}
+		if !equalUUIDSlices(memberIDs, sortAndDeduplicateUUIDs(actualIDs)) {
+			return biz.ErrSeaDocumentStructureConflict
 		}
 		teLinkCount := 0
 		for _, link := range activeLinks {
@@ -176,7 +213,7 @@ func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizatio
 
 	exists, err := tx.SeaMasterBill.Query().
 		Where(
-			seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ("SE"),
+			seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ(string(input.BusinessType)),
 			seamasterbill.ShippingLineIDEQ(shippingLineID),
 			seamasterbill.NormalizedMasterNoEQ(mblInput.MasterNo),
 		).
@@ -216,7 +253,7 @@ func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizatio
 		return err
 	}
 
-	mblBuilder := tx.SeaMasterBill.Create().SetBusinessType("SE").
+	mblBuilder := tx.SeaMasterBill.Create().SetBusinessType(string(input.BusinessType)).
 		SetID(uuid.Must(uuid.NewV7())).
 		SetOrganizationID(organizationID).
 		SetShippingLineID(shippingLineID).
@@ -257,7 +294,7 @@ func syncOrderSeaMasterBillOnUpdate(
 	audit *biz.AuditEvent,
 	lockContext *seaMasterBillUpdateLockContext,
 ) error {
-	if input.BusinessType != biz.OrderBusinessSE {
+	if !input.BusinessType.IsSea() {
 		return nil
 	}
 	contentOnlyUpdate := input.SeaMasterBillInput == nil &&
@@ -299,7 +336,7 @@ func syncOrderSeaMasterBillOnUpdate(
 	currentMBL, err := tx.SeaMasterBill.Query().
 		Where(
 			seamasterbill.IDEQ(activeLink.MasterBillID),
-			seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ("SE"),
+			seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ(string(input.BusinessType)),
 		).
 		ForUpdate().
 		Only(ctx)
@@ -390,7 +427,7 @@ func syncOrderSeaMasterBillOnUpdate(
 		}
 		otherExists, err := tx.SeaMasterBill.Query().
 			Where(
-				seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ("SE"),
+				seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ(string(input.BusinessType)),
 				seamasterbill.ShippingLineIDEQ(shippingLineID),
 				seamasterbill.NormalizedMasterNoEQ(mblInput.MasterNo),
 				seamasterbill.IDNEQ(currentMBL.ID),

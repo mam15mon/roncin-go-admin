@@ -6,6 +6,9 @@
 
 - 新增或修改海运出口（`SE`）订单、共享主单、运输执行、HBL、候选关联、拆票、
   改配或改单时适用。
+- SI 复用本规范的真实MBL/航程/HBL、共享箱货及版本/审核/恢复/放货边界，
+  所有身份与权限使用真实SI；进口服务/派生进度及外部归档见[进口订单合同](./order-import-handling.md)。
+  SE专用出口进度与拆票/改配入口不因复用海运实体而自动开放给SI。
 - `Order` 是操作票；`SeaTransportExecution` 是共享航程事实；`SeaMasterBill` 是
   共享 MBL；`SeaMasterBillOrderLink` 是操作票当前 MBL 关系；`SeaHouseBill` 是
   真实 HBL。

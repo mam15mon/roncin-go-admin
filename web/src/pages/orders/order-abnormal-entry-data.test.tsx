@@ -17,6 +17,7 @@ import {
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { InitialState } from '@/app/AppProvider';
 import { appInitialStateContext } from '@/app/AppProvider';
+import { OrderBusinessType } from '@/enums.generated';
 import { getOrderPersonnelOptions } from '@/features/orders/options';
 import { bindRouter } from '@/router/history';
 import { orderPersonnelServiceListPersonnel } from '@/services/roncin/orderPersonnelService';
@@ -32,6 +33,7 @@ vi.mock('@/features/orders/options', () => ({
 vi.mock('@/services/roncin/seaDocumentService', () => ({
   seaDocumentServiceGetSeaOrderDocuments: vi.fn().mockResolvedValue({
     data: {
+      orderId: 'order-1',
       documentStructure: 2,
       linkVersion: '1',
       masterBill: { id: 'mbl-1', version: '1', content: {} },
@@ -86,6 +88,17 @@ function Entry() {
 }
 
 function renderEntry(kind: string, extraPermissions: string[] = []) {
+  vi.mocked(orderServiceGetOrder).mockResolvedValue({
+    data: {
+      id: 'order-1',
+      orderNo: '订单001',
+      organizationId: 'company',
+      businessType:
+        kind === 'sea-export'
+          ? OrderBusinessType.BUSINESS_TYPE_SE
+          : OrderBusinessType.BUSINESS_TYPE_AE,
+    },
+  });
   const code = kind === 'sea-export' ? 'se' : 'ae';
   const user = (extras: string[]): API.CurrentUser => ({
     id: 'employee',
@@ -134,9 +147,6 @@ function renderEntry(kind: string, extraPermissions: string[] = []) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(orderServiceGetOrder).mockResolvedValue({
-    data: { id: 'order-1', orderNo: '订单001' },
-  });
   vi.mocked(orderPersonnelServiceListPersonnel).mockResolvedValue({
     data: [{ id: 'personnel-1', userId: 'employee' }],
   });

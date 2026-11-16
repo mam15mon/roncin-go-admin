@@ -276,7 +276,8 @@ const ContainerDrawer = forwardRef<ContainerDrawerRef, ContainerDrawerProps>(
           extraToolbar={(order) => {
             if (
               hideSharedEntry ||
-              order?.businessType !== OrderBusinessType.BUSINESS_TYPE_SE
+              (order?.businessType !== OrderBusinessType.BUSINESS_TYPE_SE &&
+                order?.businessType !== OrderBusinessType.BUSINESS_TYPE_SI)
             ) {
               return [];
             }

@@ -886,6 +886,10 @@ const (
 	FlowStatusDOCUMENT_CUTOFF              FlowStatus = "DOCUMENT_CUTOFF"
 	FlowStatusCUSTOMS_DECLARATION_ARRANGED FlowStatus = "CUSTOMS_DECLARATION_ARRANGED"
 	FlowStatusDOCUMENT_RELEASED            FlowStatus = "DOCUMENT_RELEASED"
+	FlowStatusIMPORT_NOT_APPLICABLE        FlowStatus = "IMPORT_NOT_APPLICABLE"
+	FlowStatusIMPORT_NOT_STARTED           FlowStatus = "IMPORT_NOT_STARTED"
+	FlowStatusIMPORT_IN_PROGRESS           FlowStatus = "IMPORT_IN_PROGRESS"
+	FlowStatusIMPORT_COMPLETED             FlowStatus = "IMPORT_COMPLETED"
 )
 
 func (fs FlowStatus) String() string {
@@ -895,7 +899,7 @@ func (fs FlowStatus) String() string {
 // FlowStatusValidator is a validator for the "flow_status" field enum values. It is called by the builders before save.
 func FlowStatusValidator(fs FlowStatus) error {
 	switch fs {
-	case FlowStatusDRAFT, FlowStatusBOOKED, FlowStatusSPACE_ALLOCATED, FlowStatusTRUCKING_ARRANGED, FlowStatusDOCUMENT_CUTOFF, FlowStatusCUSTOMS_DECLARATION_ARRANGED, FlowStatusDOCUMENT_RELEASED:
+	case FlowStatusDRAFT, FlowStatusBOOKED, FlowStatusSPACE_ALLOCATED, FlowStatusTRUCKING_ARRANGED, FlowStatusDOCUMENT_CUTOFF, FlowStatusCUSTOMS_DECLARATION_ARRANGED, FlowStatusDOCUMENT_RELEASED, FlowStatusIMPORT_NOT_APPLICABLE, FlowStatusIMPORT_NOT_STARTED, FlowStatusIMPORT_IN_PROGRESS, FlowStatusIMPORT_COMPLETED:
 		return nil
 	default:
 		return fmt.Errorf("order: invalid enum value for flow_status field: %q", fs)

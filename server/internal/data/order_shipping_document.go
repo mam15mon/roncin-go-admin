@@ -27,7 +27,7 @@ func (r *orderShippingDocumentRepo) order(ctx context.Context, organizationID, o
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrOrderShippingDocumentNotFound, nil)
 	}
-	if item.BusinessType == orderent.BusinessTypeSE {
+	if biz.OrderBusinessType(item.BusinessType).IsSea() {
 		return nil, biz.ErrSeaShippingDocumentsDeprecated
 	}
 	return item, nil
@@ -42,7 +42,7 @@ func lockOrderForShippingDocumentWrite(ctx context.Context, tx *ent.Tx, organiza
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrOrderShippingDocumentNotFound, nil)
 	}
-	if item.BusinessType == orderent.BusinessTypeSE {
+	if biz.OrderBusinessType(item.BusinessType).IsSea() {
 		return nil, biz.ErrSeaShippingDocumentsDeprecated
 	}
 	if err := ensureOrderBusinessEditable(ctx, tx, item); err != nil {

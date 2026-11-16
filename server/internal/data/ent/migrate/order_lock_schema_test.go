@@ -28,7 +28,7 @@ func TestOrderLockSchemaMetadataSupportsAllBusinessTypes(t *testing.T) {
 	}
 
 	const checkName = "order_lock_records_business_type_document_refs_check"
-	const checkExpression = "(business_type = 'SE' AND master_bill_id IS NOT NULL AND master_bill_version_id IS NOT NULL AND transport_execution_id IS NOT NULL AND transport_execution_version_id IS NOT NULL) OR (business_type IN ('SI', 'AE', 'AI', 'LAND', 'RAIL') AND master_bill_id IS NULL AND master_bill_version_id IS NULL AND transport_execution_id IS NULL AND transport_execution_version_id IS NULL)"
+	const checkExpression = "(business_type IN ('SE', 'SI') AND master_bill_id IS NOT NULL AND master_bill_version_id IS NOT NULL AND transport_execution_id IS NOT NULL AND transport_execution_version_id IS NOT NULL) OR (business_type IN ('AE', 'AI', 'LAND', 'RAIL') AND master_bill_id IS NULL AND master_bill_version_id IS NULL AND transport_execution_id IS NULL AND transport_execution_version_id IS NULL)"
 	if OrderLockRecordsTable.Annotation == nil || OrderLockRecordsTable.Annotation.Checks[checkName] != checkExpression {
 		t.Fatalf("锁记录 CHECK 元数据缺失或不一致: %#v", OrderLockRecordsTable.Annotation)
 	}

@@ -8,8 +8,10 @@ import { Alert, Button, Drawer, Space, Spin } from 'antd';
 import { useState } from 'react';
 import { hblPdfFileName, validateHblPdfCharacters } from './content';
 import { registerHblPdfFont } from './font';
+import { HblArchivePdfDocument } from './HblArchivePdfDocument';
 import { HblPdfDocument } from './HblPdfDocument';
 import {
+  HBL_PDF_TEMPLATE_REVISION,
   HBL_PDF_VARIANTS,
   type HblPdfModel,
   type HblPdfVariant,
@@ -28,11 +30,19 @@ function GeneratedPdf({
   model,
   variant,
 }: Pick<HblPdfPreviewProps, 'model' | 'variant'>) {
-  const [fileName] = useState(() =>
-    hblPdfFileName(model.houseNo, variant, new Date()),
-  );
+  const [fileName] = useState(() => {
+    const name = hblPdfFileName(model.houseNo, variant, new Date());
+    return model.outputKind === 'external-archive'
+      ? name.replace(`-${variant}-`, '-archive-')
+      : name;
+  });
   const [instance] = usePDF({
-    document: <HblPdfDocument model={model} variant={variant} />,
+    document:
+      model.outputKind === 'external-archive' ? (
+        <HblArchivePdfDocument model={model} />
+      ) : (
+        <HblPdfDocument model={model} variant={variant} />
+      ),
   });
   const ready = Boolean(instance.url && !instance.loading && !instance.error);
 
@@ -90,7 +100,10 @@ export default function HblPdfPreview({
 }: HblPdfPreviewProps) {
   const [attempt, setAttempt] = useState(0);
   const error = validateHblPdfCharacters(model);
-  const label = HBL_PDF_VARIANTS.find((item) => item.value === variant)?.label;
+  const label =
+    model.outputKind === 'external-archive'
+      ? '外部提单登记资料（归档）'
+      : HBL_PDF_VARIANTS.find((item) => item.value === variant)?.label;
   return (
     <Drawer
       title={`HBL 预览 · ${label} · ${model.houseNo}`}
@@ -112,7 +125,7 @@ export default function HblPdfPreview({
       ) : (
         open && (
           <GeneratedPdf
-            key={`${JSON.stringify(model)}:${variant}:${attempt}`}
+            key={`${HBL_PDF_TEMPLATE_REVISION}:${JSON.stringify(model)}:${variant}:${attempt}`}
             model={model}
             variant={variant}
           />

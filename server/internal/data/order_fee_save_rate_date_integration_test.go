@@ -46,7 +46,7 @@ func TestOrderFeeSaveDateChangedBeforeLockPostgres(t *testing.T) {
 	credit := biz.NewPartnerCreditUsecase(NewFinanceBillRepo(f.data).(biz.PartnerCreditRepo), custom)
 	usecase := func(o *ent.Order) *biz.OrderFeeUsecase {
 		r := &saveAfterDateChangeRepo{OrderFeeRepo: NewOrderFeeRepo(f.data), beforeSave: func() error {
-			return e.changeDates(o.ID, rateRefreshW2, o.Eta)
+			return e.changeDates(o.ID, o.Etd, rateRefreshW2)
 		}}
 		return biz.NewOrderFeeUsecase(r, biz.NewExchangeRateUsecase(NewExchangeRateRepo(f.data), nil), custom, credit, nil)
 	}

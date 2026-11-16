@@ -38,7 +38,7 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 - `orders.locked_at/locked_by/lock_generation/version` 表示当前锁状态；成功锁定和成功解锁都递增 `version`，仅锁定递增 `lock_generation`。
 - `order_lock_records(order_id, generation)` 唯一；锁定事实只追加、不覆盖，并保存当代次权威 `business_type`。
 - `order_unlock_requests(organization_id, idempotency_key)` 唯一；同订单同代次最多一个活动请求，并保存与锁定事实一致的 `business_type`。
-- `order_lock_records` 的 MBL/MBL 版本引用仅 SE 必填，其他五类必须为空；历史快照外键即使字段可空也保持 `ON DELETE NO ACTION`。
+- `order_lock_records` 的 MBL/MBL版本及航程/航程版本引用在 SE/SI 必填，AE/AI/LAND/RAIL必须为空；SI固化真实海运单证，不能用空快照替代。历史快照外键即使字段可空也保持 `ON DELETE NO ACTION`，进口服务/进度及正式迁移见[进口订单合同](./order-import-handling.md)。
 - `sea_master_bill_versions`、`sea_house_bill_versions` 是不可变历史；身份表的 `current_version_id` 只能指向自身版本。
 
 ## 3. Contracts（请求 / 响应 / 配置）

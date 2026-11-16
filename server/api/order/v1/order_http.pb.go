@@ -19,12 +19,15 @@ const _ = http.SupportPackageIsVersion3
 
 const OperationOrderServiceCheckOrderReference = "/order.v1.OrderService/CheckOrderReference"
 const OperationOrderServiceCreateOrder = "/order.v1.OrderService/CreateOrder"
+const OperationOrderServiceGetImportHandling = "/order.v1.OrderService/GetImportHandling"
 const OperationOrderServiceGetOrder = "/order.v1.OrderService/GetOrder"
+const OperationOrderServiceListImportHandlingEvents = "/order.v1.OrderService/ListImportHandlingEvents"
 const OperationOrderServiceListOrderConsolidations = "/order.v1.OrderService/ListOrderConsolidations"
 const OperationOrderServiceListOrders = "/order.v1.OrderService/ListOrders"
 const OperationOrderServiceListPersonnelOptions = "/order.v1.OrderService/ListPersonnelOptions"
 const OperationOrderServiceListSameBatchOrders = "/order.v1.OrderService/ListSameBatchOrders"
 const OperationOrderServiceMatchSeaMasterBillCandidate = "/order.v1.OrderService/MatchSeaMasterBillCandidate"
+const OperationOrderServiceSaveImportHandling = "/order.v1.OrderService/SaveImportHandling"
 const OperationOrderServiceTransitionOrderClosure = "/order.v1.OrderService/TransitionOrderClosure"
 const OperationOrderServiceTransitionOrderStatus = "/order.v1.OrderService/TransitionOrderStatus"
 const OperationOrderServiceTransitionOrderTermination = "/order.v1.OrderService/TransitionOrderTermination"
@@ -33,12 +36,15 @@ const OperationOrderServiceUpdateOrder = "/order.v1.OrderService/UpdateOrder"
 type OrderServiceHTTPServer interface {
 	CheckOrderReference(context.Context, *CheckOrderReferenceRequest) (*CheckOrderReferenceResponse, error)
 	CreateOrder(context.Context, *CreateOrderRequest) (*CreateOrderResponse, error)
+	GetImportHandling(context.Context, *GetImportHandlingRequest) (*GetImportHandlingResponse, error)
 	GetOrder(context.Context, *GetOrderRequest) (*GetOrderResponse, error)
+	ListImportHandlingEvents(context.Context, *ListImportHandlingEventsRequest) (*ListImportHandlingEventsResponse, error)
 	ListOrderConsolidations(context.Context, *ListOrderConsolidationsRequest) (*ListOrderConsolidationsResponse, error)
 	ListOrders(context.Context, *ListOrdersRequest) (*ListOrdersResponse, error)
 	ListPersonnelOptions(context.Context, *ListPersonnelOptionsRequest) (*ListPersonnelOptionsResponse, error)
 	ListSameBatchOrders(context.Context, *ListSameBatchOrdersRequest) (*ListSameBatchOrdersResponse, error)
 	MatchSeaMasterBillCandidate(context.Context, *MatchSeaMasterBillCandidateRequest) (*MatchSeaMasterBillCandidateResponse, error)
+	SaveImportHandling(context.Context, *SaveImportHandlingRequest) (*SaveImportHandlingResponse, error)
 	TransitionOrderClosure(context.Context, *TransitionOrderClosureRequest) (*TransitionOrderClosureResponse, error)
 	TransitionOrderStatus(context.Context, *TransitionOrderStatusRequest) (*TransitionOrderStatusResponse, error)
 	TransitionOrderTermination(context.Context, *TransitionOrderTerminationRequest) (*TransitionOrderTerminationResponse, error)
@@ -47,6 +53,9 @@ type OrderServiceHTTPServer interface {
 
 func RegisterOrderServiceHTTPServer(s *http.Server, srv OrderServiceHTTPServer) {
 	r := s.Route("/")
+	r.Handle("GET", "/api/v1/orders/{order_id}/import-handling", _OrderService_GetImportHandling0_HTTP_Handler(srv))
+	r.Handle("PUT", "/api/v1/orders/{order_id}/import-handling", _OrderService_SaveImportHandling0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/orders/{order_id}/import-handling/events", _OrderService_ListImportHandlingEvents0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/orders/sea-master-bill-candidate", _OrderService_MatchSeaMasterBillCandidate0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/orders/{id}", _OrderService_GetOrder0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/orders", _OrderService_ListOrders0_HTTP_Handler(srv))
@@ -59,6 +68,72 @@ func RegisterOrderServiceHTTPServer(s *http.Server, srv OrderServiceHTTPServer) 
 	r.Handle("POST", "/api/v1/orders/{id}/status", _OrderService_TransitionOrderStatus0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/orders/{id}/termination", _OrderService_TransitionOrderTermination0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/orders/{id}/closure", _OrderService_TransitionOrderClosure0_HTTP_Handler(srv))
+}
+
+func _OrderService_GetImportHandling0_HTTP_Handler(srv OrderServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetImportHandlingRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationOrderServiceGetImportHandling)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetImportHandling(ctx, req.(*GetImportHandlingRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetImportHandlingResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _OrderService_SaveImportHandling0_HTTP_Handler(srv OrderServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SaveImportHandlingRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationOrderServiceSaveImportHandling)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SaveImportHandling(ctx, req.(*SaveImportHandlingRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SaveImportHandlingResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _OrderService_ListImportHandlingEvents0_HTTP_Handler(srv OrderServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListImportHandlingEventsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationOrderServiceListImportHandlingEvents)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListImportHandlingEvents(ctx, req.(*ListImportHandlingEventsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListImportHandlingEventsResponse)
+		return ctx.Result(200, reply)
+	}
 }
 
 func _OrderService_MatchSeaMasterBillCandidate0_HTTP_Handler(srv OrderServiceHTTPServer) func(ctx http.Context) error {
@@ -313,12 +388,15 @@ func _OrderService_TransitionOrderClosure0_HTTP_Handler(srv OrderServiceHTTPServ
 type OrderServiceHTTPClient interface {
 	CheckOrderReference(ctx context.Context, req *CheckOrderReferenceRequest, opts ...http.CallOption) (rsp *CheckOrderReferenceResponse, err error)
 	CreateOrder(ctx context.Context, req *CreateOrderRequest, opts ...http.CallOption) (rsp *CreateOrderResponse, err error)
+	GetImportHandling(ctx context.Context, req *GetImportHandlingRequest, opts ...http.CallOption) (rsp *GetImportHandlingResponse, err error)
 	GetOrder(ctx context.Context, req *GetOrderRequest, opts ...http.CallOption) (rsp *GetOrderResponse, err error)
+	ListImportHandlingEvents(ctx context.Context, req *ListImportHandlingEventsRequest, opts ...http.CallOption) (rsp *ListImportHandlingEventsResponse, err error)
 	ListOrderConsolidations(ctx context.Context, req *ListOrderConsolidationsRequest, opts ...http.CallOption) (rsp *ListOrderConsolidationsResponse, err error)
 	ListOrders(ctx context.Context, req *ListOrdersRequest, opts ...http.CallOption) (rsp *ListOrdersResponse, err error)
 	ListPersonnelOptions(ctx context.Context, req *ListPersonnelOptionsRequest, opts ...http.CallOption) (rsp *ListPersonnelOptionsResponse, err error)
 	ListSameBatchOrders(ctx context.Context, req *ListSameBatchOrdersRequest, opts ...http.CallOption) (rsp *ListSameBatchOrdersResponse, err error)
 	MatchSeaMasterBillCandidate(ctx context.Context, req *MatchSeaMasterBillCandidateRequest, opts ...http.CallOption) (rsp *MatchSeaMasterBillCandidateResponse, err error)
+	SaveImportHandling(ctx context.Context, req *SaveImportHandlingRequest, opts ...http.CallOption) (rsp *SaveImportHandlingResponse, err error)
 	TransitionOrderClosure(ctx context.Context, req *TransitionOrderClosureRequest, opts ...http.CallOption) (rsp *TransitionOrderClosureResponse, err error)
 	TransitionOrderStatus(ctx context.Context, req *TransitionOrderStatusRequest, opts ...http.CallOption) (rsp *TransitionOrderStatusResponse, err error)
 	TransitionOrderTermination(ctx context.Context, req *TransitionOrderTerminationRequest, opts ...http.CallOption) (rsp *TransitionOrderTerminationResponse, err error)
@@ -366,6 +444,22 @@ func (c *OrderServiceHTTPClientImpl) CreateOrder(ctx context.Context, in *Create
 	return &out, nil
 }
 
+func (c *OrderServiceHTTPClientImpl) GetImportHandling(ctx context.Context, in *GetImportHandlingRequest, opts ...http.CallOption) (*GetImportHandlingResponse, error) {
+	var out GetImportHandlingResponse
+	pattern := "/api/v1/orders/{order_id}/import-handling"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationOrderServiceGetImportHandling),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *OrderServiceHTTPClientImpl) GetOrder(ctx context.Context, in *GetOrderRequest, opts ...http.CallOption) (*GetOrderResponse, error) {
 	var out GetOrderResponse
 	pattern := "/api/v1/orders/{id}"
@@ -373,6 +467,22 @@ func (c *OrderServiceHTTPClientImpl) GetOrder(ctx context.Context, in *GetOrderR
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationOrderServiceGetOrder),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *OrderServiceHTTPClientImpl) ListImportHandlingEvents(ctx context.Context, in *ListImportHandlingEventsRequest, opts ...http.CallOption) (*ListImportHandlingEventsResponse, error) {
+	var out ListImportHandlingEventsResponse
+	pattern := "/api/v1/orders/{order_id}/import-handling/events"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationOrderServiceListImportHandlingEvents),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
@@ -456,6 +566,23 @@ func (c *OrderServiceHTTPClientImpl) MatchSeaMasterBillCandidate(ctx context.Con
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *OrderServiceHTTPClientImpl) SaveImportHandling(ctx context.Context, in *SaveImportHandlingRequest, opts ...http.CallOption) (*SaveImportHandlingResponse, error) {
+	var out SaveImportHandlingResponse
+	pattern := "/api/v1/orders/{order_id}/import-handling"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationOrderServiceSaveImportHandling),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

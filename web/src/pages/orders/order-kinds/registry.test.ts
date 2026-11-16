@@ -7,11 +7,13 @@ import {
   ORDER_KIND_REGISTRY,
 } from './registry';
 import { seaExportDefinition } from './sea-export/definition';
+import { seaImportDefinition } from './sea-import/definition';
 
 describe('订单类型注册表', () => {
   it('注册海运和空运出口，且元数据与生成枚举一致', () => {
     expect(Object.keys(ORDER_KIND_REGISTRY)).toEqual([
       'sea-export',
+      'sea-import',
       'air-export',
     ]);
     expect(ORDER_KIND_REGISTRY['sea-export']).toBe(seaExportDefinition);
@@ -39,11 +41,10 @@ describe('订单类型注册表', () => {
   it.each([
     ['空字符串', ''],
     ['未知类型', 'unknown-kind'],
-    ['未注册的海运进口', 'sea-import'],
     ['未注册的空运进口', 'air-import'],
     ['未注册的陆运', 'land'],
     ['未注册的铁路', 'rail'],
-    ['未注册路径', '/orders/sea-import/ord-1'],
+    ['未注册路径', '/orders/air-import/ord-1'],
     ['非订单路径', '/partners'],
     ['undefined', undefined],
   ])('%s 返回 undefined，fail-closed 不做默认兜底', (_name, input) => {
@@ -63,7 +64,7 @@ describe('订单类型注册表', () => {
     ).toBe(seaExportDefinition);
     expect(
       getOrderKindDefinitionByBusinessType(OrderBusinessType.BUSINESS_TYPE_SI),
-    ).toBeUndefined();
+    ).toBe(seaImportDefinition);
     expect(
       getOrderKindDefinitionByBusinessType(OrderBusinessType.BUSINESS_TYPE_AE),
     ).toBe(airExportDefinition);

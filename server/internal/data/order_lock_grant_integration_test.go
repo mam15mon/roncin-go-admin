@@ -219,11 +219,11 @@ func TestOrderLockGrantScopes_PostgresFlows(t *testing.T) {
 			SetOrderNo("SI-GRANT-" + suffix + "-" + string(rune('A'+orderSeq))).
 			SetCustomerID(customer.ID).
 			SetBusinessType(orderent.BusinessTypeSI).
-			SetTradeDirection(orderent.TradeDirectionExport).
+			SetTradeDirection(orderent.TradeDirectionImport).
 			SetTradeTerm(orderent.TradeTermFOB).
 			SetPaymentTerm(orderent.PaymentTermPREPAID).
 			SetShipmentType(orderent.ShipmentTypeFCL).
-			SetFlowStatus(orderent.FlowStatusDRAFT).
+			SetFlowStatus(orderent.FlowStatusIMPORT_NOT_APPLICABLE).
 			SetTerminationStatus(orderent.TerminationStatusACTIVE).
 			SetClosureStatus(orderent.ClosureStatusOPEN).
 			SetVersion(1).
@@ -231,6 +231,7 @@ func TestOrderLockGrantScopes_PostgresFlows(t *testing.T) {
 		if orderErr != nil {
 			t.Fatalf("创建 SI 订单失败: %v", orderErr)
 		}
+		seedSeaImportTestResources(t, data, ctx, o)
 		return o
 	}
 

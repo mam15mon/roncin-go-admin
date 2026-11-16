@@ -52,7 +52,7 @@ func querySeaMasterBillActiveMemberLinks(ctx context.Context, client *ent.Client
 // validateSeaMasterMemberIdentities 复验完整关联集合，不以公司过滤隐藏异常成员。
 // 写入口仍由调用方按既有 Order→MBL→Link 锁序取得锁，本函数不追加逆序锁。
 func validateSeaMasterMemberIdentities(ctx context.Context, client *ent.Client, organizationID, masterBillID uuid.UUID, links []*ent.SeaMasterBillOrderLink) error {
-	master, err := client.SeaMasterBill.Query().Where(seamasterbill.IDEQ(masterBillID), seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ("SE")).Only(ctx)
+	master, err := client.SeaMasterBill.Query().Where(seamasterbill.IDEQ(masterBillID), seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeIn("SE", "SI")).Only(ctx)
 	if err != nil {
 		return mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
 	}
@@ -74,18 +74,18 @@ func validateSeaMasterMemberIdentities(ctx context.Context, client *ent.Client, 
 		return biz.ErrSeaDocumentStructureConflict
 	}
 	for _, order := range orders {
-		if order.OrganizationID != master.OrganizationID || string(order.BusinessType) != master.BusinessType {
+		if order.OrganizationID != master.OrganizationID || string(order.BusinessType) != master.BusinessType || biz.OrderBusinessType(order.BusinessType).IsImport() != (order.TradeDirection == orderent.TradeDirectionImport) {
 			return biz.ErrSeaDocumentStructureConflict
 		}
 	}
 	return nil
 }
 
-func (r *seaMasterBillRepo) MatchCandidate(ctx context.Context, organizationID, shippingLineID uuid.UUID, normalizedMasterNo string, voyage *biz.SeaTransportExecution) (*biz.SeaMasterBillMatchResult, error) {
-	return r.matchCandidateInternal(ctx, organizationID, shippingLineID, normalizedMasterNo, voyage)
+func (r *seaMasterBillRepo) MatchCandidate(ctx context.Context, organizationID, shippingLineID uuid.UUID, normalizedMasterNo string, voyage *biz.SeaTransportExecution, businessType biz.OrderBusinessType) (*biz.SeaMasterBillMatchResult, error) {
+	return r.matchCandidateInternal(ctx, organizationID, shippingLineID, normalizedMasterNo, voyage, businessType)
 }
 
-func (r *seaMasterBillRepo) matchCandidateInternal(ctx context.Context, organizationID, shippingLineID uuid.UUID, normalizedMasterNo string, voyage *biz.SeaTransportExecution) (*biz.SeaMasterBillMatchResult, error) {
+func (r *seaMasterBillRepo) matchCandidateInternal(ctx context.Context, organizationID, shippingLineID uuid.UUID, normalizedMasterNo string, voyage *biz.SeaTransportExecution, businessType biz.OrderBusinessType) (*biz.SeaMasterBillMatchResult, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
@@ -93,7 +93,7 @@ func (r *seaMasterBillRepo) matchCandidateInternal(ctx context.Context, organiza
 
 	mbl, err := client.SeaMasterBill.Query().
 		Where(
-			seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ("SE"),
+			seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ(string(businessType)),
 			seamasterbill.ShippingLineIDEQ(shippingLineID),
 			seamasterbill.NormalizedMasterNoEQ(normalizedMasterNo),
 		).
@@ -203,9 +203,10 @@ func (r *seaMasterBillRepo) GetSummariesByOrderIDs(ctx context.Context, organiza
 			seamasterbillorderlink.OrderIDIn(orderIDs...),
 			seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
 		).
+		WithOrder().
 		WithTransportExecution().
 		WithMasterBill(func(q *ent.SeaMasterBillQuery) {
-			q.Where(seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ("SE"))
+			q.Where(seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeIn("SE", "SI"))
 		}).
 		All(ctx)
 
@@ -213,6 +214,11 @@ func (r *seaMasterBillRepo) GetSummariesByOrderIDs(ctx context.Context, organiza
 		return nil, err
 	}
 
+	for _, link := range links {
+		if e := validateSeaLinkIdentity(link); e != nil {
+			return nil, e
+		}
+	}
 	if len(links) == 0 {
 		return result, nil
 	}
@@ -391,6 +397,18 @@ func (r *seaMasterBillRepo) populateLocationAndShippingLineNames(ctx context.Con
 	te.DischargeLocationName = portMap[te.DischargeLocationID]
 	if te.TransitLocationID != nil {
 		te.TransitLocationName = portMap[*te.TransitLocationID]
+	}
+	return nil
+}
+
+// validateSeaLinkIdentity 校验已批量加载的读取锚点，不把异常引用投影到其他方向。
+func validateSeaLinkIdentity(link *ent.SeaMasterBillOrderLink) error {
+	o, m := link.Edges.Order, link.Edges.MasterBill
+	if o == nil || m == nil || !biz.OrderBusinessType(o.BusinessType).IsSea() || o.OrganizationID != link.OrganizationID || m.OrganizationID != link.OrganizationID || string(o.BusinessType) != m.BusinessType || biz.OrderBusinessType(o.BusinessType).IsImport() != (o.TradeDirection == orderent.TradeDirectionImport) {
+		return biz.ErrSeaDocumentStructureConflict
+	}
+	if te := link.Edges.TransportExecution; te != nil && te.OrganizationID != link.OrganizationID {
+		return biz.ErrSeaDocumentStructureConflict
 	}
 	return nil
 }

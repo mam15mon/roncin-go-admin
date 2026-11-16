@@ -12,6 +12,7 @@ import (
 )
 
 type orderRepoStub struct {
+	OrderRepo
 	created                    *Order
 	createdNumber              string
 	createdAudit               *AuditEvent
@@ -135,7 +136,7 @@ type seaMasterBillRepoStub struct {
 	summaries   map[uuid.UUID]*SeaMasterBillSummary
 }
 
-func (s *seaMasterBillRepoStub) MatchCandidate(ctx context.Context, organizationID, issuerPartnerID uuid.UUID, normalizedMasterNo string, voyage *SeaTransportExecution) (*SeaMasterBillMatchResult, error) {
+func (s *seaMasterBillRepoStub) MatchCandidate(ctx context.Context, organizationID, issuerPartnerID uuid.UUID, normalizedMasterNo string, voyage *SeaTransportExecution, businessType OrderBusinessType) (*SeaMasterBillMatchResult, error) {
 	if s.matchResult != nil {
 		return s.matchResult, nil
 	}

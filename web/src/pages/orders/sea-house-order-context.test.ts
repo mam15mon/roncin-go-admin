@@ -66,6 +66,34 @@ describe('连续分单来源上下文', () => {
     });
   });
 
+  it('SI来源使用独立草稿地址且拒绝SE来源跨方向预填', () => {
+    expect(
+      resolveSeaHouseOrderCreateRequest(
+        'sea-import',
+        '?sourceOrderId=source-A',
+      ),
+    ).toEqual({
+      sourceOrderId: 'source-A',
+      draftPathname: '/orders/sea-import/new?sourceOrderId=source-A',
+    });
+    expect(() =>
+      getSeaHouseOrderCreateSource(
+        sourceOrder,
+        'source-A',
+        'org-1',
+        OrderBusinessType.BUSINESS_TYPE_SI,
+      ),
+    ).toThrow('当前业务类型');
+    expect(
+      getSeaHouseOrderCreateSource(
+        { ...sourceOrder, businessType: OrderBusinessType.BUSINESS_TYPE_SI },
+        'source-A',
+        'org-1',
+        OrderBusinessType.BUSINESS_TYPE_SI,
+      ),
+    ).toMatchObject({ masterBillId: 'mbl-1', transportExecutionId: 'te-1' });
+  });
+
   it.each([
     undefined,
     { ...sourceOrder, id: 'another-order' },

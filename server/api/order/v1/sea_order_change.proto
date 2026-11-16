@@ -62,7 +62,7 @@ service SeaOrderChangeService {
 
   // PreviewSeaTransportExecutionUpdate 预览共享实际航次修改及受影响订单。
   rpc PreviewSeaTransportExecutionUpdate(PreviewSeaTransportExecutionUpdateRequest) returns (PreviewSeaTransportExecutionUpdateResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "reassign" scope: DATA_SCOPE_ORGANIZATION};
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "transport.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/orders/{order_id}/sea-order-change/transport-execution/preview"
       body: "*"
@@ -71,7 +71,7 @@ service SeaOrderChangeService {
 
   // ExecuteSeaTransportExecutionUpdate 在锁内重验成员并更新共享实际航次。
   rpc ExecuteSeaTransportExecutionUpdate(ExecuteSeaTransportExecutionUpdateRequest) returns (ExecuteSeaTransportExecutionUpdateResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "reassign" scope: DATA_SCOPE_ORGANIZATION};
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "transport.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/orders/{order_id}/sea-order-change/transport-execution"
       body: "*"

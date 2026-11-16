@@ -179,6 +179,10 @@ func (f *settlementOrderLockFixture) createSEOrder(orderNo string) *ent.Order {
 
 // createPlainOrder 创建不关联海运单证的订单（非 SE 业务类型）。
 func (f *settlementOrderLockFixture) createPlainOrder(orderNo string, businessType orderent.BusinessType) *ent.Order {
+	flow, direction := orderent.FlowStatusDRAFT, orderent.TradeDirectionExport
+	if biz.OrderBusinessType(businessType).IsImport() {
+		flow, direction = orderent.FlowStatusIMPORT_NOT_APPLICABLE, orderent.TradeDirectionImport
+	}
 	f.t.Helper()
 	order, err := f.data.db.Order.Create().
 		SetIdempotencyKey(uuid.NewString()).
@@ -186,7 +190,7 @@ func (f *settlementOrderLockFixture) createPlainOrder(orderNo string, businessTy
 		SetOrderNo(orderNo).
 		SetCustomerID(f.partnerID).
 		SetBusinessType(businessType).
-		SetTradeDirection(orderent.TradeDirectionExport).
+		SetTradeDirection(direction).SetFlowStatus(flow).
 		SetTradeTerm(orderent.TradeTermFOB).
 		SetPaymentTerm(orderent.PaymentTermPREPAID).
 		SetTerminationStatus(orderent.TerminationStatusACTIVE).

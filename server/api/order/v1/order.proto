@@ -9,11 +9,24 @@ import "order/v1/order_personnel.proto";
 import "order/v1/order_shipping_document.proto";
 import "order/v1/sea_document.proto";
 import "order/v1/air_export.proto";
+import "order/v1/order_import_handling.proto";
 
 option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
 
 // OrderService 订单核心服务。
 service OrderService {
+  rpc GetImportHandling(GetImportHandlingRequest) returns (GetImportHandlingResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/import-handling"};
+  }
+  rpc SaveImportHandling(SaveImportHandlingRequest) returns (SaveImportHandlingResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {put: "/api/v1/orders/{order_id}/import-handling" body: "*"};
+  }
+  rpc ListImportHandlingEvents(ListImportHandlingEventsRequest) returns (ListImportHandlingEventsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/import-handling/events"};
+  }
   rpc MatchSeaMasterBillCandidate(MatchSeaMasterBillCandidateRequest) returns (MatchSeaMasterBillCandidateResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/orders/sea-master-bill-candidate"};
@@ -186,7 +199,7 @@ enum OrderNumberFilterType {
   ORDER_NUMBER_FILTER_TYPE_BOOKING = 5;
 }
 
-// OrderFlowStatus 海运出口订单主流程状态。
+// OrderFlowStatus 出口操作状态与按本票承接服务派生的进口摘要。
 enum OrderFlowStatus {
   ORDER_FLOW_STATUS_UNSPECIFIED = 0;
   ORDER_FLOW_STATUS_DRAFT = 1;
@@ -196,6 +209,10 @@ enum OrderFlowStatus {
   ORDER_FLOW_STATUS_DOCUMENT_CUTOFF = 5;
   ORDER_FLOW_STATUS_CUSTOMS_DECLARATION_ARRANGED = 6;
   ORDER_FLOW_STATUS_DOCUMENT_RELEASED = 7;
+  ORDER_FLOW_STATUS_IMPORT_NOT_APPLICABLE = 8;
+  ORDER_FLOW_STATUS_IMPORT_NOT_STARTED = 9;
+  ORDER_FLOW_STATUS_IMPORT_IN_PROGRESS = 10;
+  ORDER_FLOW_STATUS_IMPORT_COMPLETED = 11;
 }
 
 // OrderTerminationStatus 订单终止处理状态。

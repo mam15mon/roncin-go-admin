@@ -3882,6 +3882,14 @@ declare namespace API {
     traceId?: string;
   };
 
+  type GetImportHandlingResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderImportHandling;
+    traceId?: string;
+  };
+
   type GetInvoiceResponse = {
     success?: boolean;
     code?: number;
@@ -4057,6 +4065,28 @@ declare namespace API {
     message?: string;
     traceId?: string;
     data?: GetWorkbenchOverviewData;
+  };
+
+  type ImportHandlingEvent = {
+    id?: string;
+    orderId?: string;
+    actorId?: string;
+    occurredAt?: string;
+    reason?: string;
+    before?: OrderImportHandling;
+    after?: OrderImportHandling;
+    actorName?: string;
+  };
+
+  type ImportHandlingStep = {
+    kind?: number;
+    undertaken?: boolean;
+    occurredAt?: string;
+    responsibleUserId?: string;
+    referenceNo?: string;
+    notes?: string;
+    attachmentIds?: string[];
+    responsibleUserName?: string;
   };
 
   type ImportItemsRequest = {
@@ -4573,6 +4603,19 @@ declare namespace API {
     message?: string;
     data?: FinanceSettlementPartyOption[];
     total?: string;
+    traceId?: string;
+  };
+
+  type ListImportHandlingEventsData = {
+    items?: ImportHandlingEvent[];
+    total?: number;
+  };
+
+  type ListImportHandlingEventsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: ListImportHandlingEventsData;
     traceId?: string;
   };
 
@@ -6081,6 +6124,15 @@ declare namespace API {
     decidedByName?: string;
   };
 
+  type OrderImportHandling = {
+    orderId?: string;
+    /** 唯一提交基线，等于订单 version。 */
+    orderVersion?: string;
+    exchangeAgentId?: string;
+    exchangeAgentName?: string;
+    steps?: ImportHandlingStep[];
+  };
+
   type OrderLockHouseBillSnapshotData = {
     id?: string;
     lockRecordId?: string;
@@ -6257,8 +6309,18 @@ declare namespace API {
     excludeOrderId?: string;
   };
 
+  type OrderServiceGetImportHandlingParams = {
+    orderId: string;
+  };
+
   type OrderServiceGetOrderParams = {
     id: string;
+  };
+
+  type OrderServiceListImportHandlingEventsParams = {
+    orderId: string;
+    page?: number;
+    pageSize?: number;
   };
 
   type OrderServiceListOrderConsolidationsParams = {
@@ -6326,6 +6388,10 @@ declare namespace API {
     voyageNo?: string;
     etd?: string;
     eta?: string;
+  };
+
+  type OrderServiceSaveImportHandlingParams = {
+    orderId: string;
   };
 
   type OrderServiceTransitionOrderClosureParams = {
@@ -7616,6 +7682,24 @@ declare namespace API {
     totalGrossWeightKg?: number;
     totalVolumeCbm?: number;
     createdAt?: string;
+  };
+
+  type SaveImportHandlingRequest = {
+    orderId?: string;
+    expectedVersion?: string;
+    exchangeAgentId?: string;
+    /** 完整五环节快照；普通订单保存不写此资源。 */
+    steps?: ImportHandlingStep[];
+    /** 撤回、取消或纠正已有完成事实时必填。 */
+    reason?: string;
+  };
+
+  type SaveImportHandlingResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderImportHandling;
+    traceId?: string;
   };
 
   type SaveOrderFeeRow = {

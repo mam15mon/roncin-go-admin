@@ -1,6 +1,6 @@
 import { Form, Tag } from 'antd';
 import { FormCell, FormRow } from '@/components/ui';
-import { SeaDocumentStructure } from '@/enums.generated';
+import { OrderBusinessType, SeaDocumentStructure } from '@/enums.generated';
 import { TemplateFieldGroup } from './components/FieldGroup';
 import {
   extractPersonnelFromPartnerAssignments,
@@ -54,6 +54,7 @@ const DENSE_ROW = { rowGap: 4 } as const;
 export function getSeaTemplateSections(
   props: TemplateProps,
 ): TemplateSection[] {
+  const isImport = props.businessType === OrderBusinessType.BUSINESS_TYPE_SI;
   const basic = getSeaBaseInfoFields(props);
   const transport = getSeaTransportFields(props);
   return [
@@ -73,11 +74,11 @@ export function getSeaTemplateSections(
     },
     {
       key: 'bookingTransport',
-      title: '订舱与运输',
+      title: isImport ? '承运与运输' : '订舱与运输',
       // 各小节共用 6 列底栅格，列边界上下对齐；长值跨 2 列，编号/日期占 1 列。
       content: (
         <div style={{ display: 'grid', gap: 12, width: '100%' }}>
-          <TemplateFieldGroup title="订舱与主单">
+          <TemplateFieldGroup title={isImport ? '承运与主单' : '订舱与主单'}>
             <FormRow cols={6} style={DENSE_ROW}>
               <FormCell span={2}>
                 <SeaDocumentModeDisplayField props={props} />
@@ -101,7 +102,9 @@ export function getSeaTemplateSections(
               <FormCell span={2}>{transport.destination}</FormCell>
             </FormRow>
           </TemplateFieldGroup>
-          <TemplateFieldGroup title="箱量与截关">
+          <TemplateFieldGroup
+            title={isImport ? '箱量与作业时间' : '箱量与截关'}
+          >
             {transport.containers}
             <FormRow cols={6} style={DENSE_ROW}>
               {transport.ownership}
@@ -141,8 +144,9 @@ export function getSeaTemplateSections(
         // 件重尺与时间同行，金额与工厂同行；危险品与散杂计费吨按需展开。
         <div style={{ display: 'grid', gap: 4, width: '100%' }}>
           <FormRow cols={6} style={DENSE_ROW}>
-            <FormCell span={3}>{basic.categories}</FormCell>
+            <FormCell span={2}>{basic.categories}</FormCell>
             {basic.trade}
+            {basic.payment}
             <FormCell span={2}>{basic.contract}</FormCell>
           </FormRow>
           {basic.dangerous}

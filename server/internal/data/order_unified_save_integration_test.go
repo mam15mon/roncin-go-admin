@@ -158,7 +158,7 @@ func TestOrderUnifiedSavePostgres(t *testing.T) {
 		})
 	}
 	t.Run("同批重号和共享成员锁定", func(t *testing.T) {
-		match, e := uc.MatchSeaMasterBillCandidate(ctx, fixture.organizationID, fixture.shippingLineID, docs.MasterBill.MasterNo, nil)
+		match, e := uc.MatchSeaMasterBillCandidate(ctx, fixture.organizationID, fixture.shippingLineID, docs.MasterBill.MasterNo, nil, biz.OrderBusinessSE)
 		if e != nil {
 			t.Fatal(e)
 		}

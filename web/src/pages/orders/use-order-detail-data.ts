@@ -62,7 +62,7 @@ export function useOrderDetailData(
   // 海运出口单证已迁移到海运单证体系，后端对 SE 订单直接拒绝旧提单接口；
   // 详情聚合不得再拉取旧列表，否则整个页面加载失败。
   const usesLegacyShippingDocuments =
-    businessType !== OrderBusinessType.BUSINESS_TYPE_SE &&
+    transportMode !== 'sea' &&
     businessType !== OrderBusinessType.BUSINESS_TYPE_AE;
 
   const detailQuery = useQuery({
@@ -104,7 +104,7 @@ export function useOrderDetailData(
           canReadPersonnel
             ? orderPersonnelServiceListPersonnel({ orderId })
             : Promise.resolve({ data: [] }),
-          businessType === OrderBusinessType.BUSINESS_TYPE_SE
+          transportMode === 'sea'
             ? seaDocumentServiceGetSeaOrderDocuments({ orderId })
             : Promise.resolve(null),
         ]);
@@ -114,11 +114,22 @@ export function useOrderDetailData(
         if (!orderRes) {
           throw new Error('订单详情加载失败，请稍后重试');
         }
+        if (orderRes.data?.businessType !== businessType) {
+          throw new Error(
+            '订单业务类型与当前页面不一致，请从对应业务列表重新进入。',
+          );
+        }
 
         if (
-          businessType === OrderBusinessType.BUSINESS_TYPE_SE &&
-          !seaDocumentsRes?.data
+          orderRes.success === false ||
+          orderRes.data?.id !== orderId ||
+          orderRes.data.organizationId !== organizationId
         )
+          throw new Error(
+            '订单与当前订单或公司不一致，请从对应业务列表重新进入。',
+          );
+
+        if (transportMode === 'sea' && !seaDocumentsRes?.data)
           throw new Error('海运单证加载失败，请重试');
         return {
           seaDocuments: seaDocumentsRes?.data,
@@ -231,11 +242,7 @@ export function useOrderDetailData(
     Boolean(definition) && !missingOrgError && (isPending || isFetching);
 
   const bundle =
-    businessType === OrderBusinessType.BUSINESS_TYPE_SE
-      ? data
-      : effectiveError
-        ? undefined
-        : data;
+    transportMode === 'sea' ? data : effectiveError ? undefined : data;
 
   return {
     loading,

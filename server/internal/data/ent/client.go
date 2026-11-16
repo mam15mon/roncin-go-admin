@@ -89,6 +89,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeereviewevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderimporthandling"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderimporthandlingevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockhousebillsnapshot"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
@@ -289,6 +291,10 @@ type Client struct {
 	OrderFeeReviewEvent *OrderFeeReviewEventClient
 	// OrderFeeSupplementRequest is the client for interacting with the OrderFeeSupplementRequest builders.
 	OrderFeeSupplementRequest *OrderFeeSupplementRequestClient
+	// OrderImportHandling is the client for interacting with the OrderImportHandling builders.
+	OrderImportHandling *OrderImportHandlingClient
+	// OrderImportHandlingEvent is the client for interacting with the OrderImportHandlingEvent builders.
+	OrderImportHandlingEvent *OrderImportHandlingEventClient
 	// OrderLifecycleEvent is the client for interacting with the OrderLifecycleEvent builders.
 	OrderLifecycleEvent *OrderLifecycleEventClient
 	// OrderLockHouseBillSnapshot is the client for interacting with the OrderLockHouseBillSnapshot builders.
@@ -463,6 +469,8 @@ func (c *Client) init() {
 	c.OrderFeeCorrectionRequest = NewOrderFeeCorrectionRequestClient(c.config)
 	c.OrderFeeReviewEvent = NewOrderFeeReviewEventClient(c.config)
 	c.OrderFeeSupplementRequest = NewOrderFeeSupplementRequestClient(c.config)
+	c.OrderImportHandling = NewOrderImportHandlingClient(c.config)
+	c.OrderImportHandlingEvent = NewOrderImportHandlingEventClient(c.config)
 	c.OrderLifecycleEvent = NewOrderLifecycleEventClient(c.config)
 	c.OrderLockHouseBillSnapshot = NewOrderLockHouseBillSnapshotClient(c.config)
 	c.OrderLockRecord = NewOrderLockRecordClient(c.config)
@@ -673,6 +681,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		OrderFeeCorrectionRequest:        NewOrderFeeCorrectionRequestClient(cfg),
 		OrderFeeReviewEvent:              NewOrderFeeReviewEventClient(cfg),
 		OrderFeeSupplementRequest:        NewOrderFeeSupplementRequestClient(cfg),
+		OrderImportHandling:              NewOrderImportHandlingClient(cfg),
+		OrderImportHandlingEvent:         NewOrderImportHandlingEventClient(cfg),
 		OrderLifecycleEvent:              NewOrderLifecycleEventClient(cfg),
 		OrderLockHouseBillSnapshot:       NewOrderLockHouseBillSnapshotClient(cfg),
 		OrderLockRecord:                  NewOrderLockRecordClient(cfg),
@@ -810,6 +820,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		OrderFeeCorrectionRequest:        NewOrderFeeCorrectionRequestClient(cfg),
 		OrderFeeReviewEvent:              NewOrderFeeReviewEventClient(cfg),
 		OrderFeeSupplementRequest:        NewOrderFeeSupplementRequestClient(cfg),
+		OrderImportHandling:              NewOrderImportHandlingClient(cfg),
+		OrderImportHandlingEvent:         NewOrderImportHandlingEventClient(cfg),
 		OrderLifecycleEvent:              NewOrderLifecycleEventClient(cfg),
 		OrderLockHouseBillSnapshot:       NewOrderLockHouseBillSnapshotClient(cfg),
 		OrderLockRecord:                  NewOrderLockRecordClient(cfg),
@@ -909,12 +921,13 @@ func (c *Client) Use(hooks ...Hook) {
 		c.OrderAttachmentAsset, c.OrderCargoCategory, c.OrderCargoItem,
 		c.OrderCommissionAttribution, c.OrderContainer, c.OrderContainerRequest,
 		c.OrderFee, c.OrderFeeCorrectionRequest, c.OrderFeeReviewEvent,
-		c.OrderFeeSupplementRequest, c.OrderLifecycleEvent,
-		c.OrderLockHouseBillSnapshot, c.OrderLockRecord, c.OrderPersonnel,
-		c.OrderReleasePod, c.OrderShippingDocument, c.OrderUnlockApproverCandidate,
-		c.OrderUnlockRequest, c.Organization, c.Partner, c.PartnerAccount,
-		c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact,
-		c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
+		c.OrderFeeSupplementRequest, c.OrderImportHandling, c.OrderImportHandlingEvent,
+		c.OrderLifecycleEvent, c.OrderLockHouseBillSnapshot, c.OrderLockRecord,
+		c.OrderPersonnel, c.OrderReleasePod, c.OrderShippingDocument,
+		c.OrderUnlockApproverCandidate, c.OrderUnlockRequest, c.Organization,
+		c.Partner, c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment,
+		c.PartnerAttachment, c.PartnerContact, c.PartnerContract,
+		c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
 		c.PartnerSettlementRule, c.PasskeyCredential, c.PasswordResetChallenge,
 		c.Permission, c.Port, c.Role, c.RoleAssignment, c.SeaDocumentModeChangeEvent,
 		c.SeaDocumentVoidEvent, c.SeaHouseBill, c.SeaHouseBillVersion, c.SeaMasterBill,
@@ -957,12 +970,13 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.OrderAttachmentAsset, c.OrderCargoCategory, c.OrderCargoItem,
 		c.OrderCommissionAttribution, c.OrderContainer, c.OrderContainerRequest,
 		c.OrderFee, c.OrderFeeCorrectionRequest, c.OrderFeeReviewEvent,
-		c.OrderFeeSupplementRequest, c.OrderLifecycleEvent,
-		c.OrderLockHouseBillSnapshot, c.OrderLockRecord, c.OrderPersonnel,
-		c.OrderReleasePod, c.OrderShippingDocument, c.OrderUnlockApproverCandidate,
-		c.OrderUnlockRequest, c.Organization, c.Partner, c.PartnerAccount,
-		c.PartnerAlias, c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact,
-		c.PartnerContract, c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
+		c.OrderFeeSupplementRequest, c.OrderImportHandling, c.OrderImportHandlingEvent,
+		c.OrderLifecycleEvent, c.OrderLockHouseBillSnapshot, c.OrderLockRecord,
+		c.OrderPersonnel, c.OrderReleasePod, c.OrderShippingDocument,
+		c.OrderUnlockApproverCandidate, c.OrderUnlockRequest, c.Organization,
+		c.Partner, c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment,
+		c.PartnerAttachment, c.PartnerContact, c.PartnerContract,
+		c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
 		c.PartnerSettlementRule, c.PasskeyCredential, c.PasswordResetChallenge,
 		c.Permission, c.Port, c.Role, c.RoleAssignment, c.SeaDocumentModeChangeEvent,
 		c.SeaDocumentVoidEvent, c.SeaHouseBill, c.SeaHouseBillVersion, c.SeaMasterBill,
@@ -1125,6 +1139,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.OrderFeeReviewEvent.mutate(ctx, m)
 	case *OrderFeeSupplementRequestMutation:
 		return c.OrderFeeSupplementRequest.mutate(ctx, m)
+	case *OrderImportHandlingMutation:
+		return c.OrderImportHandling.mutate(ctx, m)
+	case *OrderImportHandlingEventMutation:
+		return c.OrderImportHandlingEvent.mutate(ctx, m)
 	case *OrderLifecycleEventMutation:
 		return c.OrderLifecycleEvent.mutate(ctx, m)
 	case *OrderLockHouseBillSnapshotMutation:
@@ -15163,6 +15181,320 @@ func (c *OrderFeeSupplementRequestClient) mutate(ctx context.Context, m *OrderFe
 	}
 }
 
+// OrderImportHandlingClient is a client for the OrderImportHandling schema.
+type OrderImportHandlingClient struct {
+	config
+}
+
+// NewOrderImportHandlingClient returns a client for the OrderImportHandling from the given config.
+func NewOrderImportHandlingClient(c config) *OrderImportHandlingClient {
+	return &OrderImportHandlingClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `orderimporthandling.Hooks(f(g(h())))`.
+func (c *OrderImportHandlingClient) Use(hooks ...Hook) {
+	c.hooks.OrderImportHandling = append(c.hooks.OrderImportHandling, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `orderimporthandling.Intercept(f(g(h())))`.
+func (c *OrderImportHandlingClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OrderImportHandling = append(c.inters.OrderImportHandling, interceptors...)
+}
+
+// Create returns a builder for creating a OrderImportHandling entity.
+func (c *OrderImportHandlingClient) Create() *OrderImportHandlingCreate {
+	mutation := newOrderImportHandlingMutation(c.config, OpCreate)
+	return &OrderImportHandlingCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OrderImportHandling entities.
+func (c *OrderImportHandlingClient) CreateBulk(builders ...*OrderImportHandlingCreate) *OrderImportHandlingCreateBulk {
+	return &OrderImportHandlingCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *OrderImportHandlingClient) MapCreateBulk(slice any, setFunc func(*OrderImportHandlingCreate, int)) *OrderImportHandlingCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &OrderImportHandlingCreateBulk{err: fmt.Errorf("calling to OrderImportHandlingClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*OrderImportHandlingCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &OrderImportHandlingCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OrderImportHandling.
+func (c *OrderImportHandlingClient) Update() *OrderImportHandlingUpdate {
+	mutation := newOrderImportHandlingMutation(c.config, OpUpdate)
+	return &OrderImportHandlingUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OrderImportHandlingClient) UpdateOne(_m *OrderImportHandling) *OrderImportHandlingUpdateOne {
+	mutation := newOrderImportHandlingMutation(c.config, OpUpdateOne, withOrderImportHandling(_m))
+	return &OrderImportHandlingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OrderImportHandlingClient) UpdateOneID(id uuid.UUID) *OrderImportHandlingUpdateOne {
+	mutation := newOrderImportHandlingMutation(c.config, OpUpdateOne, withOrderImportHandlingID(id))
+	return &OrderImportHandlingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OrderImportHandling.
+func (c *OrderImportHandlingClient) Delete() *OrderImportHandlingDelete {
+	mutation := newOrderImportHandlingMutation(c.config, OpDelete)
+	return &OrderImportHandlingDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OrderImportHandlingClient) DeleteOne(_m *OrderImportHandling) *OrderImportHandlingDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OrderImportHandlingClient) DeleteOneID(id uuid.UUID) *OrderImportHandlingDeleteOne {
+	builder := c.Delete().Where(orderimporthandling.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OrderImportHandlingDeleteOne{builder}
+}
+
+// Query returns a query builder for OrderImportHandling.
+func (c *OrderImportHandlingClient) Query() *OrderImportHandlingQuery {
+	return &OrderImportHandlingQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOrderImportHandling},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a OrderImportHandling entity by its id.
+func (c *OrderImportHandlingClient) Get(ctx context.Context, id uuid.UUID) (*OrderImportHandling, error) {
+	return c.Query().Where(orderimporthandling.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OrderImportHandlingClient) GetX(ctx context.Context, id uuid.UUID) *OrderImportHandling {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrder queries the order edge of a OrderImportHandling.
+func (c *OrderImportHandlingClient) QueryOrder(_m *OrderImportHandling) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderimporthandling.Table, orderimporthandling.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, orderimporthandling.OrderTable, orderimporthandling.OrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *OrderImportHandlingClient) Hooks() []Hook {
+	return c.hooks.OrderImportHandling
+}
+
+// Interceptors returns the client interceptors.
+func (c *OrderImportHandlingClient) Interceptors() []Interceptor {
+	return c.inters.OrderImportHandling
+}
+
+func (c *OrderImportHandlingClient) mutate(ctx context.Context, m *OrderImportHandlingMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OrderImportHandlingCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OrderImportHandlingUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OrderImportHandlingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OrderImportHandlingDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown OrderImportHandling mutation op: %q", m.Op())
+	}
+}
+
+// OrderImportHandlingEventClient is a client for the OrderImportHandlingEvent schema.
+type OrderImportHandlingEventClient struct {
+	config
+}
+
+// NewOrderImportHandlingEventClient returns a client for the OrderImportHandlingEvent from the given config.
+func NewOrderImportHandlingEventClient(c config) *OrderImportHandlingEventClient {
+	return &OrderImportHandlingEventClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `orderimporthandlingevent.Hooks(f(g(h())))`.
+func (c *OrderImportHandlingEventClient) Use(hooks ...Hook) {
+	c.hooks.OrderImportHandlingEvent = append(c.hooks.OrderImportHandlingEvent, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `orderimporthandlingevent.Intercept(f(g(h())))`.
+func (c *OrderImportHandlingEventClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OrderImportHandlingEvent = append(c.inters.OrderImportHandlingEvent, interceptors...)
+}
+
+// Create returns a builder for creating a OrderImportHandlingEvent entity.
+func (c *OrderImportHandlingEventClient) Create() *OrderImportHandlingEventCreate {
+	mutation := newOrderImportHandlingEventMutation(c.config, OpCreate)
+	return &OrderImportHandlingEventCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OrderImportHandlingEvent entities.
+func (c *OrderImportHandlingEventClient) CreateBulk(builders ...*OrderImportHandlingEventCreate) *OrderImportHandlingEventCreateBulk {
+	return &OrderImportHandlingEventCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *OrderImportHandlingEventClient) MapCreateBulk(slice any, setFunc func(*OrderImportHandlingEventCreate, int)) *OrderImportHandlingEventCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &OrderImportHandlingEventCreateBulk{err: fmt.Errorf("calling to OrderImportHandlingEventClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*OrderImportHandlingEventCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &OrderImportHandlingEventCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OrderImportHandlingEvent.
+func (c *OrderImportHandlingEventClient) Update() *OrderImportHandlingEventUpdate {
+	mutation := newOrderImportHandlingEventMutation(c.config, OpUpdate)
+	return &OrderImportHandlingEventUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OrderImportHandlingEventClient) UpdateOne(_m *OrderImportHandlingEvent) *OrderImportHandlingEventUpdateOne {
+	mutation := newOrderImportHandlingEventMutation(c.config, OpUpdateOne, withOrderImportHandlingEvent(_m))
+	return &OrderImportHandlingEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OrderImportHandlingEventClient) UpdateOneID(id uuid.UUID) *OrderImportHandlingEventUpdateOne {
+	mutation := newOrderImportHandlingEventMutation(c.config, OpUpdateOne, withOrderImportHandlingEventID(id))
+	return &OrderImportHandlingEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OrderImportHandlingEvent.
+func (c *OrderImportHandlingEventClient) Delete() *OrderImportHandlingEventDelete {
+	mutation := newOrderImportHandlingEventMutation(c.config, OpDelete)
+	return &OrderImportHandlingEventDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OrderImportHandlingEventClient) DeleteOne(_m *OrderImportHandlingEvent) *OrderImportHandlingEventDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OrderImportHandlingEventClient) DeleteOneID(id uuid.UUID) *OrderImportHandlingEventDeleteOne {
+	builder := c.Delete().Where(orderimporthandlingevent.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OrderImportHandlingEventDeleteOne{builder}
+}
+
+// Query returns a query builder for OrderImportHandlingEvent.
+func (c *OrderImportHandlingEventClient) Query() *OrderImportHandlingEventQuery {
+	return &OrderImportHandlingEventQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOrderImportHandlingEvent},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a OrderImportHandlingEvent entity by its id.
+func (c *OrderImportHandlingEventClient) Get(ctx context.Context, id uuid.UUID) (*OrderImportHandlingEvent, error) {
+	return c.Query().Where(orderimporthandlingevent.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OrderImportHandlingEventClient) GetX(ctx context.Context, id uuid.UUID) *OrderImportHandlingEvent {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryActor queries the actor edge of a OrderImportHandlingEvent.
+func (c *OrderImportHandlingEventClient) QueryActor(_m *OrderImportHandlingEvent) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderimporthandlingevent.Table, orderimporthandlingevent.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, orderimporthandlingevent.ActorTable, orderimporthandlingevent.ActorColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrder queries the order edge of a OrderImportHandlingEvent.
+func (c *OrderImportHandlingEventClient) QueryOrder(_m *OrderImportHandlingEvent) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderimporthandlingevent.Table, orderimporthandlingevent.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, orderimporthandlingevent.OrderTable, orderimporthandlingevent.OrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *OrderImportHandlingEventClient) Hooks() []Hook {
+	return c.hooks.OrderImportHandlingEvent
+}
+
+// Interceptors returns the client interceptors.
+func (c *OrderImportHandlingEventClient) Interceptors() []Interceptor {
+	return c.inters.OrderImportHandlingEvent
+}
+
+func (c *OrderImportHandlingEventClient) mutate(ctx context.Context, m *OrderImportHandlingEventMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OrderImportHandlingEventCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OrderImportHandlingEventUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OrderImportHandlingEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OrderImportHandlingEventDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown OrderImportHandlingEvent mutation op: %q", m.Op())
+	}
+}
+
 // OrderLifecycleEventClient is a client for the OrderLifecycleEvent schema.
 type OrderLifecycleEventClient struct {
 	config
@@ -26492,18 +26824,18 @@ type (
 		OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
 		OrderCommissionAttribution, OrderContainer, OrderContainerRequest, OrderFee,
 		OrderFeeCorrectionRequest, OrderFeeReviewEvent, OrderFeeSupplementRequest,
-		OrderLifecycleEvent, OrderLockHouseBillSnapshot, OrderLockRecord,
-		OrderPersonnel, OrderReleasePod, OrderShippingDocument,
-		OrderUnlockApproverCandidate, OrderUnlockRequest, Organization, Partner,
-		PartnerAccount, PartnerAlias, PartnerAssignment, PartnerAttachment,
-		PartnerContact, PartnerContract, PartnerInvoiceProfile, PartnerProfile,
-		PartnerRole, PartnerSettlementRule, PasskeyCredential, PasswordResetChallenge,
-		Permission, Port, Role, RoleAssignment, SeaDocumentModeChangeEvent,
-		SeaDocumentVoidEvent, SeaHouseBill, SeaHouseBillVersion, SeaMasterBill,
-		SeaMasterBillOrderLink, SeaMasterBillVersion, SeaOrderReassignmentEvent,
-		SeaOrderSplitEvent, SeaOrderSplitResult, SeaSharedContainer,
-		SeaSharedContainerAllocation, SeaTransportExecution,
-		SeaTransportExecutionVersion, Session, ShippingLine,
+		OrderImportHandling, OrderImportHandlingEvent, OrderLifecycleEvent,
+		OrderLockHouseBillSnapshot, OrderLockRecord, OrderPersonnel, OrderReleasePod,
+		OrderShippingDocument, OrderUnlockApproverCandidate, OrderUnlockRequest,
+		Organization, Partner, PartnerAccount, PartnerAlias, PartnerAssignment,
+		PartnerAttachment, PartnerContact, PartnerContract, PartnerInvoiceProfile,
+		PartnerProfile, PartnerRole, PartnerSettlementRule, PasskeyCredential,
+		PasswordResetChallenge, Permission, Port, Role, RoleAssignment,
+		SeaDocumentModeChangeEvent, SeaDocumentVoidEvent, SeaHouseBill,
+		SeaHouseBillVersion, SeaMasterBill, SeaMasterBillOrderLink,
+		SeaMasterBillVersion, SeaOrderReassignmentEvent, SeaOrderSplitEvent,
+		SeaOrderSplitResult, SeaSharedContainer, SeaSharedContainerAllocation,
+		SeaTransportExecution, SeaTransportExecutionVersion, Session, ShippingLine,
 		ShippingLineContainerPrefix, TaxableService, User []ent.Hook
 	}
 	inters struct {
@@ -26529,18 +26861,18 @@ type (
 		OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
 		OrderCommissionAttribution, OrderContainer, OrderContainerRequest, OrderFee,
 		OrderFeeCorrectionRequest, OrderFeeReviewEvent, OrderFeeSupplementRequest,
-		OrderLifecycleEvent, OrderLockHouseBillSnapshot, OrderLockRecord,
-		OrderPersonnel, OrderReleasePod, OrderShippingDocument,
-		OrderUnlockApproverCandidate, OrderUnlockRequest, Organization, Partner,
-		PartnerAccount, PartnerAlias, PartnerAssignment, PartnerAttachment,
-		PartnerContact, PartnerContract, PartnerInvoiceProfile, PartnerProfile,
-		PartnerRole, PartnerSettlementRule, PasskeyCredential, PasswordResetChallenge,
-		Permission, Port, Role, RoleAssignment, SeaDocumentModeChangeEvent,
-		SeaDocumentVoidEvent, SeaHouseBill, SeaHouseBillVersion, SeaMasterBill,
-		SeaMasterBillOrderLink, SeaMasterBillVersion, SeaOrderReassignmentEvent,
-		SeaOrderSplitEvent, SeaOrderSplitResult, SeaSharedContainer,
-		SeaSharedContainerAllocation, SeaTransportExecution,
-		SeaTransportExecutionVersion, Session, ShippingLine,
+		OrderImportHandling, OrderImportHandlingEvent, OrderLifecycleEvent,
+		OrderLockHouseBillSnapshot, OrderLockRecord, OrderPersonnel, OrderReleasePod,
+		OrderShippingDocument, OrderUnlockApproverCandidate, OrderUnlockRequest,
+		Organization, Partner, PartnerAccount, PartnerAlias, PartnerAssignment,
+		PartnerAttachment, PartnerContact, PartnerContract, PartnerInvoiceProfile,
+		PartnerProfile, PartnerRole, PartnerSettlementRule, PasskeyCredential,
+		PasswordResetChallenge, Permission, Port, Role, RoleAssignment,
+		SeaDocumentModeChangeEvent, SeaDocumentVoidEvent, SeaHouseBill,
+		SeaHouseBillVersion, SeaMasterBill, SeaMasterBillOrderLink,
+		SeaMasterBillVersion, SeaOrderReassignmentEvent, SeaOrderSplitEvent,
+		SeaOrderSplitResult, SeaSharedContainer, SeaSharedContainerAllocation,
+		SeaTransportExecution, SeaTransportExecutionVersion, Session, ShippingLine,
 		ShippingLineContainerPrefix, TaxableService, User []ent.Interceptor
 	}
 )

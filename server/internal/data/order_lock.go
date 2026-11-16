@@ -241,9 +241,9 @@ func (r *orderLockRepo) GetOrderLockState(ctx context.Context, organizationID, o
 		return nil, pendingErr
 	}
 
-	// 只有 SE 锁定会形成海运单证版本，因此只对 SE 要求活动提单关系。
+	// 海运 SE/SI 审核均形成真实单证版本，必须具备活动提单关系。
 	hasActiveLink := true
-	if businessType == access.OrderBusinessSE {
+	if businessType == access.OrderBusinessSE || businessType == access.OrderBusinessSI {
 		hasActiveLink, err = client.SeaMasterBillOrderLink.Query().
 			Where(
 				seamasterbillorderlinkent.OrganizationIDEQ(organizationID),
@@ -261,7 +261,7 @@ func (r *orderLockRepo) GetOrderLockState(ctx context.Context, organizationID, o
 		if order.TerminationStatus != orderent.TerminationStatusACTIVE {
 			state.LockBlockedReasons = append(state.LockBlockedReasons, "订单已进入终止流程")
 		}
-		if businessType == access.OrderBusinessSE && !hasActiveLink {
+		if (businessType == access.OrderBusinessSE || businessType == access.OrderBusinessSI) && !hasActiveLink {
 			state.LockBlockedReasons = append(state.LockBlockedReasons, "订单未关联有效海运提单")
 		}
 		if !isQualifiedBusinessRole {

@@ -195,15 +195,15 @@ func (uc *OrderUsecase) ListSameBatchOrders(ctx context.Context, organizationID,
 	return uc.repo.ListSameBatchOrders(ctx, organizationID, orderID)
 }
 
-func (uc *OrderUsecase) MatchSeaMasterBillCandidate(ctx context.Context, organizationID, shippingLineID uuid.UUID, masterNo string, voyage *SeaTransportExecution) (*SeaMasterBillMatchResult, error) {
-	if organizationID == uuid.Nil || shippingLineID == uuid.Nil {
+func (uc *OrderUsecase) MatchSeaMasterBillCandidate(ctx context.Context, organizationID, shippingLineID uuid.UUID, masterNo string, voyage *SeaTransportExecution, businessType OrderBusinessType) (*SeaMasterBillMatchResult, error) {
+	if organizationID == uuid.Nil || shippingLineID == uuid.Nil || !businessType.IsSea() {
 		return nil, ErrSeaMasterBillInvalidArgument
 	}
 	normalizedNo, err := ValidateAndNormalizeSeaMasterNo(masterNo)
 	if err != nil {
 		return nil, err
 	}
-	return uc.seaMasterBillRepo.MatchCandidate(ctx, organizationID, shippingLineID, normalizedNo, voyage)
+	return uc.seaMasterBillRepo.MatchCandidate(ctx, organizationID, shippingLineID, normalizedNo, voyage, businessType)
 }
 
 func (uc *OrderUsecase) Create(ctx context.Context, organizationID, actorID uuid.UUID, input *Order) (*Order, error) {
@@ -318,7 +318,7 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	if input == nil || input.CustomerID == uuid.Nil || !input.BusinessType.Valid() || !input.TradeDirection.Valid() || (input.TradeTerm != "" && !input.TradeTerm.Valid()) || !input.PaymentTerm.Valid() {
 		return nil, ErrOrderInvalidArgument
 	}
-	if (input.BusinessType != OrderBusinessSE && input.BusinessType != OrderBusinessAE) || input.TradeDirection != OrderTradeExport {
+	if !((input.BusinessType == OrderBusinessSE || input.BusinessType == OrderBusinessAE) && input.TradeDirection == OrderTradeExport || input.BusinessType == OrderBusinessSI && input.TradeDirection == OrderTradeImport) {
 		return nil, ErrOrderBusinessUnsupported
 	}
 	output := *input
@@ -458,14 +458,14 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	if err := validateUUIDSet(output.CargoCategoryIDs); err != nil {
 		return nil, err
 	}
-	if output.BusinessType == OrderBusinessSE {
+	if output.BusinessType.IsSea() {
 		if output.ShippingLineID == nil || *output.ShippingLineID == uuid.Nil {
-			return nil, errors.BadRequest("SEA_MASTER_BILL_INVALID_ARGUMENT", "海运出口订单必须选择船公司")
+			return nil, errors.BadRequest("SEA_MASTER_BILL_INVALID_ARGUMENT", "海运订单必须选择船公司")
 		}
 		contentOnlyUpdate := !creating && output.SeaMasterBillInput == nil &&
 			output.SeaDocumentInput != nil && output.SeaDocumentInput.MasterBillContent != nil
 		if output.SeaMasterBillInput == nil && !contentOnlyUpdate {
-			return nil, errors.BadRequest("SEA_MASTER_BILL_INVALID_ARGUMENT", "海运出口订单必须提供主单信息")
+			return nil, errors.BadRequest("SEA_MASTER_BILL_INVALID_ARGUMENT", "海运订单必须提供主单信息")
 		}
 		if output.SeaMasterBillInput != nil {
 			masterBillInput := *output.SeaMasterBillInput

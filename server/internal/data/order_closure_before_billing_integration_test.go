@@ -17,16 +17,21 @@ func TestOrderClosureBeforeReviewAndBillingPostgres(t *testing.T) {
 	for _, businessType := range []orderent.BusinessType{orderent.BusinessTypeSE, orderent.BusinessTypeSI} {
 		t.Run(string(businessType), func(t *testing.T) {
 			f.setT(t)
-			o := f.createOrder("CLOSE-BEFORE-BILL-" + uuid.NewString())
+			o := f.createOrder("CLOSE-BEFORE-BILL-"+uuid.NewString(), businessType)
 			fee := addOrdinaryTestFee(t, f, o, 100)
-			o = f.data.db.Order.UpdateOneID(o.ID).SetBusinessType(businessType).SaveX(f.ctx)
-			if o.LockedAt != nil || o.FlowStatus != orderent.FlowStatusDRAFT {
+			expectedFlow := biz.OrderFlowDocumentReleased
+			initialFlow := orderent.FlowStatusDRAFT
+			if businessType == orderent.BusinessTypeSI {
+				expectedFlow = biz.OrderFlowImportNotApplicable
+				initialFlow = orderent.FlowStatusIMPORT_NOT_APPLICABLE
+			}
+			if o.LockedAt != nil || o.FlowStatus != initialFlow {
 				t.Fatal("夹具应为未审核锁定的草稿订单")
 			}
 			repo := NewOrderRepo(f.data)
 			uc := biz.NewOrderUsecase(repo, nil, nil, nil, nil)
 			closed, err := uc.TransitionClosure(f.ctx, f.organizationID, f.approverID, o.ID, o.Version, biz.OrderClosureClosed, "资料与费用录入完成")
-			if err != nil || closed.ClosureStatus != biz.OrderClosureClosed || closed.FlowStatus != biz.OrderFlowDocumentReleased || closed.LockedAt != nil || closed.Version != o.Version+1 {
+			if err != nil || closed.ClosureStatus != biz.OrderClosureClosed || closed.FlowStatus != expectedFlow || closed.LockedAt != nil || closed.Version != o.Version+1 {
 				t.Fatalf("未建账未审核订单应可完结并补齐主流程: order=%+v err=%v", closed, err)
 			}
 			storedFee := f.data.db.OrderFee.GetX(f.ctx, fee.ID)

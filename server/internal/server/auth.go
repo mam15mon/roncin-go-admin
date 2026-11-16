@@ -331,8 +331,8 @@ func requestOrderBusinessType(request any) (access.OrderBusinessType, bool) {
 	case *orderv1.ListPersonnelOptionsRequest:
 		return orderBusinessTypeFromAPI(value.GetBusinessType())
 	case *orderv1.MatchSeaMasterBillCandidateRequest:
-		// 共享主单候选匹配仅适用于海运出口订单，且服务实现只查询当前组织。
-		return access.OrderBusinessSE, true
+		businessType := access.OrderBusinessType(value.GetBusinessType())
+		return businessType, businessType == access.OrderBusinessSE || businessType == access.OrderBusinessSI
 	}
 
 	return "", false

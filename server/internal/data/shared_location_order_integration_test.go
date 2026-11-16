@@ -33,7 +33,7 @@ func TestSharedLocationOrderReadPostgres(t *testing.T) {
 			t.Fatalf("公共港口名称应完整解析: %+v", summary)
 		}
 		mbl := f.data.db.SeaMasterBill.GetX(ctx, f.mblID)
-		candidate, err := repo.MatchCandidate(ctx, f.orgID, mbl.ShippingLineID, mbl.NormalizedMasterNo, nil)
+		candidate, err := repo.MatchCandidate(ctx, f.orgID, mbl.ShippingLineID, mbl.NormalizedMasterNo, nil, biz.OrderBusinessSE)
 		if err != nil || candidate == nil || !candidate.Matched {
 			t.Fatalf("共享港口候选匹配失败: %+v %v", candidate, err)
 		}

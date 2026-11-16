@@ -1,5 +1,6 @@
 import { airExportDefinition } from './air-export/definition';
 import { seaExportDefinition } from './sea-export/definition';
+import { seaImportDefinition } from './sea-import/definition';
 import type { OrderKind, OrderKindDefinition } from './types';
 
 /**
@@ -8,6 +9,7 @@ import type { OrderKind, OrderKindDefinition } from './types';
  */
 export const ORDER_KIND_REGISTRY = {
   'sea-export': seaExportDefinition,
+  'sea-import': seaImportDefinition,
   'air-export': airExportDefinition,
 } as const satisfies Record<OrderKind, OrderKindDefinition>;
 
@@ -34,7 +36,7 @@ export function getOrderKindDefinition(
 
 /**
  * 按业务枚举反查注册定义：只遍历已注册类型，未注册的
- * SI/AE/AI/LAND/RAIL 返回 `undefined`，调用方不得为其生成业务链接。
+ * AI/LAND/RAIL 返回 `undefined`，调用方不得为其生成业务链接。
  */
 export function getOrderKindDefinitionByBusinessType(
   businessType: number,

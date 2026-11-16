@@ -7,6 +7,14 @@ import (
 
 func orderFlowStatusFromAPI(value v1.OrderFlowStatus) biz.OrderFlowStatus {
 	switch value {
+	case v1.OrderFlowStatus_ORDER_FLOW_STATUS_IMPORT_NOT_APPLICABLE:
+		return biz.OrderFlowImportNotApplicable
+	case v1.OrderFlowStatus_ORDER_FLOW_STATUS_IMPORT_NOT_STARTED:
+		return biz.OrderFlowImportNotStarted
+	case v1.OrderFlowStatus_ORDER_FLOW_STATUS_IMPORT_IN_PROGRESS:
+		return biz.OrderFlowImportInProgress
+	case v1.OrderFlowStatus_ORDER_FLOW_STATUS_IMPORT_COMPLETED:
+		return biz.OrderFlowImportCompleted
 	case v1.OrderFlowStatus_ORDER_FLOW_STATUS_DRAFT:
 		return biz.OrderFlowDraft
 	case v1.OrderFlowStatus_ORDER_FLOW_STATUS_BOOKED:
@@ -28,7 +36,11 @@ func orderFlowStatusFromAPI(value v1.OrderFlowStatus) biz.OrderFlowStatus {
 
 func orderFlowStatusToAPI(value biz.OrderFlowStatus) v1.OrderFlowStatus {
 	return map[biz.OrderFlowStatus]v1.OrderFlowStatus{
-		biz.OrderFlowDraft: v1.OrderFlowStatus_ORDER_FLOW_STATUS_DRAFT, biz.OrderFlowBooked: v1.OrderFlowStatus_ORDER_FLOW_STATUS_BOOKED,
+		biz.OrderFlowImportNotApplicable: v1.OrderFlowStatus_ORDER_FLOW_STATUS_IMPORT_NOT_APPLICABLE,
+		biz.OrderFlowImportNotStarted:    v1.OrderFlowStatus_ORDER_FLOW_STATUS_IMPORT_NOT_STARTED,
+		biz.OrderFlowImportInProgress:    v1.OrderFlowStatus_ORDER_FLOW_STATUS_IMPORT_IN_PROGRESS,
+		biz.OrderFlowImportCompleted:     v1.OrderFlowStatus_ORDER_FLOW_STATUS_IMPORT_COMPLETED,
+		biz.OrderFlowDraft:               v1.OrderFlowStatus_ORDER_FLOW_STATUS_DRAFT, biz.OrderFlowBooked: v1.OrderFlowStatus_ORDER_FLOW_STATUS_BOOKED,
 		biz.OrderFlowSpaceAllocated: v1.OrderFlowStatus_ORDER_FLOW_STATUS_SPACE_ALLOCATED, biz.OrderFlowTruckingArranged: v1.OrderFlowStatus_ORDER_FLOW_STATUS_TRUCKING_ARRANGED,
 		biz.OrderFlowDocumentCutoff: v1.OrderFlowStatus_ORDER_FLOW_STATUS_DOCUMENT_CUTOFF, biz.OrderFlowCustomsDeclarationArranged: v1.OrderFlowStatus_ORDER_FLOW_STATUS_CUSTOMS_DECLARATION_ARRANGED,
 		biz.OrderFlowDocumentReleased: v1.OrderFlowStatus_ORDER_FLOW_STATUS_DOCUMENT_RELEASED,

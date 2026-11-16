@@ -3,6 +3,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { act, cleanup, renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { OrderBusinessType } from '@/enums.generated';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import { seaDocumentServiceGetSeaOrderDocuments } from '@/services/roncin/seaDocumentService';
 import type { HblBundle } from './model';
@@ -21,6 +22,8 @@ function bundle(id = 'order-1'): HblBundle {
   return {
     order: {
       id,
+      businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+      organizationId: 'org',
       version: '1',
       seaMasterBill: {
         masterBillId: 'mbl-1',
@@ -162,9 +165,33 @@ describe('HBL 前台变动检查', () => {
       success: true,
       data: bundle('other').order,
     });
-    await expect(fetchHblBundle('order-1')).rejects.toThrow('读取失败');
+    await expect(fetchHblBundle('order-1', bundle().order)).rejects.toThrow(
+      '读取失败',
+    );
     getDocuments.mockResolvedValueOnce({ success: false });
-    await expect(fetchHblBundle('order-1')).rejects.toThrow('读取失败');
+    await expect(fetchHblBundle('order-1', bundle().order)).rejects.toThrow(
+      '读取失败',
+    );
+  });
+
+  it.each([
+    { businessType: undefined },
+    { businessType: 0 },
+    { businessType: OrderBusinessType.BUSINESS_TYPE_SI },
+    { organizationId: undefined },
+    { organizationId: 'other-company' },
+  ])('生成前重读严格拒绝类型或公司不一致 %j', async (patch) => {
+    const initial = bundle();
+    const { result } = mount(initial);
+    getOrder.mockResolvedValueOnce({
+      success: true,
+      data: { ...initial.order, ...patch },
+    });
+    await expect(result.current.verifyCurrent()).rejects.toThrow(
+      'HBL 资料检查失败',
+    );
+    expect(initial.order.businessType).toBe(OrderBusinessType.BUSINESS_TYPE_SE);
+    expect(initial.order.organizationId).toBe('org');
   });
 
   it('公司英文名更新不改变HBL版本时，15秒检查仍发现变化且保留基线', async () => {

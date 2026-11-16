@@ -60,6 +60,7 @@ import AttachmentDrawer, {
   type AttachmentDrawerRef,
 } from './components/drawers/AttachmentDrawer';
 import OrderPageHeader from './components/OrderPageHeader';
+import ImportHandlingPanel from './import-handling/ImportHandlingPanel';
 import {
   confirmOrderClosure,
   confirmOrderFlow,
@@ -68,6 +69,7 @@ import {
 import { acceptsAirSaveBaseline } from './order-kinds/air-export/air-save-baseline';
 import type { OrderDetailFormValues } from './order-kinds/form-values';
 import { getOrderKindDefinition } from './order-kinds/registry';
+import { acceptsImportServiceSaveBaseline } from './order-kinds/sea-import/service-save-baseline';
 import type {
   OrderDetailFeaturesContext,
   OrderDetailFeaturesProps,
@@ -590,6 +592,8 @@ export default function OrderDetailPage() {
   )?.userId;
   const templateProps = useMemo(
     () => ({
+      businessType: definition?.businessType,
+      orderKind: definition?.kind,
       cargoCategoryOptions,
       locationOptions: seededLocationOptions,
       searchLocations: withSeededOptions(searchLocations, locationSeedOptions),
@@ -722,7 +726,7 @@ export default function OrderDetailPage() {
     [
       currentDocuments,
       orderFormIdentity,
-      definition?.transportMode,
+      definition,
       seaSave.frozen,
       refreshing,
       changeNotice.acceptSnapshot,
@@ -1462,6 +1466,71 @@ export default function OrderDetailPage() {
                 revealSeaFormErrors(errorFields)
               }
               appendSections={[
+                ...(definition.kind === 'sea-import'
+                  ? [
+                      {
+                        key: 'importHandling',
+                        title: '进口服务',
+                        content: (
+                          <ImportHandlingPanel
+                            order={order}
+                            expectedVersion={
+                              formRef.current?.getFieldValue('version') ??
+                              initialValues.version
+                            }
+                            readonly={
+                              effectiveReadonly || refreshing || seaSave.frozen
+                            }
+                            blockedReason={lockWritePolicy.reason}
+                            onSaved={async ({
+                              orderId: savedOrderId,
+                              previousVersion,
+                              saved,
+                            }) => {
+                              const identity = orderFormIdentity;
+                              const token = explicitRefreshTokenRef.current;
+                              if (
+                                savedOrderId !== orderId ||
+                                saveIdentityRef.current !== identity
+                              )
+                                return;
+                              const bundle = await loadData();
+                              if (
+                                saveIdentityRef.current !== identity ||
+                                token !== explicitRefreshTokenRef.current
+                              )
+                                return;
+                              const values = formRef.current?.getFieldsValue(
+                                true,
+                              ) as OrderDetailFormValues | undefined;
+                              if (
+                                acceptsImportServiceSaveBaseline(
+                                  values,
+                                  previousVersion,
+                                  saved,
+                                  bundle?.order,
+                                  bundle?.seaDocuments,
+                                  order.organizationId,
+                                ) &&
+                                bundle?.order
+                              ) {
+                                formRef.current?.setFieldValue(
+                                  'version',
+                                  saved.orderVersion,
+                                );
+                                changeNotice.acceptSnapshot(bundle.order);
+                              } else {
+                                message.warning(
+                                  '这个订单已经发生变动，请重新刷新。未保存的订单输入已保留。',
+                                );
+                              }
+                              void refreshLockState();
+                            }}
+                          />
+                        ),
+                      },
+                    ]
+                  : []),
                 buildOrderRecordsSection(order, features.appendTabs),
               ]}
             />

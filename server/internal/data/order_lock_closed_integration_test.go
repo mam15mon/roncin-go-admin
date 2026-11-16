@@ -13,7 +13,6 @@ import (
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	lockent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	permissionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
-	linkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 )
 
 // 完结表示操作流程结束，人工审核锁定独立固化资料与费用证据。
@@ -35,16 +34,8 @@ func TestClosedOrderManualReviewPostgres(t *testing.T) {
 				}
 				f.data.db.Role.UpdateOneID(f.lockRoleID).AddPermissions(permission).SaveX(f.ctx)
 			}
-			o := f.createOrder("CLOSED-REVIEW-" + uuid.NewString())
+			o := f.createOrder("CLOSED-REVIEW-"+uuid.NewString(), businessType)
 			fee := addOrdinaryTestFee(t, f, o, 100)
-			if businessType == orderent.BusinessTypeSE {
-				o = f.data.db.Order.UpdateOneID(o.ID).SetBusinessType(businessType).SaveX(f.ctx)
-				carrier := f.data.db.ShippingLine.Create().SetScacCode(newTestSCAC()).SetNameZh("完结审核测试船司").SetNameEn("Closed review carrier").SetCountryCode("CN").SaveX(f.ctx)
-				execution := f.data.db.SeaTransportExecution.Create().SetOrganizationID(f.organizationID).SetShippingLineID(carrier.ID).SaveX(f.ctx)
-				masterNo := "CLOSED-" + uuid.NewString()
-				master := f.data.db.SeaMasterBill.Create().SetBusinessType("SE").SetOrganizationID(f.organizationID).SetMasterNo(masterNo).SetNormalizedMasterNo(masterNo).SetShippingLineID(carrier.ID).SaveX(f.ctx)
-				f.data.db.SeaMasterBillOrderLink.Create().SetOrganizationID(f.organizationID).SetOrderID(o.ID).SetMasterBillID(master.ID).SetTransportExecutionID(execution.ID).SetDocumentStructure(linkent.DocumentStructureDIRECT).SaveX(f.ctx)
-			}
 			// DRAFT 账单即占用费用，完结及审核均不能释放这条限制。
 			bill := createOccupiedTestFeeBill(t, f, o, fee)
 			if _, err := NewOrderFeeRepo(f.data).Update(f.ctx, f.organizationID, o.ID, fee.ID, fee, nil, nil); err != biz.ErrOrderFeeBillOccupied {
@@ -101,8 +92,8 @@ func TestClosedOrderManualReviewPostgres(t *testing.T) {
 			if err := json.Unmarshal(record.FeeSnapshot, &snapshot); err != nil || len(snapshot.Fees) != 1 || snapshot.Fees[0].ID != fee.ID || !snapshot.Fees[0].TotalAmount.Equal(fee.TotalAmount) {
 				t.Fatalf("已建账费用也必须完整纳入人工审核快照: %+v %v", snapshot, err)
 			}
-			if (record.MasterBillVersionID != nil) != (businessType == orderent.BusinessTypeSE) || (record.TransportExecutionVersionID != nil) != (businessType == orderent.BusinessTypeSE) {
-				t.Fatalf("SE应保存单证版本，非SE不得保存海运引用: %+v", record)
+			if record.MasterBillVersionID == nil || record.TransportExecutionVersionID == nil {
+				t.Fatalf("SE/SI都应保存真实海运单证版本: %+v", record)
 			}
 			if count := f.data.db.AuditLog.Query().Where(auditent.OrganizationIDEQ(f.organizationID), auditent.ActionEQ("order.lock")).CountX(f.ctx); count != auditBefore+1 {
 				t.Fatalf("每次审核应只增加一条审计记录: %d", count)

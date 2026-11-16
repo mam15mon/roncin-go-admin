@@ -2,7 +2,8 @@ import type { OrderListItem } from '@/components/ui/order-list-template/types';
 import { OrderBusinessType } from '@/enums.generated';
 
 export function getDocumentsActionLabel(businessType: number) {
-  return businessType === OrderBusinessType.BUSINESS_TYPE_SE
+  return businessType === OrderBusinessType.BUSINESS_TYPE_SE ||
+    businessType === OrderBusinessType.BUSINESS_TYPE_SI
     ? '海运单证'
     : businessType === OrderBusinessType.BUSINESS_TYPE_AE
       ? '航空运单'
@@ -18,11 +19,13 @@ export function openOrderDocuments(
 ) {
   if (
     businessType === OrderBusinessType.BUSINESS_TYPE_SE ||
+    businessType === OrderBusinessType.BUSINESS_TYPE_SI ||
     businessType === OrderBusinessType.BUSINESS_TYPE_AE
   ) {
     const path = `/orders/${item.orderKind || fallbackOrderKind}/${item.id}`;
     navigate(
-      businessType === OrderBusinessType.BUSINESS_TYPE_SE
+      businessType === OrderBusinessType.BUSINESS_TYPE_SE ||
+        businessType === OrderBusinessType.BUSINESS_TYPE_SI
         ? `${path}/hbl`
         : path,
     );

@@ -52,7 +52,7 @@ func TestSeaMasterBillBatchRulesPostgres(t *testing.T) {
 			t.Fatalf("创建批次首票订单失败: %v", err)
 		}
 
-		match, err := usecase.MatchSeaMasterBillCandidate(ctx, fixture.organizationID, fixture.shippingLineID, strings.ToLower(masterNo), nil)
+		match, err := usecase.MatchSeaMasterBillCandidate(ctx, fixture.organizationID, fixture.shippingLineID, strings.ToLower(masterNo), nil, biz.OrderBusinessSE)
 		if err != nil {
 			t.Fatalf("匹配共享主单候选失败: %v", err)
 		}
@@ -101,7 +101,7 @@ func TestSeaMasterBillBatchRulesPostgres(t *testing.T) {
 			t.Fatalf("订单1应为直单: %#v", order1.SeaDocumentSummary)
 		}
 
-		match, err := usecase.MatchSeaMasterBillCandidate(ctx, fixture.organizationID, fixture.shippingLineID, masterNo, nil)
+		match, err := usecase.MatchSeaMasterBillCandidate(ctx, fixture.organizationID, fixture.shippingLineID, masterNo, nil, biz.OrderBusinessSE)
 		if err != nil || !match.Matched {
 			t.Fatalf("匹配直单批次候选失败: %v", err)
 		}
@@ -127,7 +127,7 @@ func TestSeaMasterBillBatchRulesPostgres(t *testing.T) {
 		if err != nil {
 			t.Fatalf("创建订单1失败: %v", err)
 		}
-		match, err := usecase.MatchSeaMasterBillCandidate(ctx, fixture.organizationID, fixture.shippingLineID, masterNo, nil)
+		match, err := usecase.MatchSeaMasterBillCandidate(ctx, fixture.organizationID, fixture.shippingLineID, masterNo, nil, biz.OrderBusinessSE)
 		if err != nil || !match.Matched {
 			t.Fatalf("匹配候选失败: %v", err)
 		}
@@ -227,7 +227,7 @@ func TestSeaMasterBillBatchRulesPostgres(t *testing.T) {
 		if err != nil {
 			t.Fatalf("创建批次首票失败: %v", err)
 		}
-		match, err := usecase.MatchSeaMasterBillCandidate(ctx, fixture.organizationID, fixture.shippingLineID, masterNo, nil)
+		match, err := usecase.MatchSeaMasterBillCandidate(ctx, fixture.organizationID, fixture.shippingLineID, masterNo, nil, biz.OrderBusinessSE)
 		if err != nil || !match.Matched {
 			t.Fatalf("匹配候选失败: %v", err)
 		}
@@ -336,7 +336,7 @@ func TestSeaMasterBillBatchRulesPostgres(t *testing.T) {
 		if _, err := usecase.Create(ctx, fixture.organizationID, fixture.actorID, input1); err != nil {
 			t.Fatalf("创建迁移首票失败: %v", err)
 		}
-		match, err := usecase.MatchSeaMasterBillCandidate(ctx, fixture.organizationID, fixture.shippingLineID, masterNo, nil)
+		match, err := usecase.MatchSeaMasterBillCandidate(ctx, fixture.organizationID, fixture.shippingLineID, masterNo, nil, biz.OrderBusinessSE)
 		if err != nil || !match.Matched {
 			t.Fatalf("匹配候选失败: %v", err)
 		}

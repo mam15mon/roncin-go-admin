@@ -11,6 +11,7 @@ import (
 )
 
 const SeaHouseBillPrintTemplateRoncinSelf = "RONCIN_SELF"
+const SeaHouseBillPrintTemplateExternalArchive = "EXTERNAL_ARCHIVE"
 
 // ResolveSeaHouseBillPrintTemplate 按真实公司自签主体确定模板，与城市代码无关。
 func ResolveSeaHouseBillPrintTemplate(source SeaHouseBillIssuerSource, issuerKind OrganizationKind) string {

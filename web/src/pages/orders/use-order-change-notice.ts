@@ -47,7 +47,8 @@ function matchesRestoredSeaRelation(
     restored.seaDocumentStructure ??
     restored.seaDocumentSummary?.documentStructure;
   if (
-    previous.businessType !== OrderBusinessType.BUSINESS_TYPE_SE ||
+    (previous.businessType !== OrderBusinessType.BUSINESS_TYPE_SE &&
+      previous.businessType !== OrderBusinessType.BUSINESS_TYPE_SI) ||
     previous.terminationStatus !==
       OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED ||
     restored.terminationStatus !==
@@ -246,7 +247,8 @@ export function useOrderChangeNotice(options: Options) {
         snapshot.seaDocumentSummary == null &&
         snapshot.seaDocumentStructure == null;
       const restoringSeaOrder =
-        previousOrder.businessType === OrderBusinessType.BUSINESS_TYPE_SE &&
+        (previousOrder.businessType === OrderBusinessType.BUSINESS_TYPE_SE ||
+          previousOrder.businessType === OrderBusinessType.BUSINESS_TYPE_SI) &&
         previousOrder.terminationStatus ===
           OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED &&
         snapshot.terminationStatus ===

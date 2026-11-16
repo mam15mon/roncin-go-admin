@@ -53,12 +53,21 @@ function applyNextList<T extends { id?: string }>(
 }
 
 /** 加载订单档案与费用录入候选项。 */
-export function useOrderFeeOptions(orderId?: string) {
+export function useOrderFeeOptions(
+  orderId: string | undefined,
+  businessType: number | undefined,
+  organizationId: string | undefined,
+) {
+  const queryEnabled = Boolean(orderId && businessType && organizationId);
   const feeOptionsQuery = useQuery({
-    queryKey: ['orders', 'fee-options', { orderId }],
-    enabled: Boolean(orderId),
+    queryKey: [
+      'orders',
+      'fee-options',
+      { orderId, businessType, organizationId },
+    ],
+    enabled: queryEnabled,
     queryFn: async (): Promise<OrderFeeOptionsBundle> => {
-      if (!orderId) {
+      if (!orderId || !organizationId) {
         // enabled 已保证订单身份齐备；此处仅为类型收窄兜底。
         throw new Error('缺少订单费用选项加载参数');
       }
@@ -72,6 +81,18 @@ export function useOrderFeeOptions(orderId?: string) {
         if (!orderRes || !optionsRes) {
           throw new Error('加载费用信息失败，请稍后重试');
         }
+        if (orderRes.data?.businessType !== businessType)
+          throw new Error(
+            '订单业务类型与当前页面不一致，请从对应业务列表重新进入。',
+          );
+        if (
+          orderRes.success === false ||
+          orderRes.data?.id !== orderId ||
+          orderRes.data.organizationId !== organizationId
+        )
+          throw new Error(
+            '订单与当前订单或公司不一致，请从对应业务列表重新进入。',
+          );
         return {
           order: orderRes.data,
           currencies: optionsRes.currencies ?? [],
@@ -177,16 +198,16 @@ export function useOrderFeeOptions(orderId?: string) {
   // 出错即隐藏全部数据（与旧实现失败清空语义一致）；首次拉取与显式刷新
   // （含错误重试）期间保持加载态。
   const bundle = error ? undefined : data;
-  const loading = Boolean(orderId) && (isPending || isFetching);
+  const loading = queryEnabled && (isPending || isFetching);
 
   const loadData = useCallback(() => {
-    if (!orderId) {
+    if (!queryEnabled) {
       return Promise.resolve();
     }
     // refetch 的 Promise 只以结果对象 resolve、从不 reject，
     // 与旧实现「吸收请求错误并正常 resolve」的语义一致。
     return refetch().then(() => undefined);
-  }, [orderId, refetch]);
+  }, [queryEnabled, refetch]);
 
   return {
     loading,

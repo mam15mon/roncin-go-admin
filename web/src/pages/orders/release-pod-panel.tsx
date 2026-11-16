@@ -165,7 +165,8 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
         const orderId = record.id as string;
         activeOrderIdRef.current = orderId;
         const loadDocuments =
-          record.businessType === OrderBusinessType.BUSINESS_TYPE_SE
+          record.businessType === OrderBusinessType.BUSINESS_TYPE_SE ||
+          record.businessType === OrderBusinessType.BUSINESS_TYPE_SI
             ? seaDocumentServiceGetSeaOrderDocuments({ orderId }).then(
                 (response) => buildSeaReleasePodDocumentOptions(response.data),
               )

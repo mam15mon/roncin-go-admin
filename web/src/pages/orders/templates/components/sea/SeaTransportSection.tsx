@@ -59,19 +59,26 @@ export function SeaMasterBillFields({
   seaHouseOrderCreateSource,
   seaHouseOrderSourceOrderId,
   organizationId,
+  businessType = OrderBusinessType.BUSINESS_TYPE_SE,
+  orderKind = 'sea-export',
 }: {
   disabled?: boolean;
   isDetail?: boolean;
   locationOptions?: SelectOption[];
 } & Pick<
   TemplateProps,
-  'seaHouseOrderCreateSource' | 'seaHouseOrderSourceOrderId' | 'organizationId'
+  | 'seaHouseOrderCreateSource'
+  | 'seaHouseOrderSourceOrderId'
+  | 'organizationId'
+  | 'businessType'
+  | 'orderKind'
 >) {
   const { token } = theme.useToken();
   const state = useSeaMasterBillCandidate(
     isDetail,
     locationOptions,
     seaHouseOrderCreateSource,
+    businessType,
   );
   const form = Form.useFormInstance();
   const structure = Form.useWatch('seaDocumentStructure', {
@@ -108,12 +115,13 @@ export function SeaMasterBillFields({
     selected && (!selected.etd || !selected.eta),
   );
   const canMaintain =
-    access.canOrder(OrderBusinessType.BUSINESS_TYPE_SE, 'reassign') &&
-    access.canOperateOrganization(organizationId);
-  const canReadMembers = access.canOrder(
-    OrderBusinessType.BUSINESS_TYPE_SE,
-    'read',
-  );
+    access.canOrder(
+      businessType,
+      businessType === OrderBusinessType.BUSINESS_TYPE_SI
+        ? 'update'
+        : 'reassign',
+    ) && access.canOperateOrganization(organizationId);
+  const canReadMembers = access.canOrder(businessType, 'read');
 
   return (
     <>
@@ -192,6 +200,8 @@ export function SeaMasterBillFields({
       {canCreateHouse && seaHouseOrderSourceOrderId && (
         <div style={{ gridColumn: '1 / -1', marginTop: -8 }}>
           <SeaCreateHouseOrderButton
+            businessType={businessType}
+            orderKind={orderKind}
             sourceOrderId={seaHouseOrderSourceOrderId}
             organizationId={organizationId}
           />
@@ -346,7 +356,7 @@ export function SeaMasterBillFields({
                       canReadMembers &&
                       memberLinks.length > 0 ? (
                         <Typography.Link
-                          href={`/orders/sea-export/${memberLinks[0].orderId}`}
+                          href={`/orders/${orderKind}/${memberLinks[0].orderId}`}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
@@ -375,7 +385,7 @@ export function SeaMasterBillFields({
                     {memberLinks.map((member) => (
                       <Typography.Link
                         key={member.orderId}
-                        href={`/orders/sea-export/${member.orderId}`}
+                        href={`/orders/${orderKind}/${member.orderId}`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -419,13 +429,17 @@ export function SeaMasterBillFields({
 function SeaCreateHouseOrderButton({
   sourceOrderId,
   organizationId,
+  businessType = OrderBusinessType.BUSINESS_TYPE_SE,
+  orderKind = 'sea-export',
 }: {
   sourceOrderId: string;
   organizationId?: string;
+  businessType?: number;
+  orderKind?: string;
 }) {
   const access = useAccess();
   if (
-    !access.canOrder(OrderBusinessType.BUSINESS_TYPE_SE, 'create') ||
+    !access.canOrder(businessType, 'create') ||
     !access.canOperateOrganization(organizationId)
   )
     return null;
@@ -437,7 +451,9 @@ function SeaCreateHouseOrderButton({
       icon={<PlusOutlined aria-hidden="true" />}
       // 此入口仅在已有订单详情展示，创建另一票不修改当前锁定订单。
       disabled={false}
-      onClick={() => history.push(buildSeaHouseOrderCreatePath(sourceOrderId))}
+      onClick={() =>
+        history.push(buildSeaHouseOrderCreatePath(sourceOrderId, orderKind))
+      }
       style={{ paddingInline: 0 }}
     >
       从此主单新增分单
@@ -830,6 +846,8 @@ export function getSeaTransportFields(props: TemplateProps) {
     ),
     master: (
       <SeaMasterBillFields
+        businessType={props.businessType}
+        orderKind={props.orderKind}
         isDetail={isDetail}
         disabled={props.readonly}
         seaHouseOrderCreateSource={props.seaHouseOrderCreateSource}

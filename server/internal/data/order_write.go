@@ -102,6 +102,9 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 			SetOperationNotes(input.OperationNotes)
 		create.SetNillableCargoCurrency(nonEmptyStringPointer(input.CargoCurrency))
 		create.SetNillableInsuranceCurrency(nonEmptyStringPointer(input.InsuranceCurrency))
+		if input.BusinessType.IsImport() {
+			create.SetFlowStatus(orderent.FlowStatusIMPORT_NOT_APPLICABLE)
+		}
 		created, err := create.Save(ctx)
 		if err != nil {
 			// 并发同键创建由 (organization_id, idempotency_key) 唯一索引兜底，
@@ -112,6 +115,15 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 			)
 		}
 		createdID = created.ID
+		if input.BusinessType.IsImport() {
+			state, e := marshalImportHandlingState(biz.EmptyImportHandling(created.ID, created.Version))
+			if e != nil {
+				return e
+			}
+			if _, e = tx.OrderImportHandling.Create().SetOrderID(created.ID).SetState(state).Save(ctx); e != nil {
+				return e
+			}
+		}
 		if err := createAirOrderDocuments(ctx, tx, organizationID, actorID, created, input, airMaster); err != nil {
 			return err
 		}
@@ -130,7 +142,7 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 		if err := syncOrderSeaDocumentOnCreate(ctx, tx, organizationID, actorID, created, input, audit); err != nil {
 			return err
 		}
-		if _, err := tx.OrderLifecycleEvent.Create().SetOrderID(created.ID).SetDimension(orderlifecycleeventent.DimensionFLOW).SetToStatus("DRAFT").SetAction("create").SetOperatorID(actorID).Save(ctx); err != nil {
+		if _, err := tx.OrderLifecycleEvent.Create().SetOrderID(created.ID).SetDimension(orderlifecycleeventent.DimensionFLOW).SetToStatus(string(created.FlowStatus)).SetAction("create").SetOperatorID(actorID).Save(ctx); err != nil {
 			return err
 		}
 		personnel := make([]*biz.OrderPersonnel, 0, len(input.PersonnelAssignments)+1)

@@ -35,7 +35,7 @@ func readableSeaOrderDocumentLink(ctx context.Context, client *ent.Client, organ
 	if err != nil {
 		return nil, nil, mapEntError(err, biz.ErrOrderNotFound, nil)
 	}
-	if order.BusinessType != orderent.BusinessTypeSE {
+	if !biz.OrderBusinessType(order.BusinessType).IsSea() || biz.OrderBusinessType(order.BusinessType).IsImport() != (order.TradeDirection == orderent.TradeDirectionImport) {
 		return nil, nil, biz.ErrOrderBusinessUnsupported
 	}
 
@@ -148,6 +148,9 @@ func (r *seaDocumentRepo) GetSeaOrderDocuments(ctx context.Context, organization
 		currentHB = seaHouseBillToBiz(hb, orgName, partnerName, versionCount)
 		currentHB.IssuerOrganizationNameEn = orgNameEn
 		currentHB.PrintTemplate = seaHouseBillPrintTemplate(hb, issuerKind)
+		if order.BusinessType == orderent.BusinessTypeSI && hb.IssuerPartnerID != nil {
+			currentHB.PrintTemplate = biz.SeaHouseBillPrintTemplateExternalArchive
+		}
 	}
 
 	structure := biz.SeaDocumentStructure(link.DocumentStructure)
@@ -201,11 +204,16 @@ func (r *seaDocumentRepo) GetSummariesByOrderIDs(ctx context.Context, organizati
 			seamasterbillorderlink.OrderIDIn(orderIDs...),
 			seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
 		).
-		All(ctx)
+		WithOrder().WithMasterBill().All(ctx)
 	if err != nil {
 		return nil, err
 	}
 
+	for _, link := range links {
+		if e := validateSeaLinkIdentity(link); e != nil {
+			return nil, e
+		}
+	}
 	linkMap := make(map[uuid.UUID]*ent.SeaMasterBillOrderLink, len(links))
 	var mblIDs []uuid.UUID
 	for _, link := range links {
@@ -289,7 +297,7 @@ func (r *seaDocumentRepo) UpdateSeaHouseBill(ctx context.Context, organizationID
 		mbl, queryErr := tx.SeaMasterBill.Query().
 			Where(
 				seamasterbill.IDEQ(activeLinkQuery.MasterBillID),
-				seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ("SE"),
+				seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ(string(order.BusinessType)),
 			).
 			ForUpdate().
 			Only(ctx)
@@ -459,7 +467,7 @@ func (r *seaDocumentRepo) UpdateSeaMasterBillContent(ctx context.Context, organi
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
 		}
-		if order.BusinessType != orderent.BusinessTypeSE {
+		if !biz.OrderBusinessType(order.BusinessType).IsSea() || biz.OrderBusinessType(order.BusinessType).IsImport() != (order.TradeDirection == orderent.TradeDirectionImport) {
 			return biz.ErrOrderBusinessUnsupported
 		}
 		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
@@ -470,7 +478,7 @@ func (r *seaDocumentRepo) UpdateSeaMasterBillContent(ctx context.Context, organi
 		mbl, queryErr := tx.SeaMasterBill.Query().
 			Where(
 				seamasterbill.IDEQ(activeLinkQuery.MasterBillID),
-				seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ("SE"),
+				seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ(string(order.BusinessType)),
 			).
 			ForUpdate().
 			Only(ctx)
@@ -536,7 +544,7 @@ func (r *seaDocumentRepo) getSeaMasterBillDetailByID(ctx context.Context, organi
 	}
 
 	mbl, err := client.SeaMasterBill.Query().
-		Where(seamasterbill.IDEQ(mblID), seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ("SE")).
+		Where(seamasterbill.IDEQ(mblID), seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeIn("SE", "SI")).
 		Only(ctx)
 	if err != nil {
 		return nil, err
@@ -605,6 +613,13 @@ func (r *seaDocumentRepo) getSeaHouseBillByID(ctx context.Context, organizationI
 	result := seaHouseBillToBiz(hb, orgName, partnerName)
 	result.IssuerOrganizationNameEn = orgNameEn
 	result.PrintTemplate = seaHouseBillPrintTemplate(hb, issuerKind)
+	order, err := client.Order.Query().Where(orderent.IDEQ(hb.OrderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if order.BusinessType == orderent.BusinessTypeSI && hb.IssuerPartnerID != nil {
+		result.PrintTemplate = biz.SeaHouseBillPrintTemplateExternalArchive
+	}
 	return result, nil
 }
 

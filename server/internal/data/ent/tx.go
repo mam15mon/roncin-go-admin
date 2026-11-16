@@ -160,6 +160,10 @@ type Tx struct {
 	OrderFeeReviewEvent *OrderFeeReviewEventClient
 	// OrderFeeSupplementRequest is the client for interacting with the OrderFeeSupplementRequest builders.
 	OrderFeeSupplementRequest *OrderFeeSupplementRequestClient
+	// OrderImportHandling is the client for interacting with the OrderImportHandling builders.
+	OrderImportHandling *OrderImportHandlingClient
+	// OrderImportHandlingEvent is the client for interacting with the OrderImportHandlingEvent builders.
+	OrderImportHandlingEvent *OrderImportHandlingEventClient
 	// OrderLifecycleEvent is the client for interacting with the OrderLifecycleEvent builders.
 	OrderLifecycleEvent *OrderLifecycleEventClient
 	// OrderLockHouseBillSnapshot is the client for interacting with the OrderLockHouseBillSnapshot builders.
@@ -454,6 +458,8 @@ func (tx *Tx) init() {
 	tx.OrderFeeCorrectionRequest = NewOrderFeeCorrectionRequestClient(tx.config)
 	tx.OrderFeeReviewEvent = NewOrderFeeReviewEventClient(tx.config)
 	tx.OrderFeeSupplementRequest = NewOrderFeeSupplementRequestClient(tx.config)
+	tx.OrderImportHandling = NewOrderImportHandlingClient(tx.config)
+	tx.OrderImportHandlingEvent = NewOrderImportHandlingEventClient(tx.config)
 	tx.OrderLifecycleEvent = NewOrderLifecycleEventClient(tx.config)
 	tx.OrderLockHouseBillSnapshot = NewOrderLockHouseBillSnapshotClient(tx.config)
 	tx.OrderLockRecord = NewOrderLockRecordClient(tx.config)
