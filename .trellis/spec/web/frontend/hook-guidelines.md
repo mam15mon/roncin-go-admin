@@ -17,80 +17,32 @@
 
 ## 组织级异步联想隔离
 
-- 发起客户、地点、承运人、人员等组织级联想请求前，必须捕获当前
-  `organizationId`；没有有效组织时直接返回空数组，不发送请求。
-- 请求完成后必须再次核对捕获的组织与当前活动组织。身份已变化时，不仅禁止写入
-  Hook state，还必须向调用下拉组件的 Promise 返回空数组，避免旧组织候选项通过
-  返回值泄漏到新组织页面。
-- 空关键字用于展开下拉时，应复用已经按当前组织与当前业务类别校验过的首批缓存；
-  缓存尚未就绪或身份不匹配时返回空数组。有真实非空关键字时仍走服务端搜索。
-- 加载错误也必须绑定发起请求时的组织及页面实体身份；只有错误身份仍等于当前页面
-  身份时才允许展示，不能依赖 `useEffect` 在组织切换后的下一拍清除旧错误。
+- 声明式候选由 `useQuery` 管理，完整资源身份（组织、运输方式、业务类型、父级、字段用途）和规范化/防抖关键词全部进入 key；不能只按组织缓存。
+- `RemoteSearchSelect` 的 `queryKey` 必填，`SearchFilterTemplate` 用实例和字段名隔离，字段 `requestKey` 表达同次挂载内会改变的权限/来源依赖。回调更新只经 ref 稳定，不以函数引用作为重取依据。
+- 已选名称从当前工作区的对应资源缓存与当前结果渲染合并，不把历史所有关键词结果混进当前候选；快捷新建保留必要的本地增量与创建会话保护。
+- 仅为原生 ProForm `request` 或显式命令提供的 Promise 入口可以使用当前客户端 `fetchQuery`；返回前仍核对当前业务身份，过期时返回 `[]`，不能把旧结果交回框架组件。
+- 空关键词复用当前身份首批候选，数据未就绪/错误时返回空；无身份或未开放运输方式不请求。
+- 查询失败由 Query/meta 或就地错误统一处理；更换查询后取消旧读请求，不能仅禁止旧结果写状态，却仍让默认请求错误处理器通知新关键词/实体。
 
 ```ts
-// 错误：只阻止旧响应写 state，返回值仍会显示在新组织的下拉框中。
-const options = await searchPartners(keyword);
-if (requestedOrganizationId === activeOrganizationIdRef.current) {
-  setOptions(options);
-}
-return options;
-
-// 正确：state 和 Promise 返回值都受同一组织身份保护。
-const options = await searchPartners(keyword);
-if (requestedOrganizationId !== activeOrganizationIdRef.current) {
-  return [];
-}
-setOptions(options);
-return options;
+const resourceKey = ['orders', 'locations', { organizationId, transportMode, businessType }];
+const query = useQuery({
+  queryKey: [...resourceKey, { keyword: debouncedKeyword }],
+  enabled: Boolean(organizationId && supported),
+  queryFn: ({ signal }) => loadLocations(debouncedKeyword, { signal, skipErrorHandler: true }),
+  meta: { errorMessage: '地点候选加载失败' },
+});
+// Promise 返回给 ProForm 前仍需拒绝旧身份。
+const result = await client.fetchQuery(options);
+if (requestedIdentity !== currentIdentityRef.current) return [];
+return result;
 ```
 
-### 组织级资源的多维身份
+错误做法是在 Effect 中直接请求、`setPorts` 并以请求序号筛结果；新写法让候选属于键对应的 Query，身份变化的首个渲染自然隔离结果。身份保护 ref 仅用于命令或框架 Promise 返回值，不承担远端数据存储。
 
-- 候选或资源若同时依赖组织、运输方式、业务类型等维度，加载身份和迟到响应门禁必须覆盖
-  所有会影响结果的维度；不能只比较 `organizationId`。
-- 身份任一维度变化时，渲染阶段必须同步隐藏旧 state；不能等下一拍 `useEffect` 清空，否则
-  新身份首帧仍会暴露旧候选。
-- 未注册或未开放运输方式的所有公开查询入口统一 fail-closed：不发请求、返回 `[]`、不设置
-  UI 错误状态。
+### 验证要点
 
-```ts
-// 错误：只检查组织，sea 请求完成后可能把结果写入同组织的 air 页面。
-const requestedIdentity = { organizationId };
-const result = await searchPorts(keyword);
-if (requestedIdentity.organizationId === activeOrganizationIdRef.current) {
-  setPorts(result);
-}
-
-// 正确：结果依赖的每个身份维度都参与即时隐藏和迟到门禁。
-const requestedResourceIdentity = `${organizationId}:${transportMode}`;
-const currentResourceIdentity = `${organizationId ?? ''}:${transportMode ?? ''}`;
-const visible =
-  Boolean(organizationId && transportMode) &&
-  loadedResourceIdentity === currentResourceIdentity;
-const ports = visible ? loadedPorts : [];
-const result = await searchPorts(keyword);
-const activeResourceIdentity = [
-  activeOrganizationIdRef.current ?? '',
-  activeTransportModeRef.current ?? '',
-].join(':');
-if (requestedResourceIdentity !== activeResourceIdentity) {
-  return [];
-}
-setPorts(result);
-return toOptions(result);
-```
-
-对未开放类型，公开的每个入口都应走同一 fail-closed 语义：
-
-```ts
-if (!definition || definition.transportMode === 'land' || definition.transportMode === 'rail') {
-  return [];
-}
-```
-
-测试至少断言：
-
-- 同组织 `sea → air` 后旧 ports/location options 在当前 render 立即为空；
-- 旧 sea 请求最后完成时返回 `[]`，且不调用 `setPorts`、不污染当前候选；
-- land/rail 对主数据 Effect、客户、港口、地点、承运人和人员等全部公开查询入口均为零请求、
-  返回 `[]`，且不触发 UI 错误。
+- 同组织 sea→air 首帧不暴露旧港口；旧搜索迟到时 Promise 返回空，不污染当前 Query。
+- land/rail 或缺组织时主聚合、客户、地点、承运人、人员等入口均零请求、无错误提示。
+- 同挂载 enabled/父级变化会变换 Query key，false→true 不因缓存空结果失去候选。
+- 关键词乱序、卸载、工作区 A→B→A、已选名称保活、取消与真实失败分别验证。

@@ -19,6 +19,10 @@
 - 常用映射：抽屉/弹窗开合用 `enabled`；链式依赖用 `enabled: !!parent`；
   翻页/搜索保留旧内容用 `placeholderData: keepPreviousData`；防抖是
   「防抖后的关键词进 queryKey」，不是在 queryFn 里 setTimeout。
+- `enabled: false` 只停止自动调度，不移除 Query observer；需要关闭即取消、
+  重开隔离的历史/预览查询，应把 `open` 等活动身份纳入 key 或显式取消。
+  只有同一实体且前后均打开时才允许分页 placeholder，不能借占位数据跨过关闭态。
+  queryFn 必须消费 signal 并透传至请求客户端，回归验证关闭后 signal.aborted 与迟到结果隔离。
 - v5 红线：`useQuery` 没有 `onSuccess/onError/onSettled` 回调；`isLoading`
   仅表首次加载，静默刷新看 `isFetching`。
 - 错误提示约定：请求层 `errorHandler` 已统一弹 notification；组件历史上
@@ -78,7 +82,7 @@
   |---|---|---|---|
   | 费用页 `orders/use-fee-change-notice.ts` | `setOwnWritePending` 暂停比较 | `staleProbe` 屏蔽旧探测 | 已覆盖 |
   | 订单详情 `orders/use-order-change-notice.ts` | `paused`（saving/loading/refreshing） | `acceptTransition` 只清除等于写响应的观察 | 已覆盖 |
-  | 账单 `finance/bills/components/use-bill-change-notice.ts`（费用维护、无需发票弹窗） | `ownWritePending` 暂停轮询并冻结提示 | 「探测 > 当前版本」天然不误报；pending 与 `onUpdated` 同批结束 | 已覆盖 |
+  | 账单 `finance/bills/components/use-bill-change-notice.ts`（基本信息编辑、费用维护、无需发票弹窗） | `ownWritePending` 暂停轮询并冻结提示 | 「探测 > 当前版本」天然不误报；pending 与 `onUpdated` 同批结束 | 已覆盖 |
   | 空运主单 `orders/air-master-change-notice.ts`（主单页、订单内运输维护） | `ownWritePending` 暂停探测且不记录差异；写后 `invalidateQueries(['air-orders'])` 不再重查 | 成功后弹窗关闭，pending 保持至关闭 | 已覆盖 |
   | 进口操作 `orders/import-handling/ImportHandlingPanel.tsx` | `ownWritePending` 暂停比较（含父聚合与服务重读）；面板与弹窗横幅均屏蔽 | 成功后 pending 保持至弹窗关闭；同订单保留上一份快照占位，换键时不闪回「正在读取」 | 已覆盖 |
   | HBL `orders/hbl/use-hbl-data.ts` | `paused=busy` 停止轮询 | 采纳后 base 变化，查询键与提醒随之更换 | 已覆盖；仅剩「保存前一刻发出的探测在服务端读到本人写入」的极小竞态 |
@@ -102,6 +106,56 @@
 - 小型策略/布尔查询（如 `features/finance/credit-control` 的
   `useCreditLimitIntervention`）同样走 useQuery；
   原 catch 静默回退的声明 `meta: { silent: true }`。
+
+## 场景：公共候选身份与工作区币种缓存
+
+### 1. 范围与触发
+
+远程筛选、订单首批资源、币种维护和所有币种候选消费方。模块级 Map/Promise 结果缓存已退出，纯请求函数不保留跨 QueryClient 的结果；官方表格/表单的原生 request 继续由框架管理。
+
+### 2. 签名与入口
+
+- `RemoteSearchSelect`：必填 `queryKey`，关键词防抖后进入查询键；`request(keyword, { signal, skipErrorHandler: true })` 将取消传至生成客户端。`SearchFilterFieldItem.request({ keyWords, signal })` 接收信号，`requestKey?: readonly unknown[]` 表达字段额外依赖。
+- `currencyQueryOptions(enabledOnly = true)`：原始 Currency[]；`currencyOptionsQueryOptions()`：同一 key 配合 select 转为候选。
+- `CURRENCY_QUERY_PREFIX = ['master-data', 'currencies']`；聚合真实依赖币种时显式 `meta: { currencyDependent: true }`。
+- `getMasterDataOptions`、`getCachedPorts`、`getCachedAirports`、`getOrderPersonnelOptions` 均为纯请求入口，末尾可传 RequestOptions；名称中的 cached 不再代表模块存储。`fetchCurrencyOptions(options)` 供 Query 托管的远程字段，原零参数 `getCurrencyOptions()` 留给框架原生 request。
+
+### 3. 行为契约
+
+Query key 包含完整资源依赖，已有请求回调以 ref 稳定，不能用新内联函数触发无限重取。历史候选仅补当前已选值，不能把全历史结果当当前搜索结果。换键不桥接旧实体内容。
+
+货币启停成功同时失效前缀和显式依赖聚合；无关 Query 不重查。原始币种和下拉候选共用一份缓存，不把 API 返回值再存到页面 state。写接口失败返回 false，保留异步确认。
+
+### 4. 校验与错误矩阵
+
+| 场景 | 结果 |
+| --- | --- |
+| 同模板 enabled/父级变化 | 额外依赖进入 requestKey，新身份首帧不显示旧候选 |
+| 搜索结果没有当前选中项 | 从该工作区同资源缓存保留名称，其他历史候选不显示 |
+| 无当前组织、类型未开放 | 不请求，不借其他工作区缓存 |
+| 货币启停成功 | 直接消费者与依赖聚合刷新；表格翻页不重复取独立主数据 |
+| undefined、success:false、非法 data | 转为明确失败，禁止 TypeError 或正常空态 |
+| success:true 且省略 repeated | 合法空列表 |
+
+### 5. 正常、基准与错误场景
+
+正常：币种停用后已挂载的费用设置和汇率名称按统一缓存更新。基准：表格翻页不重复请求币种。错误：外层 invalidate Query，底层仍返回模块旧 Promise；或在表格 request 内偷偷保存独立候选快照。
+
+### 6. 必需测试
+
+RemoteSearchSelect/模板覆盖同挂载依赖变化、防抖、乱序、选中名称；currencies 和 CurrenciesPanel.invalidation 覆盖同客户端去重、独立客户端隔离、直接/聚合失效与无关查询不重取；费用设置和汇率设置覆盖刷新列表不重取主数据。测试每用例独立客户端，renderWithClient 的 wrapper 在 rerender 时保持同一实例与调用方上下文。
+
+### 7. 错误与正确示例
+
+```ts
+// 错误：失效只作用于外层 Query，底层永远返回旧请求。
+let request: Promise<API.Currency[]> | undefined;
+const load = () => request ??= fetchCurrencies();
+// 正确：工作区 Query 独占缓存和失效，候选只做观察者投影。
+const currencies = useQuery(currencyOptionsQueryOptions());
+await client.invalidateQueries({ queryKey: CURRENCY_QUERY_PREFIX });
+await client.invalidateQueries({ predicate: (query) => query.meta?.currencyDependent === true });
+```
 
 ## 请求客户端
 

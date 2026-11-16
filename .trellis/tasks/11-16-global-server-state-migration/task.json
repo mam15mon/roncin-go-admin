@@ -3,7 +3,7 @@
   "name": "global-server-state-migration",
   "title": "全站服务端状态迁移与请求生命周期收敛",
   "description": "按全站盘点迁移31个查询消费文件和2套模块缓存，补齐账单变动检查与失败响应守卫，分组验证并提交",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": "frontend",
   "scope": "web",
   "package": null,
@@ -12,7 +12,7 @@
   "assignee": "mam15mon",
   "createdAt": "2026-11-16",
   "completedAt": null,
-  "branch": null,
+  "branch": "codex/global-server-state-migration",
   "base_branch": "main",
   "worktree_path": null,
   "commit": null,
@@ -21,6 +21,6 @@
   "children": [],
   "parent": null,
   "relatedFiles": [],
-  "notes": "规划已形成，等待用户对最终规划摘要的后续实施批准；其他会话正在修改费用重叠文件。",
+  "notes": "用户已批准实施及review、合并、安全删除分支。31个查询消费文件、2套模块缓存和7个命令入口已完成，三组交叉审阅发现均已修复；check:web通过（577文件/3004测试，既有跳过1文件/11测试）。待finish-work归档、记录会话并本地合并清理。",
   "meta": {}
 }
