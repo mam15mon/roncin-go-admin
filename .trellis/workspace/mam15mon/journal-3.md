@@ -1776,3 +1776,29 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Next Steps
 
 - 实施AI双模式及ETA/重量/固定服务，随后航空PDF与四类CSV/横切/完整财务验收
+
+
+## Session 210: 空运进口双模式与重量服务闭环
+<!-- trellis-session: v=2 fp=c1906c1711045746 -->
+
+**Date**: 2026-11-16
+**Task**: 空运进口双模式与重量服务闭环
+**Branch**: `codex/hgj-business-alignment`
+
+### Summary
+
+AI真实类型权限、DIRECT/HOUSE、独立重量与ETA费用、审核恢复和进口五服务全部接通；真实PG/120HTTP/仅AI真实UI浏览器/独立复核与check:fast237秒通过。父4/6，继续航空PDF。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `734bb814` | feat: 接通空运进口双模式与真实权限重量服务闭环 |
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 航空主分制作与真实PDF、同域生产资源，再四类横切CSV和完整财务验收
