@@ -14,6 +14,7 @@ import type {
   ProFormInstance,
 } from '@ant-design/pro-components';
 import { ProFormTextArea } from '@ant-design/pro-components';
+import { useQueries } from '@tanstack/react-query';
 import {
   Alert,
   App,
@@ -39,14 +40,12 @@ import {
   scrollToFirstTableError,
 } from '@/components/ui';
 import { OrderBusinessType } from '@/enums.generated';
-import { financeErrorReasons } from '@/errorReasons.generated';
 import { describeRateMissing } from '@/requestErrorConfig';
 import { history } from '@/router/history';
 import {
   orderFeeServiceBulkRemoveOrderFees,
   orderFeeServiceBulkUpdateOrderFees,
   orderFeeServiceListFees,
-  orderFeeServiceResolveFeeExchangeRate,
   orderFeeServiceSaveOrderFees,
 } from '@/services/roncin/orderFeeService';
 import { isWriteResponse, unwrapList } from '@/utils/api';
@@ -58,6 +57,11 @@ import {
 import { getErrorMessage } from '@/utils/errorMessage';
 import { formatAmount, formatDate, trimDecimal } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
+import {
+  type FeeExchangeRateError,
+  type FeeExchangeRateInput,
+  fetchFeeExchangeRate,
+} from '../../fee-exchange-rate';
 import FeeQuantityAssist from './FeeQuantityAssist';
 import type { FeeBillTrackingView } from './feeBillTracking';
 import {
@@ -178,11 +182,6 @@ type RowEditPreview = {
   rateOverride?: string;
   /** 已存手工汇率改回系统汇率，折本币按 rate 中的系统汇率预览。 */
   rateReset?: boolean;
-};
-
-type FeeRequestError = Error & {
-  data?: { reason?: string };
-  response?: { data?: { reason?: string } };
 };
 
 interface OrderFeeTableTabsProps {
@@ -621,10 +620,68 @@ export default function OrderFeeTableTabs({
 
   // 行内编辑的实时预览：按行 key 记录汇率解析进度、总金额与费用代码，
   // 币种/单价/数量/费用项目变化即刷新，保存后以后端落库值为准。
-  const [rowPreviews, setRowPreviews] = useState<
+  const [draftRowPreviews, setRowPreviews] = useState<
     Record<string, RowEditPreview>
   >({});
-  const rateRequestSeqRef = useRef<Record<string, number>>({});
+  const rateScope = `${orderId}:${reloadToken}`;
+  const [rateRequests, setRateRequests] = useState<{
+    scope: string;
+    rows: Record<string, FeeExchangeRateInput>;
+  }>({ scope: rateScope, rows: {} });
+  const editableRows = new Set(
+    [...receivableEditable, ...payableEditable].map(String),
+  );
+  const requestedRows =
+    rateRequests.scope === rateScope
+      ? Object.entries(rateRequests.rows).filter(([key]) =>
+          editableRows.has(key),
+        )
+      : [];
+  // 相同订单、方向和币种共用一个查询，避免多行同时编辑时重复取同一参考汇率。
+  const rateInputs = [
+    ...new Map(
+      requestedRows.map(([, input]) => [
+        `${input.direction}:${input.currency}`,
+        input,
+      ]),
+    ).values(),
+  ];
+  const rateQueries = useQueries({
+    queries: rateInputs.map((input) => ({
+      queryKey: ['orders', 'row-fee-exchange-rate', { ...input, reloadToken }],
+      queryFn: async ({
+        signal,
+      }: {
+        signal: AbortSignal;
+      }): Promise<ExchangeRatePreview> => {
+        try {
+          return {
+            status: 'resolved',
+            rate: await fetchFeeExchangeRate(input, signal),
+          };
+        } catch (error) {
+          if (
+            (error as FeeExchangeRateError).reason ===
+            'FEE_EXCHANGE_RATE_MISSING'
+          )
+            return { status: 'missing' };
+          throw error;
+        }
+      },
+    })),
+  });
+  const rowPreviews: Record<string, RowEditPreview> = { ...draftRowPreviews };
+  for (const [key, input] of requestedRows) {
+    const index = rateInputs.findIndex(
+      (item) =>
+        item.direction === input.direction && item.currency === input.currency,
+    );
+    const query = rateQueries[index];
+    const rate: ExchangeRatePreview = query.isError
+      ? { status: 'error' }
+      : (query.data ?? { status: 'loading' });
+    rowPreviews[key] = { ...rowPreviews[key], rate };
+  }
 
   currentOrderIdRef.current = orderId;
 
@@ -633,7 +690,7 @@ export default function OrderFeeTableTabs({
     setReceivableEditableKeys([]);
     setPayableEditableKeys([]);
     setRowPreviews({});
-    rateRequestSeqRef.current = {};
+    setRateRequests({ scope: rateScope, rows: {} });
     return () => {
       mountedRef.current = false;
       receivableRequestSequenceRef.current += 1;
@@ -663,7 +720,7 @@ export default function OrderFeeTableTabs({
   useEffect(() => {
     localReloadRef.current.clear();
     setRowPreviews({});
-    rateRequestSeqRef.current = {};
+    setRateRequests({ scope: rateScope, rows: {} });
     setRowErrors({ receivable: [], payable: [] });
     setDirty({ receivable: false, payable: false });
     for (const holder of Object.values(requestKeyHoldersRef.current)) {
@@ -680,70 +737,30 @@ export default function OrderFeeTableTabs({
       (u) => u.code === 'PIAO' || u.name === '票' || u.name?.includes('票'),
     ) || billingUnits?.[0];
 
-  // 币种变化时立即按订单 ETD 解析参考汇率，行内预览；保存后以后端落库值为准。
+  // 事件只更新查询参数，汇率数据和请求状态由当前行所订阅的 Query 管理。
   const resolveRowRatePreview = (
     rowKey: React.Key | undefined,
     direction: number,
     currency?: string,
   ) => {
     const key = String(rowKey ?? '');
-    const requestSequence = (rateRequestSeqRef.current[key] ?? 0) + 1;
-    rateRequestSeqRef.current[key] = requestSequence;
-    const patchRate = (rate: ExchangeRatePreview | undefined) => {
-      setRowPreviews((prev) => {
-        const current = prev[key];
-        if (!current) return rate ? { ...prev, [key]: { rate } } : prev;
-        const next = { ...current, rate };
-        if (
-          !next.rate &&
-          !next.amount &&
-          next.feeCode === undefined &&
-          next.taxRate === undefined &&
-          next.unitPrice === undefined &&
-          next.rateOverride === undefined &&
-          !next.rateReset
-        ) {
-          const { [key]: _removed, ...rest } = prev;
-          return rest;
-        }
-        return { ...prev, [key]: next };
-      });
-    };
-    if (!currency) {
-      patchRate(undefined);
-      return;
-    }
-    patchRate({ status: 'loading' });
-    orderFeeServiceResolveFeeExchangeRate(
-      {
-        orderId,
-        direction,
-        currency,
-      },
-      { skipErrorHandler: true },
-    )
-      .then((response) => {
-        if (rateRequestSeqRef.current[key] !== requestSequence) return;
-        if (response.exchangeRate) {
-          patchRate({
-            status: 'resolved',
-            rate: trimDecimal(response.exchangeRate),
-          });
-        } else {
-          patchRate({ status: 'error' });
-          message.error('汇率解析结果不完整');
-        }
-      })
-      .catch((error: FeeRequestError) => {
-        if (rateRequestSeqRef.current[key] !== requestSequence) return;
-        const reason = error.data?.reason ?? error.response?.data?.reason;
-        if (reason === financeErrorReasons.FEE_EXCHANGE_RATE_MISSING) {
-          patchRate({ status: 'missing' });
-          return;
-        }
-        patchRate({ status: 'error' });
-        message.error(error.message || '汇率解析失败');
-      });
+    setRateRequests((previous) => {
+      const rows = previous.scope === rateScope ? previous.rows : {};
+      if (!currency) {
+        if (!rows[key]) return previous;
+        const { [key]: _removed, ...remaining } = rows;
+        return { scope: rateScope, rows: remaining };
+      }
+      if (
+        rows[key]?.currency === currency &&
+        rows[key]?.direction === direction
+      )
+        return previous;
+      return {
+        scope: rateScope,
+        rows: { ...rows, [key]: { orderId, direction, currency } },
+      };
+    });
   };
 
   /**
@@ -1824,6 +1841,12 @@ export default function OrderFeeTableTabs({
       ),
     );
     const refreshedIds = new Set(refreshed.map((item) => String(item.id)));
+    setRateRequests((previous) => ({
+      ...previous,
+      rows: Object.fromEntries(
+        Object.entries(previous.rows).filter(([key]) => !refreshedIds.has(key)),
+      ),
+    }));
     setRowPreviews((prev) => {
       const kept = Object.entries(prev).filter(
         ([key]) => !refreshedIds.has(key),

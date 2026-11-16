@@ -1,117 +1,106 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
-import { App } from 'antd';
-import dayjs from 'dayjs';
-import React, { useRef, useState } from 'react';
-import { getRequestErrorMessage } from '@/requestErrorConfig';
-import { orderFeeServiceResolveFeeExchangeRate } from '@/services/roncin/orderFeeService';
+import { useQuery } from '@tanstack/react-query';
+import React, { useState } from 'react';
 import {
   calculateExactFeeTotal,
   quantityOrPricePattern,
 } from '@/utils/decimal';
 import { formatAmount, trimDecimal } from '@/utils/format';
 import type { FeeFormValues } from './components/fees/feeFormValues';
+import {
+  type FeeExchangeRateError,
+  type FeeExchangeRateInput,
+  fetchFeeExchangeRate,
+} from './fee-exchange-rate';
 
 type ExchangeRateStatus = 'idle' | 'loading' | 'resolved' | 'missing' | 'error';
 
-type FeeRequestError = Error & {
-  data?: { message?: string; reason?: string };
-  response?: { data?: { message?: string; reason?: string } };
-};
-
-/** 费用表单的金额合计预览与汇率解析状态（含手动补录汇率开关）。 */
+/** 金额在本地计算；系统汇率按当前订单与表单币种查询，手工输入保持独立。 */
 export function useFeeExchangePreview(
   orderId?: string,
   formRef?: React.RefObject<ProFormInstance<FeeFormValues> | undefined>,
 ) {
-  const { message } = App.useApp();
-  const exchangeRateRequestRef = useRef(0);
+  const [request, setRequest] = useState<FeeExchangeRateInput>();
+  const [seed, setSeed] = useState<{ orderId?: string; rate?: string }>();
   const [totalPreview, setTotalPreview] = useState<string>();
-  const [exchangeRatePreview, setExchangeRatePreview] = useState<string>();
-  const [exchangeRateStatus, setExchangeRateStatus] =
-    useState<ExchangeRateStatus>('idle');
   const [manualExchangeRate, setManualExchangeRate] = useState(false);
+  const activeRequest = request?.orderId === orderId ? request : undefined;
+  const rateQuery = useQuery({
+    queryKey: ['orders', 'fee-exchange-rate', activeRequest ?? {}],
+    enabled: Boolean(activeRequest),
+    queryFn: ({ signal }) => {
+      if (!activeRequest) throw new Error('缺少汇率查询参数');
+      return fetchFeeExchangeRate(activeRequest, signal);
+    },
+  });
+  const error = rateQuery.error as FeeExchangeRateError | null;
+  const missing =
+    error?.reason === 'ORDER_ETD_MISSING' ||
+    error?.reason === 'ORDER_ETA_MISSING' ||
+    error?.reason === 'FEE_EXCHANGE_RATE_MISSING';
+  const seeded = seed && seed.orderId === orderId;
+  const exchangeRateStatus: ExchangeRateStatus = !activeRequest
+    ? seeded
+      ? 'resolved'
+      : 'idle'
+    : rateQuery.isPending
+      ? 'loading'
+      : rateQuery.isError
+        ? missing
+          ? 'missing'
+          : 'error'
+        : 'resolved';
+  const exchangeRatePreview = activeRequest
+    ? rateQuery.data
+    : seeded
+      ? seed.rate
+      : undefined;
 
   const resetPreview = () => {
-    exchangeRateRequestRef.current += 1;
+    setRequest(undefined);
+    setSeed(undefined);
     setTotalPreview(undefined);
-    setExchangeRatePreview(undefined);
-    setExchangeRateStatus('idle');
     setManualExchangeRate(false);
   };
 
   const seedFromFee = (fee: API.OrderFee) => {
-    const seededTotal = calculateExactFeeTotal(fee.quantity, fee.unitPrice);
-    setTotalPreview(seededTotal ? formatAmount(seededTotal) : undefined);
-    setExchangeRatePreview(
-      fee.exchangeRate ? trimDecimal(fee.exchangeRate) : undefined,
-    );
-    setExchangeRateStatus('resolved');
-  };
-
-  const resolveExchangeRate = (
-    currentOrderId: string,
-    direction: number,
-    currency: string,
-  ) => {
-    const requestSequence = ++exchangeRateRequestRef.current;
-    setExchangeRateStatus('loading');
-    setExchangeRatePreview(undefined);
-    setManualExchangeRate(false);
-    formRef?.current?.setFieldValue('exchangeRateOverride', undefined);
-    void orderFeeServiceResolveFeeExchangeRate(
-      { orderId: currentOrderId, direction, currency },
-      { skipErrorHandler: true },
-    )
-      .then((response) => {
-        if (requestSequence !== exchangeRateRequestRef.current) return;
-        if (!response.exchangeRate) {
-          setExchangeRateStatus('error');
-          message.error('汇率解析结果不完整');
-          return;
-        }
-        setExchangeRatePreview(trimDecimal(response.exchangeRate));
-        setExchangeRateStatus('resolved');
-      })
-      .catch((error: FeeRequestError) => {
-        if (requestSequence !== exchangeRateRequestRef.current) return;
-        const code = error.data?.reason || error.response?.data?.reason;
-        if (code === 'ORDER_ETD_MISSING') {
-          setExchangeRateStatus('missing');
-          message.error('请先填写订单 ETD 后再解析汇率');
-          return;
-        }
-        if (code === 'ORDER_ETA_MISSING') {
-          setExchangeRateStatus('missing');
-          message.error('请先填写订单 ETA 后再解析汇率');
-          return;
-        }
-        if (code === 'FEE_EXCHANGE_RATE_MISSING') {
-          setExchangeRateStatus('missing');
-          message.error(getRequestErrorMessage(error, '请先维护汇率'));
-          return;
-        }
-        setExchangeRateStatus('error');
-        message.error(error.message || '汇率解析失败');
-      });
+    const total = calculateExactFeeTotal(fee.quantity, fee.unitPrice);
+    setTotalPreview(total ? formatAmount(total) : undefined);
+    setRequest(undefined);
+    setSeed({
+      orderId,
+      rate: fee.exchangeRate ? trimDecimal(fee.exchangeRate) : undefined,
+    });
   };
 
   const handleValuesChange = (options?: { amountOnly?: boolean }) => {
     const values = formRef?.current?.getFieldsValue();
     if (!values) return;
     const { quantity, unitPrice, currency, direction } = values;
-    if (
+    const total =
       quantity &&
       unitPrice &&
       quantityOrPricePattern.test(quantity) &&
       quantityOrPricePattern.test(unitPrice)
-    ) {
-      const liveTotal = calculateExactFeeTotal(quantity, unitPrice);
-      setTotalPreview(liveTotal ? formatAmount(liveTotal) : undefined);
-    } else {
-      setTotalPreview(undefined);
+        ? calculateExactFeeTotal(quantity, unitPrice)
+        : undefined;
+    setTotalPreview(total ? formatAmount(total) : undefined);
+    if (options?.amountOnly) return;
+    setSeed(undefined);
+    setManualExchangeRate(false);
+    formRef?.current?.setFieldValue('exchangeRateOverride', undefined);
+    if (!orderId || !direction || !currency) {
+      setRequest(undefined);
+      return;
     }
-    if (!options?.amountOnly && orderId && direction && currency) {
-      resolveExchangeRate(orderId, Number(direction), currency);
+    const next = { orderId, direction: Number(direction), currency };
+    if (
+      activeRequest?.direction === next.direction &&
+      activeRequest.currency === next.currency
+    ) {
+      void rateQuery.refetch();
+    } else {
+      setRequest(next);
     }
   };
 

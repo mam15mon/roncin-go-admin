@@ -1,11 +1,6 @@
 import type { ActionType } from '@ant-design/pro-components';
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from '@testing-library/react';
+import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import type React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';

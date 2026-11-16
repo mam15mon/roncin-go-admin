@@ -1,9 +1,13 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import type React from 'react';
+import { useState } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { orderFeeServiceResolveFeeExchangeRate } from '@/services/roncin/orderFeeService';
+import { AppFeedbackBridge } from '@/utils/appFeedback';
+import { createQueryClient } from '@/utils/queryClient';
 import type { FeeFormValues } from './components/fees/feeFormValues';
 import { useFeeExchangePreview } from './use-fee-exchange-preview';
 
@@ -21,8 +25,16 @@ function deferred<T>() {
   return { promise, resolve };
 }
 
-function wrapper({ children }: { children: React.ReactNode }) {
-  return <App>{children}</App>;
+function Wrapper({ children }: { children: React.ReactNode }) {
+  const [client] = useState(createQueryClient);
+  return (
+    <QueryClientProvider client={client}>
+      <App>
+        <AppFeedbackBridge />
+        {children}
+      </App>
+    </QueryClientProvider>
+  );
 }
 
 describe('useFeeExchangePreview 请求隔离', () => {
@@ -47,7 +59,7 @@ describe('useFeeExchangePreview 请求隔离', () => {
     };
     const { result } = renderHook(
       () => useFeeExchangePreview('order-A', formRef),
-      { wrapper },
+      { wrapper: Wrapper },
     );
 
     act(() => result.current.handleValuesChange());
@@ -84,7 +96,7 @@ describe('useFeeExchangePreview 请求隔离', () => {
     };
     const { result } = renderHook(
       () => useFeeExchangePreview('order-A', formRef),
-      { wrapper },
+      { wrapper: Wrapper },
     );
     act(() => result.current.setManualExchangeRate(true));
     act(() => result.current.handleValuesChange({ amountOnly: true }));
@@ -147,7 +159,7 @@ describe('useFeeExchangePreview 请求隔离', () => {
     };
     const { result } = renderHook(
       () => useFeeExchangePreview('order-A', formRef),
-      { wrapper },
+      { wrapper: Wrapper },
     );
     act(() => result.current.handleValuesChange());
     await waitFor(() =>

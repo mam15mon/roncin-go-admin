@@ -1,4 +1,5 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
+import { screen, waitFor, within } from '@testing-library/react';
 import { App } from 'antd';
 import { expect } from 'vitest';
 import { getAnyDirtyTabKey } from '@/components/layout/tabCloseGuard';
