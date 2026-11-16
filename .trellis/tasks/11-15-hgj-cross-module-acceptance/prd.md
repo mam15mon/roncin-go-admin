@@ -10,14 +10,16 @@
 
 ## 验收标准
 
-- [ ] 每类一条真实业务/费用财务链；两公司/不同角色/过期版本/锁竞争和原子回滚正确，无实际员工调试通知。
-- [ ] 超过200行的完整筛选CSV行数/顺序/权限/金额/日期/中文转义正确；列表快照与导出条件一致。
-- [ ] check:fast及打印生产入口相关build/同域验收通过，记录SKIP与无法运行原因；父验收逐条有证据。
+- [x] 每类一条真实业务/费用财务链；两公司/不同角色/过期版本/锁竞争和原子回滚正确，无实际员工调试通知。
+- [x] 超过200行的完整筛选CSV行数/顺序/权限/金额/日期/中文转义正确；列表快照与导出条件一致。
+- [x] check:fast及打印生产入口相关build/同域验收通过，记录SKIP与无法运行原因；父验收逐条有证据。
 
 ## 依赖与边界
 
-前置：.trellis/tasks/archive/2026-11/11-15-hgj-order-direction、.trellis/tasks/archive/2026-11/11-15-hgj-air-documents、.trellis/tasks/archive/2026-11/11-15-hgj-sea-import、.trellis/tasks/archive/2026-11/11-15-hgj-air-import、.trellis/tasks/11-15-hgj-air-waybill-pdf。前置交付未完成不能把树形位置当作已满足依赖。
+前置：.trellis/tasks/archive/2026-11/11-15-hgj-order-direction、.trellis/tasks/archive/2026-11/11-15-hgj-air-documents、.trellis/tasks/archive/2026-11/11-15-hgj-sea-import、.trellis/tasks/archive/2026-11/11-15-hgj-air-import、.trellis/tasks/archive/2026-11/11-15-hgj-air-waybill-pdf。前置交付未完成不能把树形位置当作已满足依赖。
 
 本期不增加真正多航段、复杂空运拆拼改配、批量导入或另五类实现；不提交海管家单据、不清库、不手改生成物。父最终方案已批准，按前置交付验收顺序start。
 
 实施授权同步：父最终方案已获用户明确批准，按前置依赖执行；具体完成状态以实际验证结果为准。
+
+实际结果见`research/cross-module-root-validation.md`及分层、两独立复核、真实财务/CSV报告。最终完整门禁、生产build、四类HTTP/浏览器、文件独立解析和清理均通过；前九轮夹具/定位失败保留且未记PASS。

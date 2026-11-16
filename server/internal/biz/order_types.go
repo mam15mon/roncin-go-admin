@@ -371,12 +371,14 @@ type Order struct {
 
 // OrderContainerRequest 表示订舱阶段的箱型箱量计划，不包含实际箱号。
 type OrderContainerRequest struct {
-	ID              uuid.UUID
-	OrderID         uuid.UUID
-	ContainerSpecID uuid.UUID
-	Quantity        int
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
+	ContainerSpecCode string
+	ContainerSpecName string
+	ID                uuid.UUID
+	OrderID           uuid.UUID
+	ContainerSpecID   uuid.UUID
+	Quantity          int
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
 }
 
 type OrderListOptions struct {
@@ -413,6 +415,12 @@ type OrderListOptions struct {
 }
 
 type OrderList = PagedList[*Order]
+
+// OrderExport 为完整筛选的一次只读快照，不携带分页或复用分页上限。
+type OrderExport struct {
+	Items       []*Order
+	GeneratedAt time.Time
+}
 
 type OrderCargoMeasurement struct {
 	Packages      int

@@ -81,3 +81,29 @@ func TestWorkbenchTodoServiceScope(t *testing.T) {
 		t.Fatal("缺失会话未拒绝")
 	}
 }
+
+func TestWorkbenchTodoFourTypeScopeIntersection(t *testing.T) {
+	org := uuid.New()
+	for _, business := range []biz.OrderBusinessType{biz.OrderBusinessSE, biz.OrderBusinessSI, biz.OrderBusinessAE, biz.OrderBusinessAI} {
+		permission := func(op access.OrderOperation) string {
+			return access.OrderPermission(access.OrderBusinessType(business), op)
+		}
+		p := &biz.Principal{UserID: uuid.New(), Organization: biz.Organization{ID: org, Kind: biz.OrganizationKindCompany}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: org, Kind: biz.OrganizationKindCompany}}, RoleGrants: []biz.RoleGrant{{DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{permission(access.OrderRead): {}, permission(access.OrderFeeRead): {}, permission(access.OrderAbnormalCaseRead): {}}}}}
+		s := workbenchScopeFromPrincipal(p)
+		if !reflect.DeepEqual(s.ReadableOrderBusinessTypes, []biz.OrderBusinessType{business}) || !reflect.DeepEqual(s.ReadableFeeBusinessTypes, s.ReadableOrderBusinessTypes) || !reflect.DeepEqual(s.ReadableAbnormalBusinessTypes, s.ReadableOrderBusinessTypes) {
+			t.Fatalf("四类本人范围解析错误: %+v", s)
+		}
+		delete(p.RoleGrants[0].Permissions, permission(access.OrderRead))
+		s = workbenchScopeFromPrincipal(p)
+		if len(s.ReadableOrderBusinessTypes)+len(s.ReadableFeeBusinessTypes)+len(s.ReadableAbnormalBusinessTypes) != 0 {
+			t.Fatal("没有订单读取不能借分类权限")
+		}
+		p.Organization.Kind = biz.OrganizationKindSystem
+		p.OrganizationNodes[0].Kind = biz.OrganizationKindSystem
+		p.RoleGrants[0].Permissions[permission(access.OrderRead)] = struct{}{}
+		s = workbenchScopeFromPrincipal(p)
+		if len(s.ReadableOrderBusinessTypes)+len(s.ReadableFeeBusinessTypes)+len(s.ReadableAbnormalBusinessTypes) != 0 {
+			t.Fatal("系统工作台不能读取本人经营待办")
+		}
+	}
+}

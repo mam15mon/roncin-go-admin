@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import { getOrderFlowStatusText } from '@/constants/statusMeta';
 import { WorkbenchCommissionStatus } from '@/enums.generated';
+import { orderDetailPath } from '@/features/orders/navigation';
 import { formatAmount } from '@/utils/format';
 
 /**
@@ -79,7 +80,8 @@ const ORDER_TERMINATION_STATUS_TEXT: Record<string, string> = {
 };
 
 export const orderFlowStatusText = (value?: string, businessType?: string) => {
-  if (businessType === 'AE') return getOrderFlowStatusText(value, businessType);
+  if (businessType === 'AE' || businessType === 'AI')
+    return getOrderFlowStatusText(value, businessType);
   if (value === 'TRUCKING_ARRANGED') return '已安排拖车';
   if (value === 'CUSTOMS_DECLARATION_ARRANGED') return '已安排报关';
   return getOrderFlowStatusText(value, businessType);
@@ -130,12 +132,5 @@ export function workbenchOrderPath(
   orderId?: string,
   fees = false,
 ): string | undefined {
-  const kind =
-    businessType === 'SE'
-      ? 'sea-export'
-      : businessType === 'AE'
-        ? 'air-export'
-        : undefined;
-  if (!kind || !orderId) return undefined;
-  return `/orders/${kind}/${orderId}${fees ? '/fees' : ''}`;
+  return orderDetailPath(businessType, orderId, fees);
 }

@@ -28,6 +28,25 @@ describe('queryOrderList', () => {
     masterOptionsMock.mockReset().mockResolvedValue([]);
   });
 
+  it.each([undefined, false])(
+    '成功标志%s不是true时拒绝夹带旧data的列表响应',
+    async (success) => {
+      listOrdersMock.mockResolvedValue({
+        success,
+        data: [{ id: 'old-order', orderNo: '旧资料' }],
+        total: 1,
+      });
+      await expect(
+        queryOrderList({}, seaExportDefinition, {
+          organizationId: 'org-1',
+          ports: [],
+          airports: [],
+          customerMap: {},
+        }),
+      ).rejects.toThrow('订单列表加载失败');
+    },
+  );
+
   it('AI列表查询携带真实类型并保留权威ETA/航空号码投影', async () => {
     listOrdersMock.mockResolvedValue({
       success: true,
@@ -230,7 +249,7 @@ describe('queryOrderList', () => {
     },
   );
 
-  it('使用港口、机场、客户和箱型主数据构造列表行', async () => {
+  it('使用港口、机场、客户和服务端箱型投影构造列表行', async () => {
     masterOptionsMock.mockResolvedValue([
       { id: 'container-spec-1', kind: 7, code: '40HQ', name: '40尺高柜' },
     ]);
@@ -246,7 +265,12 @@ describe('queryOrderList', () => {
           paymentTerm: 1,
           tradeTerm: 3,
           containerRequests: [
-            { quantity: 2, containerSpecId: 'container-spec-1' },
+            {
+              quantity: 2,
+              containerSpecId: 'container-spec-1',
+              containerSpecCode: '40HQ',
+              containerSpecName: '40尺高柜',
+            },
           ],
         },
       ],
@@ -356,69 +380,53 @@ describe('queryOrderList', () => {
     ).toBe(false);
   });
 
-  it('订单先返回时等待同组织箱型字典，冷启动不把 UUID 固化为列表文字', async () => {
-    const masterData = Promise.withResolvers<API.MasterDataItem[]>();
-    masterOptionsMock.mockReturnValue(masterData.promise);
+  it('列表箱计划直接使用同次响应投影，不等待或读取另一次字典', async () => {
+    masterOptionsMock.mockRejectedValue(new Error('不得另外加载变化中的字典'));
     listOrdersMock.mockResolvedValue({
+      success: true,
       data: [
         {
           id: 'order-cold-start',
           containerRequests: [
             {
               quantity: 1,
-              containerSpecId: '31c5d297-1456-454b-8e26-e489a83afce9',
+              containerSpecId: 'spec-20gp',
+              containerSpecCode: ' 20GP ',
+              containerSpecName: '20尺普柜',
             },
-            { quantity: 2, containerSpecId: 'container-spec-40hq' },
+            {
+              quantity: 2,
+              containerSpecId: 'spec-40hq',
+              containerSpecCode: '40HQ',
+              containerSpecName: '停用历史箱型',
+            },
           ],
         },
       ],
       total: 1,
     });
-    let resolved = false;
-    const result = queryOrderList({}, seaExportDefinition, {
+    const result = await queryOrderList({}, seaExportDefinition, {
       organizationId: 'org-cold-start',
       ports: [],
       airports: [],
       customerMap: {},
-    }).then((value) => {
-      resolved = true;
-      return value;
     });
-    await vi.waitFor(() =>
-      expect(masterOptionsMock).toHaveBeenCalledWith('org-cold-start'),
-    );
-    expect(resolved).toBe(false);
-    masterData.resolve([
-      {
-        id: '31c5d297-1456-454b-8e26-e489a83afce9',
-        kind: 7,
-        code: '20GP',
-        name: '20尺普柜',
-      },
-      {
-        id: 'container-spec-40hq',
-        kind: 7,
-        code: '40HQ',
-        name: '40尺高柜',
-        enabled: false,
-      },
-    ]);
-    expect((await result).data[0].containerSummary).toBe('1×20GP, 2×40HQ');
+    expect(result.data[0].containerSummary).toBe('1×20GP, 2×40HQ');
+    expect(masterOptionsMock).not.toHaveBeenCalled();
   });
 
-  it('无代码时使用箱型名称，缺少箱型时保留数量并明确标记，不显示 ID', async () => {
-    masterOptionsMock.mockResolvedValue([
-      { id: 'named-spec', kind: 7, name: '特种箱' },
-      { id: 'wrong-kind', kind: 9, code: '非箱型字典' },
-    ]);
+  it('箱型代码未设置时使用同次响应中的真实名称', async () => {
     listOrdersMock.mockResolvedValue({
+      success: true,
       data: [
         {
           id: 'order-1',
           containerRequests: [
-            { quantity: 1, containerSpecId: 'named-spec' },
-            { quantity: 3, containerSpecId: 'missing-spec' },
-            { quantity: 2, containerSpecId: 'wrong-kind' },
+            {
+              quantity: 1,
+              containerSpecId: 'named-spec',
+              containerSpecName: ' 特种箱 ',
+            },
           ],
         },
       ],
@@ -430,15 +438,43 @@ describe('queryOrderList', () => {
       airports: [],
       customerMap: {},
     });
-    expect(result.data[0].containerSummary).toBe(
-      '1×特种箱, 3×箱型缺失, 2×箱型缺失',
-    );
+    expect(result.data[0].containerSummary).toBe('1×特种箱');
+    expect(masterOptionsMock).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { quantity: 3, containerSpecId: 'missing-projection' },
+    {
+      quantity: 2,
+      containerSpecId: 'blank-projection',
+      containerSpecCode: ' ',
+      containerSpecName: ' ',
+    },
+  ])('箱型投影缺失或空白时明确失败，不猜名称或另查字典', async (request) => {
+    listOrdersMock.mockResolvedValue({
+      success: true,
+      data: [{ id: 'order-1', containerRequests: [request] }],
+      total: 1,
+    });
+    await expect(
+      queryOrderList({}, seaExportDefinition, {
+        organizationId: 'org-1',
+        ports: [],
+        airports: [],
+        customerMap: {},
+      }),
+    ).rejects.toThrow('订单箱计划缺少有效箱型投影');
+    expect(masterOptionsMock).not.toHaveBeenCalled();
   });
 
   it.each([seaExportDefinition, airExportDefinition])(
     '$kind 无箱计划时不为摘要加载字典',
     async (definition) => {
-      listOrdersMock.mockResolvedValue({ data: [{ id: 'order-1' }], total: 1 });
+      listOrdersMock.mockResolvedValue({
+        success: true,
+        data: [{ id: 'order-1' }],
+        total: 1,
+      });
       const result = await queryOrderList({}, definition, {
         organizationId: 'org-1',
         ports: [],
@@ -450,13 +486,13 @@ describe('queryOrderList', () => {
     },
   );
 
-  it('箱型字典加载失败时外传错误，不返回带原始 ID 的列表行', async () => {
-    masterOptionsMock.mockRejectedValue(new Error('主数据选项加载失败'));
+  it('箱计划真实引用ID缺失时拒绝投影，不把展示名称用于身份判断', async () => {
     listOrdersMock.mockResolvedValue({
+      success: true,
       data: [
         {
           id: 'order-1',
-          containerRequests: [{ quantity: 1, containerSpecId: 'missing-spec' }],
+          containerRequests: [{ quantity: 1, containerSpecCode: '20GP' }],
         },
       ],
       total: 1,
@@ -468,7 +504,8 @@ describe('queryOrderList', () => {
         airports: [],
         customerMap: {},
       }),
-    ).rejects.toThrow('主数据选项加载失败');
+    ).rejects.toThrow('订单箱计划缺少有效箱型投影');
+    expect(masterOptionsMock).not.toHaveBeenCalled();
   });
 
   it('人员三列映射服务端投影名称，未分配时为空由模板渲染占位', async () => {
@@ -527,6 +564,7 @@ describe('queryOrderList', () => {
     '海运单证映射遵循真实 wire 结构 %s / 票数 %s',
     async (structure, count, kind, memberCount) => {
       listOrdersMock.mockResolvedValue({
+        success: true,
         data: [
           {
             id: 'order-1',
@@ -561,6 +599,7 @@ describe('queryOrderList', () => {
 
   it('HOUSE 没有 HBL 号码时保留缺失，空运不启用海运关系模型', async () => {
     listOrdersMock.mockResolvedValue({
+      success: true,
       data: [
         {
           id: 'order-1',
@@ -590,7 +629,7 @@ describe('queryOrderList', () => {
   it.each(['orderNo', 'createdAt', 'etd', 'eta'])(
     '向服务端传递 %s 排序，清除排序恢复默认',
     async (sorterField) => {
-      listOrdersMock.mockResolvedValue({ data: [], total: 0 });
+      listOrdersMock.mockResolvedValue({ success: true, data: [], total: 0 });
       const context = {
         ports: [],
         airports: [],
@@ -622,6 +661,7 @@ describe('queryOrderList', () => {
 
   it('映射真实列表投影，分别保留本票目的港、共同卸货港及业务备注', async () => {
     listOrdersMock.mockResolvedValue({
+      success: true,
       data: [
         {
           id: 'order-1',
@@ -706,6 +746,7 @@ describe('queryOrderList', () => {
 
   it('可选附件数与货值保持存在性，缺省数组为空而显式零不丢失', async () => {
     listOrdersMock.mockResolvedValue({
+      success: true,
       data: [
         { id: 'missing', orderNo: 'SE-MISSING' },
         {

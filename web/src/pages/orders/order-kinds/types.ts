@@ -1,6 +1,7 @@
 import type { MenuProps } from 'antd';
 import type React from 'react';
 import type { OrderBusinessType, TradeDirection } from '@/enums.generated';
+import type { OrderRouteKind } from '@/features/orders/navigation';
 import type { OrderPermissionOperation } from '@/permissions.generated';
 import type { OrderRecordTab } from '../components/detail/OrderAuditTimelineSection';
 import type {
@@ -14,11 +15,7 @@ import type {
 } from './form-values';
 
 /** 订单类型的稳定路由标识，同时是注册表的唯一 key。 */
-export type OrderKind =
-  | 'sea-export'
-  | 'sea-import'
-  | 'air-export'
-  | 'air-import';
+export type OrderKind = OrderRouteKind;
 
 /** 运输方式只描述主数据装载与地点搜索，不承载订单类型分发。 */
 export type OrderTransportMode = 'sea' | 'air' | 'land' | 'rail';

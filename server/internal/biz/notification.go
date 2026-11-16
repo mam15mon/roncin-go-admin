@@ -229,7 +229,7 @@ func renderFeeReviewMessage(delivery *NotificationDelivery, result bool) DingTal
 	actionPath := ""
 	// 入队路径由订单 UUID 生成；仅将与当前资源完全匹配的入口作为链接。
 	if delivery.ResourceType == "ORDER" {
-		for _, businessType := range []OrderBusinessType{OrderBusinessSE, OrderBusinessAE} {
+		for _, businessType := range []OrderBusinessType{OrderBusinessSE, OrderBusinessSI, OrderBusinessAE, OrderBusinessAI} {
 			path := OrderFeesPath(businessType, delivery.ResourceID)
 			entrySuffix := "\n订单入口：" + path
 			if strings.HasSuffix(parameter, entrySuffix) {
@@ -263,6 +263,10 @@ func OrderFeesPath(businessType OrderBusinessType, id uuid.UUID) string {
 		kind = "sea-export"
 	case OrderBusinessAE:
 		kind = "air-export"
+	case OrderBusinessSI:
+		kind = "sea-import"
+	case OrderBusinessAI:
+		kind = "air-import"
 	default:
 		return ""
 	}

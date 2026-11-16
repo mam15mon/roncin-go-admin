@@ -1,10 +1,11 @@
 import { OrderBusinessType, TradeDirection } from '@/enums.generated';
+import { ORDER_BUSINESS_ROUTES } from '@/features/orders/navigation';
 import type { OrderKindDefinition } from '../types';
 import AirExportDetailFeatures from './AirExportDetailFeatures';
 import { airExportFormAdapter } from './form-adapter';
 
 export const airExportDefinition: OrderKindDefinition = {
-  kind: 'air-export',
+  kind: ORDER_BUSINESS_ROUTES[OrderBusinessType.BUSINESS_TYPE_AE],
   businessType: OrderBusinessType.BUSINESS_TYPE_AE,
   tradeDirection: TradeDirection.TRADE_DIRECTION_EXPORT,
   transportMode: 'air',

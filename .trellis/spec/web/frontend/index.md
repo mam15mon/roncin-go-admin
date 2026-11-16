@@ -15,6 +15,7 @@
 | [航空制作与PDF](../../server/backend/air-waybill-production.md) | MAWB/HAWB真实主体与保存版本、按需同Blob输出、完整分页及输入保护 | ✅ |
 | [空运进口闭环](../../server/backend/air-import-contract.md) | AI路由/候选/主单类型、重量权限、ETA与服务保存航空基线 | ✅ |
 | [进口订单与按票服务](../../server/backend/order-import-handling.md) | SI页面复用、真实类型/服务基线、五环节适用性与外部HBL登记归档 | ✅ |
+| [四类订单横切与完整CSV](../../server/backend/order-cross-module-export.md) | 完整导出与官方onLoad采纳、切条件身份失效、四类导航及真实文件验收 | ✅ |
 | [订单列表字段与排序](../../server/backend/order-list-fields.md) | 海运可选列、本票摘要、真实排序、品类偏好与列表提成退役 | ✅ |
 | [Column Settings](./column-settings.md) | 全量铺排排序、逐列多列冻结、偏好隔离和Pro适配 | ✅ |
 | [海运共享航程](./sea-master-voyage-inheritance.md) | 已有主单航程继承、差异采纳、只读来源与统一修改影响范围 | ✅ |

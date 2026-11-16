@@ -6,35 +6,26 @@ import {
   OrderTerminationStatus,
   SeaDocumentStructure,
 } from '@/enums.generated';
-import { getMasterDataOptions } from '@/features/orders/options';
 import { orderServiceListOrders } from '@/services/roncin/orderService';
-import { toTableRequest, unwrapPage } from '@/utils/api';
-import {
-  isMasterDataKind,
-  MASTER_DATA_KINDS,
-  paymentTermOptions,
-  tradeTermOptions,
-} from './common';
+import { ensureListResponse, toTableRequest, unwrapPage } from '@/utils/api';
+import { paymentTermOptions, tradeTermOptions } from './common';
 import { lifecycleFiltersByStage } from './list-constants';
 import type { OrderKindDefinition } from './order-kinds/types';
 
-interface OrderListQueryContext {
+export interface OrderListQueryContext {
   organizationId: string | undefined;
   ports: API.Port[];
   airports: API.Airport[];
   customerMap: Record<string, string>;
 }
 
-/** 将模板筛选参数映射为订单列表查询请求，并把响应整理为模板行数据。 */
-export async function queryOrderList(
+/** 列表与完整导出共用业务筛选，分页只由列表调用方补入。 */
+export function buildOrderListRequestFilters(
   params: OrderListFilterParams,
   definition: OrderKindDefinition,
-  ctx: OrderListQueryContext,
 ) {
   const lifecycleFilters = lifecycleFiltersByStage[params.stage ?? ''] ?? {};
-  const response = await orderServiceListOrders({
-    page: params.page,
-    pageSize: params.pageSize,
+  return {
     sortBy: params.sorterOrder ? params.sorterField : undefined,
     sortOrder: params.sorterOrder,
     numberType:
@@ -84,33 +75,17 @@ export async function queryOrderList(
         : params.shareStatus === 'unshared'
           ? false
           : undefined,
-  });
+  };
+}
 
-  const page = unwrapPage(response);
-  let containerSpecMap: Record<string, string | undefined> = {};
-  if (
-    definition.transportMode === 'sea' &&
-    page.data.some((order) => order.containerRequests?.length)
-  ) {
-    if (!ctx.organizationId) {
-      throw new Error('缺少当前组织，无法加载订单箱型');
-    }
-    // 列表行必须等待同组织字典解析；首次渲染的资源映射可能尚未加载完成。
-    const masterOptions = await getMasterDataOptions(ctx.organizationId);
-    containerSpecMap = Object.fromEntries(
-      masterOptions
-        .filter(
-          (item) =>
-            item.id &&
-            isMasterDataKind(item.kind, MASTER_DATA_KINDS.CONTAINER_SPEC),
-        )
-        .map((item) => [
-          item.id as string,
-          item.code?.trim() || item.name?.trim(),
-        ]),
-    );
-  }
-  const items: OrderListItem[] = page.data.map((order) => {
+/** 将API订单投影成列表和导出共用的稳定行模型。 */
+export async function mapOrderListItems(
+  orders: API.Order[],
+  definition: OrderKindDefinition,
+  ctx: OrderListQueryContext,
+): Promise<OrderListItem[]> {
+  const items: OrderListItem[] = orders.map((order) => {
+    if (!order.id) throw new Error('订单响应缺少业务标识。');
     const originPort = ctx.ports.find((p) => p.id === order.originLocationId);
     const destPort = ctx.ports.find(
       (p) => p.id === order.destinationLocationId,
@@ -143,10 +118,14 @@ export async function queryOrderList(
       : destPort?.unLocode || destAirport?.iataCode;
 
     const containerSummary = (order.containerRequests ?? [])
-      .map(
-        (req) =>
-          `${req.quantity}×${containerSpecMap[req.containerSpecId ?? ''] || '箱型缺失'}`,
-      )
+      .map((req) => {
+        // 箱计划名称随订单一起由服务端投影，完整导出不另查变化中的字典。
+        const label =
+          req.containerSpecCode?.trim() || req.containerSpecName?.trim();
+        if (!req.containerSpecId || !label)
+          throw new Error('订单箱计划缺少有效箱型投影。');
+        return `${req.quantity ?? 0}×${label}`;
+      })
       .join(', ');
 
     const stage: NonNullable<OrderListItem['stage']> = [];
@@ -181,6 +160,18 @@ export async function queryOrderList(
       masterBlNo:
         order.airExport?.master?.content?.masterNo ||
         order.seaMasterBill?.masterNo,
+      houseBlNo:
+        order.airExport?.house?.houseNo || order.seaDocumentSummary?.houseNo,
+      documentMode:
+        order.airExport?.documentMode === 'HOUSE' ||
+        order.seaDocumentSummary?.documentStructure ===
+          SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
+          ? 'HOUSE'
+          : order.airExport?.documentMode === 'DIRECT' ||
+              order.seaDocumentSummary?.documentStructure ===
+                SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT
+            ? 'DIRECT'
+            : undefined,
       billRelation:
         definition.transportMode === 'sea'
           ? {
@@ -197,7 +188,8 @@ export async function queryOrderList(
             }
           : undefined,
       bookingAgentName: order.bookingAgentName,
-      shippingLineName: order.shippingLineName,
+      shippingLineName:
+        order.airExport?.master?.airlineName || order.shippingLineName,
       etd: order.etd,
       eta: order.eta,
       siCutoff: order.siCutoff,
@@ -260,6 +252,25 @@ export async function queryOrderList(
     };
   });
 
+  return items;
+}
+
+/** 分页请求与数据流仍交给官方ProTable request引擎。 */
+export async function queryOrderList(
+  params: OrderListFilterParams,
+  definition: OrderKindDefinition,
+  ctx: OrderListQueryContext,
+) {
+  if (!ctx.organizationId) throw new Error('当前公司尚未就绪。');
+  const response = await orderServiceListOrders({
+    ...buildOrderListRequestFilters(params, definition),
+    page: params.page,
+    pageSize: params.pageSize,
+  });
+  ensureListResponse(response, '订单列表加载失败。');
+  if (response?.success !== true) throw new Error('订单列表加载失败。');
+  const page = unwrapPage(response);
+  const items = await mapOrderListItems(page.data, definition, ctx);
   return {
     ...toTableRequest({ ...response, data: items }),
     total: page.total,

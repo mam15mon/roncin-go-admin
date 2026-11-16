@@ -11,6 +11,7 @@
 | 场景 | 业务入口（biz 文件） | 主要能力 | 反模式 |
 | --- | --- | --- | --- |
 | 订单创建/查询/流转 | `order_usecase.go`、`order.go`、`order_transition.go` | 订单档案、状态流转、列表过滤、跨组织范围 | 在 service 写业务规则或绕过 biz 直查 data |
+| 四类订单完整筛选导出 | `order_usecase.go`（`Export`）、`order_types.go`（`OrderExport`） | 独立无分页接口、复用列表筛选排序、当前公司与真实类型权限、同一只读快照完整投影（见 order-cross-module-export） | 巨型pageSize或循环翻页、当前页冒充完整结果、系统治理借权经营 |
 | 海运出口单证 | `sea_document.go`、`sea_master_bill.go`、`sea_cargo_allocation.go` | 操作票、共享 MBL、货物分摊（契约见专项 spec） | 单证版本判断散落调用方 |
 | 空运进出口主分单与重量 | `air_export.go`、`air_waybill_content.go`、`air_weight.go`、`order_fee_quantity_source.go` | AE/AI真实类型授权、显式共享 MAWB、DIRECT/HOUSE、独立正文/哈希/历史、航空审核指纹、重量确认和费用来源（见 air-export-contract、air-waybill-content-and-mode、air-import-contract） | 借AE权限放行AI、字符串隐式拼单、直单虚构HAWB、正文覆盖运输、重复带入主单总重、覆盖人工确认 |
 | 进口本票承接服务 | `biz/order_import_handling.go`、`data/order_import_handling.go`（见 order-import-handling） | 固定五服务/不可变前后事件、Order版本及flow原子派生、SI真实单证快照与服务完结门禁 | 自定义流程平台、共享到达自动完成、镜像服务版本、服务成功自动放货/审核/核销 |

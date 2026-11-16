@@ -3,6 +3,11 @@ import { paginationSizeChanger } from '@root/config/pagination';
 import { Alert, Button, Drawer, Space, Tabs, Tag, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
 import { ResponsiveProTable, useColumnSettings } from '@/components/ui';
+import {
+  businessTypeMeta,
+  normalizeBusinessType,
+  statusText,
+} from '@/constants/statusMeta';
 import { history } from '@/router/history';
 import {
   workbenchServiceListMyOpenAbnormalCases,
@@ -58,11 +63,10 @@ function orderColumns<T extends TodoOrder>(): ProColumns<T>[] {
       dataIndex: 'businessType',
       width: 110,
       render: (_, record) =>
-        record.businessType === 'SE'
-          ? '海运出口'
-          : record.businessType === 'AE'
-            ? '空运出口'
-            : '-',
+        statusText(
+          businessTypeMeta,
+          normalizeBusinessType(record.businessType),
+        ),
     },
     { title: '客户名称', dataIndex: 'customerName', width: 160 },
   ];

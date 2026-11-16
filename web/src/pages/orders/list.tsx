@@ -1,14 +1,19 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
-import { Button, Popover, Result, Tag } from 'antd';
+import { useMutation } from '@tanstack/react-query';
+import { App, Button, Popover, Result, Tag } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router';
 import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
 import { OrderListTemplate } from '@/components/ui';
-import type { OrderListItem } from '@/components/ui/order-list-template/types';
+import type {
+  OrderListAcceptedSnapshot,
+  OrderListItem,
+} from '@/components/ui/order-list-template/types';
 import { FeeReviewSummary } from '@/features/orders/fee-review';
 import { history } from '@/router/history';
+import { downloadCsv, serializeCsv } from '@/utils/csv';
 import AbnormalCasePanel, {
   type AbnormalCasePanelRef,
 } from './abnormal-case-panel';
@@ -32,6 +37,11 @@ import {
   getDocumentsActionLabel,
   openOrderDocuments,
 } from './list-documents-action';
+import {
+  fetchOrderListExport,
+  orderExportColumns,
+  orderExportFileName,
+} from './list-export';
 import { queryOrderList } from './list-query';
 import { useOrderListResources } from './list-resources';
 import { getOrderKindDefinition } from './order-kinds/registry';
@@ -58,8 +68,16 @@ export default function OrderListPage() {
   const abnormalCasePanelRef = useRef<AbnormalCasePanelRef | null>(null);
 
   const access = useAccess();
+  const { message } = App.useApp();
   const { initialState } = useInitialState();
   const workspaceId = initialState?.currentUser?.currentOrganization?.id;
+  const userId = initialState?.currentUser?.id;
+  const canReadContainers = Boolean(
+    definition && access.canOrder(definition.businessType, 'container.read'),
+  );
+  const canReadAttachments = Boolean(
+    definition && access.canOrder(definition.businessType, 'attachment.read'),
+  );
   const [activeOrder, setActiveOrder] = useState<API.Order>();
   const canOperateActiveOrder = access.canOperateOrganization(
     activeOrder?.organizationId,
@@ -125,7 +143,59 @@ export default function OrderListPage() {
     searchOrderPorts,
     searchOrderCarriers,
     searchOrderPersonnel,
-  } = useOrderListResources(definition);
+  } = useOrderListResources(
+    definition &&
+      userId &&
+      workspaceId &&
+      access.canOrder(definition.businessType, 'read')
+      ? definition
+      : undefined,
+  );
+  const exportOrders = useMutation({
+    mutationFn: async ({
+      snapshot,
+      isCurrent,
+    }: {
+      snapshot: OrderListAcceptedSnapshot;
+      isCurrent: () => boolean;
+    }) => {
+      if (
+        !definition ||
+        !userId ||
+        !workspaceId ||
+        !access.canOrder(definition.businessType, 'read') ||
+        !isCurrent()
+      )
+        return;
+      const result = await fetchOrderListExport(
+        snapshot,
+        definition,
+        { organizationId: workspaceId, ports, airports, customerMap },
+        isCurrent,
+      );
+      if (!isCurrent()) return;
+      const csv = serializeCsv(
+        result.rows,
+        orderExportColumns({
+          containers: canReadContainers,
+          attachments: canReadAttachments,
+        }),
+      );
+      if (!csv) {
+        message.info('当前筛选没有可导出的订单');
+        return;
+      }
+      downloadCsv(
+        csv,
+        orderExportFileName(definition.title, result.generatedAt),
+      );
+    },
+    onError: (error, { isCurrent }) => {
+      if (isCurrent())
+        message.error(error.message || '订单完整导出失败，请重试。');
+    },
+    meta: { silent: true },
+  });
 
   if (!definition) {
     return (
@@ -138,11 +208,21 @@ export default function OrderListPage() {
       </PageContainer>
     );
   }
+  if (
+    !workspaceId ||
+    !userId ||
+    !access.canOrder(definition.businessType, 'read')
+  )
+    return (
+      <PageContainer>
+        <Result status="403" title="当前公司尚未就绪或无权查看该类订单" />
+      </PageContainer>
+    );
 
   return (
     <>
       <OrderListTemplate
-        key={definition.kind}
+        key={`${userId}:${workspaceId}:${definition.kind}:${canReadContainers}:${canReadAttachments}`}
         queryStateIdentity={{
           tabKey: `/orders/${definition.kind}`,
           listId: `orders:${definition.kind}`,
@@ -176,6 +256,10 @@ export default function OrderListPage() {
             airports,
             customerMap,
           })
+        }
+        exporting={exportOrders.isPending}
+        onExportTable={(snapshot, isCurrent) =>
+          exportOrders.mutate({ snapshot, isCurrent })
         }
         onCreateOrder={
           access.canOrder(definition.businessType, 'create')

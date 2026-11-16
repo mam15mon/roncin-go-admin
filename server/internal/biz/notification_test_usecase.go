@@ -46,7 +46,7 @@ func notificationTestOrderScopes(p *Principal) []OrderOrganizationScope {
 		return nil
 	}
 	var scopes []OrderOrganizationScope
-	for _, businessType := range []OrderBusinessType{OrderBusinessSE, OrderBusinessAE} {
+	for _, businessType := range []OrderBusinessType{OrderBusinessSE, OrderBusinessSI, OrderBusinessAE, OrderBusinessAI} {
 		read, err := p.ResolvePermissionOrganizationScope(access.OrderPermission(access.OrderBusinessType(businessType), access.OrderRead))
 		if err != nil {
 			continue

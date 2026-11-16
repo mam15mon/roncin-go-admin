@@ -23,6 +23,7 @@ const (
 	OrderService_SaveImportHandling_FullMethodName          = "/order.v1.OrderService/SaveImportHandling"
 	OrderService_ListImportHandlingEvents_FullMethodName    = "/order.v1.OrderService/ListImportHandlingEvents"
 	OrderService_MatchSeaMasterBillCandidate_FullMethodName = "/order.v1.OrderService/MatchSeaMasterBillCandidate"
+	OrderService_ExportOrders_FullMethodName                = "/order.v1.OrderService/ExportOrders"
 	OrderService_GetOrder_FullMethodName                    = "/order.v1.OrderService/GetOrder"
 	OrderService_ListOrders_FullMethodName                  = "/order.v1.OrderService/ListOrders"
 	OrderService_CheckOrderReference_FullMethodName         = "/order.v1.OrderService/CheckOrderReference"
@@ -46,6 +47,7 @@ type OrderServiceClient interface {
 	SaveImportHandling(ctx context.Context, in *SaveImportHandlingRequest, opts ...grpc.CallOption) (*SaveImportHandlingResponse, error)
 	ListImportHandlingEvents(ctx context.Context, in *ListImportHandlingEventsRequest, opts ...grpc.CallOption) (*ListImportHandlingEventsResponse, error)
 	MatchSeaMasterBillCandidate(ctx context.Context, in *MatchSeaMasterBillCandidateRequest, opts ...grpc.CallOption) (*MatchSeaMasterBillCandidateResponse, error)
+	ExportOrders(ctx context.Context, in *ExportOrdersRequest, opts ...grpc.CallOption) (*ExportOrdersResponse, error)
 	GetOrder(ctx context.Context, in *GetOrderRequest, opts ...grpc.CallOption) (*GetOrderResponse, error)
 	ListOrders(ctx context.Context, in *ListOrdersRequest, opts ...grpc.CallOption) (*ListOrdersResponse, error)
 	CheckOrderReference(ctx context.Context, in *CheckOrderReferenceRequest, opts ...grpc.CallOption) (*CheckOrderReferenceResponse, error)
@@ -101,6 +103,16 @@ func (c *orderServiceClient) MatchSeaMasterBillCandidate(ctx context.Context, in
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(MatchSeaMasterBillCandidateResponse)
 	err := c.cc.Invoke(ctx, OrderService_MatchSeaMasterBillCandidate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orderServiceClient) ExportOrders(ctx context.Context, in *ExportOrdersRequest, opts ...grpc.CallOption) (*ExportOrdersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ExportOrdersResponse)
+	err := c.cc.Invoke(ctx, OrderService_ExportOrders_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -227,6 +239,7 @@ type OrderServiceServer interface {
 	SaveImportHandling(context.Context, *SaveImportHandlingRequest) (*SaveImportHandlingResponse, error)
 	ListImportHandlingEvents(context.Context, *ListImportHandlingEventsRequest) (*ListImportHandlingEventsResponse, error)
 	MatchSeaMasterBillCandidate(context.Context, *MatchSeaMasterBillCandidateRequest) (*MatchSeaMasterBillCandidateResponse, error)
+	ExportOrders(context.Context, *ExportOrdersRequest) (*ExportOrdersResponse, error)
 	GetOrder(context.Context, *GetOrderRequest) (*GetOrderResponse, error)
 	ListOrders(context.Context, *ListOrdersRequest) (*ListOrdersResponse, error)
 	CheckOrderReference(context.Context, *CheckOrderReferenceRequest) (*CheckOrderReferenceResponse, error)
@@ -259,6 +272,9 @@ func (UnimplementedOrderServiceServer) ListImportHandlingEvents(context.Context,
 }
 func (UnimplementedOrderServiceServer) MatchSeaMasterBillCandidate(context.Context, *MatchSeaMasterBillCandidateRequest) (*MatchSeaMasterBillCandidateResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method MatchSeaMasterBillCandidate not implemented")
+}
+func (UnimplementedOrderServiceServer) ExportOrders(context.Context, *ExportOrdersRequest) (*ExportOrdersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ExportOrders not implemented")
 }
 func (UnimplementedOrderServiceServer) GetOrder(context.Context, *GetOrderRequest) (*GetOrderResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetOrder not implemented")
@@ -382,6 +398,24 @@ func _OrderService_MatchSeaMasterBillCandidate_Handler(srv interface{}, ctx cont
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(OrderServiceServer).MatchSeaMasterBillCandidate(ctx, req.(*MatchSeaMasterBillCandidateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrderService_ExportOrders_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExportOrdersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderServiceServer).ExportOrders(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderService_ExportOrders_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderServiceServer).ExportOrders(ctx, req.(*ExportOrdersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -606,6 +640,10 @@ var OrderService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "MatchSeaMasterBillCandidate",
 			Handler:    _OrderService_MatchSeaMasterBillCandidate_Handler,
+		},
+		{
+			MethodName: "ExportOrders",
+			Handler:    _OrderService_ExportOrders_Handler,
 		},
 		{
 			MethodName: "GetOrder",

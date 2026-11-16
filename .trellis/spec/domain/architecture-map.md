@@ -23,8 +23,11 @@ React 19 + Ant Design 6 (web/)          ←─ 同域部署 /api/* ─→   Go K
 | 域 | 后端 | 前端 |
 | --- | --- | --- |
 | 订单/海运单证 | `biz/sea_order_change.go`、`biz/sea_document_change.go`、`biz/sea_master_bill.go`、`data/sea_*` | `pages/orders/**`（品类模板 `pages/orders/templates/components/sea/`，注册表 `pages/orders/order-kinds/`） |
-| 空运出口/共享主单/重量 | `biz/air_export.go`、`biz/air_weight.go`、`data/air_*` | `pages/orders/order-kinds/air-export/`、`templates/components/air/`（复用公共订单和财务） |
+| 空运进出口/共享主单/重量 | `biz/air_export.go`、`biz/air_weight.go`、`data/air_*` | `pages/orders/order-kinds/{air-export,air-import}/`、`templates/components/air/`（复用公共订单和财务） |
 | 订单候选缓存 | `service/order_query.go` | `features/orders/options`（字典/首批港口机场/人员候选，组织切换清理入口） |
+| 进口按票服务 | `biz/order_import_handling.go`、`data/order_import_handling.go` | `pages/orders/import-handling/`（固定五服务/真实版本及输入保护） |
+| 海空单证PDF | 真实海空正文/主体只读投影，输出不改变业务状态 | `pages/orders/{hbl,awb}/`、`documents/pdf/`中立字体/同Blob工具 |
+| 订单完整导出与导航 | `biz/order_usecase.go`、`data/order_export.go`（同一读快照） | `pages/orders/list-export.ts`、`features/orders/navigation`（四类入口与完整CSV） |
 | 订单锁定 | `biz/order_lock.go`、`data/order_lock_*.go` | `pages/orders`（锁状态条） |
 | 费用/审核/补录 | `biz/order_fee.go`、`data/order_fee.go`、`data/order_fee_correction*.go` | `pages/orders/{list,fees}.tsx`、`features/orders/fee-review`（建账经 `features/finance/bill-creation`） |
 | 账单/对冲/核销 | `biz/finance_bill*.go`、`data/finance_bill_*.go` | `pages/finance/{bills,fees,cashflows,verifications}/**`、`features/finance/{bill-creation,bill-status,credit-control,exchange-gain-loss}` |
@@ -90,7 +93,7 @@ erDiagram
     Order }o--o| SeaMasterBill : "link (active)"
     SeaMasterBill ||--o{ SeaTransportExecution : voyages
     Order ||--o| SeaHouseBill : "HOUSE 结构"
-    Order }o--o| AirMasterWaybill : "AE 活动 Link，终止保留历史"
+    Order }o--o| AirMasterWaybill : "AE/AI 活动 Link，终止保留历史"
     Order ||--o| AirHouseWaybill : "HOUSE存在，DIRECT无分单"
     AirHouseWaybill ||--o{ AirHouseWaybillVersion : "不可变版本"
     AirMasterWaybill ||--o{ AirWeightConfirmation : "主单独立确认"

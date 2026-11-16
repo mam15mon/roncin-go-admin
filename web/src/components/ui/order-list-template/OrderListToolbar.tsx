@@ -20,6 +20,8 @@ export interface OrderListToolbarProps {
   onCopyOrder?: (selectedRows: OrderListItem[]) => void;
   onExportDocuments?: (selectedRows: OrderListItem[]) => void;
   onExportTable?: () => void;
+  exportDisabled?: boolean;
+  exporting?: boolean;
   filterVisible?: boolean;
   onToggleFilter?: () => void;
   readonly?: boolean;
@@ -35,6 +37,8 @@ export function OrderListToolbar({
   onCopyOrder,
   onExportDocuments,
   onExportTable,
+  exportDisabled = false,
+  exporting = false,
   filterVisible = false,
   onToggleFilter,
   readonly = false,
@@ -132,8 +136,13 @@ export function OrderListToolbar({
           </Button>
         )}
         {onExportTable && (
-          <Button icon={<ExportOutlined />} onClick={onExportTable}>
-            导出表格
+          <Button
+            icon={<ExportOutlined />}
+            onClick={onExportTable}
+            disabled={exportDisabled}
+            loading={exporting}
+          >
+            导出完整筛选结果
           </Button>
         )}
       </Space>

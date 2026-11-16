@@ -15,18 +15,20 @@
   `WorkbenchScope` 和 `WorkbenchTodoFilter`，返回 `PagedList`。
 - data：`workbench_todo.go`；摘要 `workbench.go` 必须复用同一查询构建函数。
 - web：`pages/workbench/MyTodosDrawer.tsx` 走官方 ProTable `request/actionRef`；
-  费用直达 `/orders/{sea-export|air-export}/{orderId}/fees`，异常直达订单详情的 `?panel=abnormal`。
+  费用直达 `/orders/{sea-export|sea-import|air-export|air-import}/{orderId}/fees`，异常直达订单详情的 `?panel=abnormal`。
 
 ## 3. 请求、响应与身份契约
 
 请求只有 `page/pageSize`；默认 1/20，最大 200。身份取会话，不接受改查同事或公司的参数。
-基础范围为当前公司、当前用户真实 `OrderPersonnel` 协作、SE/AE 订单 `read`；
+基础范围为当前公司、当前用户真实 `OrderPersonnel` 协作、SE/SI/AE/AI 订单 `read`；
+近期订单、分页摘要与两类待办均按这套四类权限范围取数，不能仅列表放开进口而计数仍漏。
 费用另需同品类 `fee.read`，异常另需 `abnormal_case.read`。`lock` 不替代费用读取，
 管理员也不扩大为全公司订单。无分类读取能力时返回空列表、零数量，前端隐藏该分类入口。
 
 封套为 `data/total/page/pageSize`。两类都携带订单 ID/单号、业务类型、客户、审核锁、
 退关及结案状态；费用携带方向、名称、结算方、币种、原币金额、录入时间、待补审状态及
-阻塞原因；异常携带记录/类型 ID、类型名称、标记时间及业务只读原因。金额传 decimal 字符串，
+阻塞原因；异常携带记录/类型 ID、类型名称、标记时间及业务只读原因。前端直达由`features/orders/navigation`公开入口按真实businessType构造，未知类型不默认出口。
+金额传 decimal 字符串，
 时间传 RFC3339；界面复用 `formatAmount` 和 `formatDate`，不混加币种。
 
 `SearchOptions` 请求为有效 `kind`、`keyword`、可选 `page/pageSize`（默认 1/20，上限 200），
@@ -68,7 +70,7 @@
 - `service/order_abnormal_case_test.go`：Mark/Resolve 的 `organizationID, actorID, orderID`
   参数顺序与领域用例一致，不把操作者当订单 ID。
 - web：真实 ProTable 分页与重试，返回/重开刷新，真实 OrganizationWorkspace 首帧和迟到隔离；
-  真实 Router 下 SE/AE、StrictMode、重复直达和普通重查；异常四项独立权限与写失败反馈。
+  真实 Router 下 SE/SI/AE/AI、StrictMode、重复直达和普通重查；异常四项独立权限与写失败反馈。
 
 ## 7. 错误与正确示例
 

@@ -26,7 +26,7 @@ func (AirMasterWaybill) Fields() []ent.Field {
 		field.String("document_cutoff_at").Default("").MaxLen(64), field.String("customs_cutoff_at").Default("").MaxLen(64),
 		field.String("status").Default("DRAFT").MaxLen(20), field.Uint64("version").Default(1),
 		field.Int("declared_packages").Optional().Nillable(), field.Float("declared_gross_weight_kg").Optional().Nillable(),
-		field.Float("declared_volume_cbm").Optional().Nillable(), field.String("notes").Default("").MaxLen(1000),
+		field.Float("declared_volume_cbm").Optional().Nillable(), field.String("notes").Default("").MaxRuneLen(1000),
 	}
 }
 func (AirMasterWaybill) Edges() []ent.Edge {

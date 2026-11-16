@@ -42,34 +42,11 @@ func (uc *OrderUsecase) FindAuthorized(ctx context.Context, id uuid.UUID, scopes
 }
 
 func (uc *OrderUsecase) List(ctx context.Context, scopes []OrderOrganizationScope, options OrderListOptions) (*OrderList, error) {
-	if !validOrderOrganizationScopes(scopes) || !ValidListPagination(options.Page, options.PageSize) || options.BusinessType != "" && !options.BusinessType.Valid() || options.BusinessType == "" && len(options.BusinessTypes) == 0 {
+	if !ValidListPagination(options.Page, options.PageSize) {
 		return nil, ErrOrderInvalidArgument
 	}
-	for _, businessType := range options.BusinessTypes {
-		if !businessType.Valid() {
-			return nil, ErrOrderInvalidArgument
-		}
-	}
-	switch options.SortBy {
-	case "", "orderNo", "createdAt", "etd", "eta":
-	default:
-		return nil, ErrOrderInvalidArgument
-	}
-	if options.SortOrder != "" && options.SortOrder != "ascend" && options.SortOrder != "descend" {
-		return nil, ErrOrderInvalidArgument
-	}
-	options.Keyword = strings.TrimSpace(options.Keyword)
-	options.NumberKeyword = strings.TrimSpace(options.NumberKeyword)
-	options.ConsigneeShortName = strings.TrimSpace(options.ConsigneeShortName)
-	options.ShipperShortName = strings.TrimSpace(options.ShipperShortName)
-	if options.NumberKeyword != "" && !options.NumberType.Valid() || options.NumberKeyword == "" && options.NumberType != "" {
-		return nil, ErrOrderInvalidArgument
-	}
-	if options.FlowStatus != "" && !options.FlowStatus.Valid() {
-		return nil, ErrOrderInvalidArgument
-	}
-	if options.TerminationStatus != "" && !options.TerminationStatus.Valid() || options.ClosureStatus != "" && !options.ClosureStatus.Valid() {
-		return nil, ErrOrderInvalidArgument
+	if err := normalizeOrderListFilter(scopes, &options); err != nil {
+		return nil, err
 	}
 	result, err := uc.repo.List(ctx, scopes, options)
 	if err != nil {
@@ -90,6 +67,53 @@ func (uc *OrderUsecase) List(ctx context.Context, scopes []OrderOrganizationScop
 		}
 	}
 	return result, nil
+}
+
+// Export 只接受明确的四类业务身份，完整读取不借分页参数扩大列表上限。
+func (uc *OrderUsecase) Export(ctx context.Context, scopes []OrderOrganizationScope, options OrderListOptions) (*OrderExport, error) {
+	if options.BusinessType != OrderBusinessSE && options.BusinessType != OrderBusinessSI && options.BusinessType != OrderBusinessAE && options.BusinessType != OrderBusinessAI {
+		return nil, ErrOrderInvalidArgument
+	}
+	if options.Page != 0 || options.PageSize != 0 {
+		return nil, ErrOrderInvalidArgument
+	}
+	if err := normalizeOrderListFilter(scopes, &options); err != nil {
+		return nil, err
+	}
+	return uc.repo.Export(ctx, scopes, options)
+}
+
+func normalizeOrderListFilter(scopes []OrderOrganizationScope, options *OrderListOptions) error {
+	if !validOrderOrganizationScopes(scopes) || options.BusinessType != "" && !options.BusinessType.Valid() || options.BusinessType == "" && len(options.BusinessTypes) == 0 {
+		return ErrOrderInvalidArgument
+	}
+	for _, businessType := range options.BusinessTypes {
+		if !businessType.Valid() {
+			return ErrOrderInvalidArgument
+		}
+	}
+	switch options.SortBy {
+	case "", "orderNo", "createdAt", "etd", "eta":
+	default:
+		return ErrOrderInvalidArgument
+	}
+	if options.SortOrder != "" && options.SortOrder != "ascend" && options.SortOrder != "descend" {
+		return ErrOrderInvalidArgument
+	}
+	options.Keyword = strings.TrimSpace(options.Keyword)
+	options.NumberKeyword = strings.TrimSpace(options.NumberKeyword)
+	options.ConsigneeShortName = strings.TrimSpace(options.ConsigneeShortName)
+	options.ShipperShortName = strings.TrimSpace(options.ShipperShortName)
+	if options.NumberKeyword != "" && !options.NumberType.Valid() || options.NumberKeyword == "" && options.NumberType != "" {
+		return ErrOrderInvalidArgument
+	}
+	if options.FlowStatus != "" && !options.FlowStatus.Valid() {
+		return ErrOrderInvalidArgument
+	}
+	if options.TerminationStatus != "" && !options.TerminationStatus.Valid() || options.ClosureStatus != "" && !options.ClosureStatus.Valid() {
+		return ErrOrderInvalidArgument
+	}
+	return nil
 }
 
 func validOrderOrganizationScopes(scopes []OrderOrganizationScope) bool {

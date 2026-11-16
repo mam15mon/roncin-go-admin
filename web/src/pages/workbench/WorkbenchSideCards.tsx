@@ -17,6 +17,11 @@ import {
 } from 'antd';
 import React from 'react';
 import { useAccess } from '@/app/access';
+import { businessTypeMeta, statusText } from '@/constants/statusMeta';
+import {
+  ORDER_BUSINESS_ROUTES,
+  orderListPath,
+} from '@/features/orders/navigation';
 import { history } from '@/router/history';
 import { formatDate } from '@/utils/format';
 import {
@@ -34,7 +39,7 @@ const { Text, Paragraph } = Typography;
 type RecentOrder = API.WorkbenchRecentOrder;
 type Todos = API.WorkbenchTodoSummary;
 
-/** 我负责的近期订单：仅本人真实协作归属的最近海运及空运出口订单，无数据时不渲染本卡。 */
+/** 我负责的近期订单：仅本人真实协作归属的最近海空运进出口订单，无数据时不渲染本卡。 */
 export function RecentOrdersCard({ orders }: { orders?: RecentOrder[] }) {
   const list = orders ?? [];
   if (list.length === 0) {
@@ -255,12 +260,14 @@ type QuickEntry = { title: string; path: string };
 export function QuickEntriesCard() {
   const access = useAccess();
   const entries: QuickEntry[] = [
-    access.canReadSEOrders
-      ? { title: '海运出口订单', path: '/orders/sea-export' }
-      : null,
-    access.canReadAEOrders
-      ? { title: '空运出口订单', path: '/orders/air-export' }
-      : null,
+    ...Object.keys(ORDER_BUSINESS_ROUTES).map((type) =>
+      access.canOrder(Number(type), 'read')
+        ? {
+            title: `${statusText(businessTypeMeta, Number(type))}订单`,
+            path: orderListPath(type) as string,
+          }
+        : null,
+    ),
     access.canReadFinanceFees
       ? { title: '集运费用明细', path: '/finance/fees' }
       : null,

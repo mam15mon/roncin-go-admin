@@ -16,9 +16,17 @@ AE/AI新建和详情的公共经营字段UI、默认值、载荷和回显；入�
 - 货值与保费保持独立的金额/币种对；复用CurrencyAmountInput验证和原始字符串，`'0'`不丢失，不将formatAmount展示写回请求。
 - DatePicker回显用Dayjs，提交用ISO时刻；字段清空发送既有optional出现性协议的显式空字符串，不省略成undefined而保留旧值。
 - 更新可清文本、代理ID、金额/币种以空字符串清除，枚举以生成UNSPECIFIED零值清除；新建未填可选项继续省略，不伪造值。
+- 航空取消危险品后，更新载荷必须显式清空UN、CLASS和截申报时间，并携带
+  `dangerousPackingGroup=UNSPECIFIED(0)`清除旧PG；创建未选仍省略。
+  控件只写`undefined`再让JSON省略，会被后端optional合并解释为保持旧值，
+  不能以危险品区块隐藏证明数据已清除。后端不从货类猜测清空，沿明确写入意图处理。
 - 业务付款方式提供可见选择，不能与海运货描组件的隐藏付款字段重复注册；操作备注保留既有运输卡入口。
 - 候选复用订单域现有供应商/国外代理能力和权限，不添加新主数据副本；工厂是本票文本，不新建工厂平台。
 - 只读状态传递给所有新控件；普通业务字段不写入共享AirMaster或空运正文。
+- 本期公共文本上限按Unicode字符：客户/内部业务号及合约100、工厂200、各备注1000。
+  biz的`utf8.RuneCountInString`、Ent的`MaxRuneLen`及控件业务限制必须一致，不能
+  在Ent使用按UTF-8字节的`MaxLen`拒绝合法中文边界。该调整只改变输入验证，
+  PostgreSQL varchar字符尺寸不变时不创建空迁移；必须用真实PG验证中文边界和超限。
 
 ## 4. 校验与错误矩阵
 
@@ -42,6 +50,8 @@ AE/AI新建和详情的公共经营字段UI、默认值、载荷和回显；入�
 - `order-kinds/air-export/form-adapter.test.ts`：原始金额/显式零、optional省略、ISO与Dayjs、创建与更新差异、JSON序列化后清空仍存在。
 - `templates/air-create-layout.test.tsx`：真实挂载新字段、业务付款只注册一次、编辑/清空可取得值且不写入airMaster。
 - 前端变更运行定向Vitest、修改文件Biome与必要tsc；最终仍需整票API及浏览器保存验收，不把adapter测试当全业务通过。
+- 公共文本边界须同时核对biz与生成Ent验证：100中文编号/合约、200中文工厂、1000中文备注可落库，超限1字符拒绝，清空与原值保持不变。
+- AE/AI危险品选择/取消后验证真实JSON及API重读：未设置optional保持旧值、显式空串/零清空是两条不同路径，首次初始化不得误清。
 
 ## 7. 错误与正确
 

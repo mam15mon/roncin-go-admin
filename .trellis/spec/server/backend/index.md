@@ -26,6 +26,7 @@
 | [进口订单与按票服务](./order-import-handling.md) | SI真实海运单证、固定五服务/事件、Order版本/派生进度、ETA费用及外部归档 | ✅ |
 | [海空主单进出口身份](./order-master-business-identity.md) | 不可变业务类型、方向唯一索引、候选与直接 ID 门禁、历史回填与异常回滚 | ✅ |
 | [Order Shared Enum Field](./order-shared-enum-field.md) | 订单共享契约新增可选枚举字段的五层配方、迁移列形与更新语义 | ✅ |
+| [四类订单横切与完整CSV](./order-cross-module-export.md) | 专用无分页导出、官方采纳快照、当前类型权限及工作台/通知财务读取边界 | ✅ |
 | [订单列表字段与排序](./order-list-fields.md) | 海运可选列、本页批量摘要、权限裁剪、真实排序与提成摘要退役 | ✅ |
 | [Order Personnel Editor Retirement](./order-personnel-editor-retirement.md) | 订单协作团队独立维护退役，保留表单读取、底层人员与通知/提成依赖 | ✅ |
 | [Order Milestone Retirement](./order-milestone-retirement.md) | 独立订单里程碑退役：删表、权限同步、生成清理和操作进度保留 | ✅ |

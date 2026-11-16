@@ -67,6 +67,12 @@ export interface OrderListFilterParams {
   sorterOrder?: 'ascend' | 'descend';
 }
 
+/** 官方表格引擎已采纳的完整筛选身份；分页不进入完整导出请求。 */
+export interface OrderListAcceptedSnapshot {
+  filters: Omit<OrderListFilterParams, 'page' | 'pageSize'>;
+  total: number;
+}
+
 /** 订单列表行完整业务模型 */
 export interface OrderListItem {
   id: string;
@@ -84,6 +90,8 @@ export interface OrderListItem {
   // 航程与船运
   bookingAgentName?: string;
   masterBlNo?: string;
+  houseBlNo?: string;
+  documentMode?: 'DIRECT' | 'HOUSE';
   /** 页面完成海运单证投影，模板不解释接口枚举。 */
   billRelation?: {
     kind: 'house' | 'direct' | 'unknown';
@@ -204,6 +212,12 @@ export interface OrderListTemplateProps {
   onCopyOrder?: (selectedRows: OrderListItem[]) => void;
   /** 批量导出单证 */
   onExportDocuments?: (selectedRows: OrderListItem[]) => void;
+  /** 导出完整筛选结果；异步完成下载前必须再次验证 isCurrent。 */
+  onExportTable?: (
+    snapshot: OrderListAcceptedSnapshot,
+    isCurrent: () => boolean,
+  ) => void;
+  exporting?: boolean;
   /** 点击查看订单详情 */
   onViewDetail?: (record: OrderListItem) => void;
   /** 点击编辑订单 */

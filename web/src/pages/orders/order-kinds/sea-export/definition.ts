@@ -1,11 +1,12 @@
 import { OrderBusinessType, TradeDirection } from '@/enums.generated';
+import { ORDER_BUSINESS_ROUTES } from '@/features/orders/navigation';
 import type { OrderKindDefinition } from '../types';
 import { seaExportFormAdapter } from './form-adapter';
 import SeaExportDetailFeatures from './SeaExportDetailFeatures';
 
-/** 海运出口（SE）注册定义：当前唯一已开放的订单类型。 */
+/** 海运出口（SE）注册定义：与其他已开放进出口品类共享页面框架。 */
 export const seaExportDefinition: OrderKindDefinition = {
-  kind: 'sea-export',
+  kind: ORDER_BUSINESS_ROUTES[OrderBusinessType.BUSINESS_TYPE_SE],
   businessType: OrderBusinessType.BUSINESS_TYPE_SE,
   tradeDirection: TradeDirection.TRADE_DIRECTION_EXPORT,
   transportMode: 'sea',

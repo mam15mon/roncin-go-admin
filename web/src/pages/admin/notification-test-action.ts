@@ -1,3 +1,5 @@
+import { ORDER_BUSINESS_ROUTES } from '@/features/orders/navigation';
+
 /** 动作仅来自预览接口；站点 origin 由服务端配置校验，前端校验协议与固定业务路径。 */
 export function notificationActionUrl(
   actionTitle?: string,
@@ -14,7 +16,9 @@ export function notificationActionUrl(
       ['/welcome', '/orders', '/finance/exchange-rates'].includes(
         url.pathname,
       ) ||
-      new RegExp(`^/orders/sea-export/${uuid}/fees$`, 'i').test(url.pathname) ||
+      Object.values(ORDER_BUSINESS_ROUTES).some((kind) =>
+        new RegExp(`^/orders/${kind}/${uuid}/fees$`, 'i').test(url.pathname),
+      ) ||
       new RegExp(
         `^/commission-adjustments/${uuid}/my-supplement-source$`,
         'i',

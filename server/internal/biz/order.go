@@ -92,6 +92,7 @@ type OrderRepo interface {
 	Get(context.Context, uuid.UUID, uuid.UUID) (*Order, error)
 	FindAuthorized(context.Context, uuid.UUID, []OrderOrganizationScope) (*Order, error)
 	List(context.Context, []OrderOrganizationScope, OrderListOptions) (*OrderList, error)
+	Export(context.Context, []OrderOrganizationScope, OrderListOptions) (*OrderExport, error)
 	FindReferenceDuplicate(context.Context, uuid.UUID, OrderReferenceCheck) (*OrderReferenceMatch, error)
 	ListPersonnelOptions(context.Context, uuid.UUID, SelectorListOptions) (*PagedList[*OrderPersonnelOption], error)
 	ListConsolidationSummaries(context.Context, uuid.UUID, uuid.UUID) ([]*OrderConsolidationSummary, error)

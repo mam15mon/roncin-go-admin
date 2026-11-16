@@ -65,7 +65,7 @@ func orderToAPI(item *biz.Order) *v1.Order {
 	result.ContainerRequests = make([]*v1.OrderContainerRequest, 0, len(item.ContainerRequests))
 	for _, request := range item.ContainerRequests {
 		result.ContainerRequests = append(result.ContainerRequests, &v1.OrderContainerRequest{
-			Id: request.ID.String(), OrderId: request.OrderID.String(), ContainerSpecId: request.ContainerSpecID.String(), Quantity: int32(request.Quantity),
+			Id: request.ID.String(), OrderId: request.OrderID.String(), ContainerSpecId: request.ContainerSpecID.String(), Quantity: int32(request.Quantity), ContainerSpecCode: request.ContainerSpecCode, ContainerSpecName: request.ContainerSpecName,
 			CreatedAt: request.CreatedAt.UTC().Format(timeFormatRFC3339), UpdatedAt: request.UpdatedAt.UTC().Format(timeFormatRFC3339),
 		})
 	}

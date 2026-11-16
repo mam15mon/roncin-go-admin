@@ -2708,6 +2708,16 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ExportOrdersResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Order[];
+    total?: number;
+    generatedAt?: string;
+    traceId?: string;
+  };
+
   type ExportPartnersResponse = {
     success?: boolean;
     code?: number;
@@ -5718,6 +5728,8 @@ declare namespace API {
   };
 
   type OrderContainerRequest = {
+    containerSpecCode?: string;
+    containerSpecName?: string;
     id?: string;
     orderId?: string;
     containerSpecId?: string;
@@ -6309,6 +6321,43 @@ declare namespace API {
     referenceNo?: string;
     customerId?: string;
     excludeOrderId?: string;
+  };
+
+  type OrderServiceExportOrdersParams = {
+    keyword?: string;
+    flowStatus?: number;
+    businessType?: number;
+    customerId?: string;
+    terminationStatus?: number;
+    closureStatus?: number;
+    hasActiveException?: boolean;
+    numberType?: number;
+    numberKeyword?: string;
+    createdAtFrom?: string;
+    createdAtTo?: string;
+    etdFrom?: string;
+    etdTo?: string;
+    etaFrom?: string;
+    etaTo?: string;
+    statusTimeFrom?: string;
+    statusTimeTo?: string;
+    lockedAtFrom?: string;
+    lockedAtTo?: string;
+    originLocationId?: string;
+    destinationLocationId?: string;
+    shippingLineId?: string;
+    consigneeShortName?: string;
+    shipperShortName?: string;
+    operatorId?: string;
+    salesId?: string;
+    customerServiceId?: string;
+    creatorId?: string;
+    isLocked?: boolean;
+    isShared?: boolean;
+    /** 仅支持 orderNo、createdAt、etd、eta；未指定默认 createdAt。 */
+    sortBy?: string;
+    /** 仅支持 ascend、descend；未指定默认 descend，空时间始终排最后。 */
+    sortOrder?: string;
   };
 
   type OrderServiceGetImportHandlingParams = {

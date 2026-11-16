@@ -10,6 +10,9 @@ describe('通知动作目标边界', () => {
     '/orders',
     '/finance/exchange-rates',
     `/orders/sea-export/${uuid}/fees`,
+    `/orders/sea-import/${uuid}/fees`,
+    `/orders/air-export/${uuid}/fees`,
+    `/orders/air-import/${uuid}/fees`,
     `/commission-adjustments/${uuid}/my-supplement-source`,
   ])('仅接受服务端固定业务路由 %s', (path) => {
     expect(notificationActionUrl('查看详情', `${origin}${path}`)).toBe(
@@ -53,6 +56,8 @@ describe('通知动作目标边界', () => {
     `${origin}/%77elcome`,
     `${origin}/orders/sea-export/not-a-uuid/fees`,
     `${origin}/orders/sea-export/${uuid}/fees/extra`,
+    `${origin}/orders/air-import/${uuid}/fees?redirect=/welcome`,
+    `${origin}/orders/land/${uuid}/fees`,
     `${origin}/commission-adjustments/${uuid}/other`,
     `${origin}/admin/users`,
     `${origin}/welcome\n`,

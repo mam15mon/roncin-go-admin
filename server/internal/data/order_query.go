@@ -71,6 +71,27 @@ func (r *orderRepo) List(ctx context.Context, scopes []biz.OrderOrganizationScop
 	if err != nil {
 		return nil, err
 	}
+	query := orderListQuery(client, scopes, options)
+	result, err := paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.Order, error) {
+		return withOrderEdges(query).Order(orderListSort(options)...).Offset(offset).Limit(limit).All(ctx)
+	}, options.Page, options.PageSize, infalliblePageConverter(orderToBiz))
+	if err != nil {
+		return nil, err
+	}
+	if err := attachOrderListResources(ctx, client, result.Items); err != nil {
+		return nil, err
+	}
+	if err := attachOrderDisplayNames(ctx, client, result.Items); err != nil {
+		return nil, err
+	}
+	if err := attachOrderFeeReviewProjections(ctx, client, result.Items); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// orderListQuery 是分页列表与完整导出的唯一筛选内核，不在此处应用分页。
+func orderListQuery(client *ent.Client, scopes []biz.OrderOrganizationScope, options biz.OrderListOptions) *ent.OrderQuery {
 	query := client.Order.Query().Where(orderOrganizationScopePredicate(scopes))
 	if options.Keyword != "" {
 		query.Where(orderent.Or(orderent.OrderNoContainsFold(options.Keyword), orderent.VesselVoyageContainsFold(options.Keyword), orderent.GoodsDescriptionContainsFold(options.Keyword), airOrderNumberContainsFold(options.Keyword, false, false), airOrderNumberContainsFold(options.Keyword, true, false)))
@@ -174,22 +195,7 @@ func (r *orderRepo) List(ctx context.Context, scopes []biz.OrderOrganizationScop
 	if options.IsShared != nil {
 		query.Where(orderent.IsSharedEQ(*options.IsShared))
 	}
-	result, err := paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.Order, error) {
-		return withOrderEdges(query).Order(orderListSort(options)...).Offset(offset).Limit(limit).All(ctx)
-	}, options.Page, options.PageSize, infalliblePageConverter(orderToBiz))
-	if err != nil {
-		return nil, err
-	}
-	if err := attachOrderListResources(ctx, client, result.Items); err != nil {
-		return nil, err
-	}
-	if err := attachOrderDisplayNames(ctx, client, result.Items); err != nil {
-		return nil, err
-	}
-	if err := attachOrderFeeReviewProjections(ctx, client, result.Items); err != nil {
-		return nil, err
-	}
-	return result, nil
+	return query
 }
 
 // attachOrderDisplayNames 为订单投影批量解析地点、经营代理与公共船代展示名，
@@ -223,7 +229,11 @@ func attachOrderDisplayNames(ctx context.Context, client *ent.Client, orders []*
 		partnerIDs = append(partnerIDs, *id)
 	}
 	shippingAgentIDs := make([]uuid.UUID, 0, len(orders))
+	containerSpecIDs := make([]uuid.UUID, 0)
 	for _, order := range orders {
+		for _, request := range order.ContainerRequests {
+			containerSpecIDs = append(containerSpecIDs, request.ContainerSpecID)
+		}
 		appendID(order.OriginLocationID)
 		appendID(order.DestinationLocationID)
 		appendID(order.DischargeLocationID)
@@ -285,7 +295,22 @@ func attachOrderDisplayNames(ctx context.Context, client *ent.Client, orders []*
 			shippingAgentNames[agent.ID] = agent.Name
 		}
 	}
+	containerSpecs := make(map[uuid.UUID]*ent.MasterDataItem)
+	if len(containerSpecIDs) > 0 {
+		items, err := client.MasterDataItem.Query().Where(masterdataent.IDIn(containerSpecIDs...), masterdataent.KindEQ(masterdataent.KindContainerSpec)).All(ctx)
+		if err != nil {
+			return err
+		}
+		for _, item := range items {
+			containerSpecs[item.ID] = item
+		}
+	}
 	for _, order := range orders {
+		for _, request := range order.ContainerRequests {
+			if spec := containerSpecs[request.ContainerSpecID]; spec != nil {
+				request.ContainerSpecCode, request.ContainerSpecName = spec.Code, spec.Name
+			}
+		}
 		if order.OriginLocationID != nil {
 			order.OriginLocationName = locationNames[*order.OriginLocationID]
 		}

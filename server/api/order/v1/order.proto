@@ -32,6 +32,11 @@ service OrderService {
     option (google.api.http) = {get: "/api/v1/orders/sea-master-bill-candidate"};
   }
 
+  rpc ExportOrders(ExportOrdersRequest) returns (ExportOrdersResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/orders/export"};
+  }
+
   rpc GetOrder(GetOrderRequest) returns (GetOrderResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/orders/{id}"};
@@ -455,6 +460,8 @@ message OrderContainerRequestInput {
 
 // OrderContainerRequest 订单订舱阶段的箱型箱量计划。
 message OrderContainerRequest {
+  string container_spec_code = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
+  string container_spec_name = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
   string id = 1;
   string order_id = 2;
   string container_spec_id = 3;
@@ -518,6 +525,49 @@ message ListOrdersRequest {
   string keyword = 3;
   optional OrderFlowStatus flow_status = 4;
   optional BusinessType business_type = 5;
+  string customer_id = 6;
+  optional OrderTerminationStatus termination_status = 7;
+  optional OrderClosureStatus closure_status = 8;
+  optional bool has_active_exception = 9;
+  optional OrderNumberFilterType number_type = 10;
+  string number_keyword = 11;
+  string created_at_from = 12;
+  string created_at_to = 13;
+  string etd_from = 14;
+  string etd_to = 15;
+  string eta_from = 16;
+  string eta_to = 17;
+  string status_time_from = 18;
+  string status_time_to = 19;
+  string locked_at_from = 20;
+  string locked_at_to = 21;
+  string origin_location_id = 22;
+  string destination_location_id = 23;
+  string shipping_line_id = 24;
+  string consignee_short_name = 25;
+  string shipper_short_name = 26;
+  string operator_id = 27;
+  string sales_id = 29;
+  string customer_service_id = 31;
+  string creator_id = 33;
+  reserved 35;
+  reserved "tag_ids";
+  optional bool is_locked = 37;
+  optional bool is_shared = 38;
+  reserved 39, 40;
+  reserved "fee_review_status", "has_pending_fee_supplement";
+  // 仅支持 orderNo、createdAt、etd、eta；未指定默认 createdAt。
+  string sort_by = 41;
+  // 仅支持 ascend、descend；未指定默认 descend，空时间始终排最后。
+  string sort_order = 42;
+}
+
+// 完整导出与列表共用筛选和排序语义，不接收分页参数。
+message ExportOrdersRequest {
+  reserved 1, 2;
+  string keyword = 3;
+  optional OrderFlowStatus flow_status = 4;
+  BusinessType business_type = 5 [(google.api.field_behavior) = REQUIRED];
   string customer_id = 6;
   optional OrderTerminationStatus termination_status = 7;
   optional OrderClosureStatus closure_status = 8;
@@ -802,6 +852,17 @@ message ListOrdersResponse {
   int32 page = 6;
   int32 page_size = 7;
   string trace_id = 8;
+}
+
+// ExportOrdersResponse 为当前完整筛选结果的单次一致性快照。
+message ExportOrdersResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated Order data = 4;
+  int32 total = 5;
+  string generated_at = 6;
+  string trace_id = 7;
 }
 
 message ListOrderConsolidationsResponse {

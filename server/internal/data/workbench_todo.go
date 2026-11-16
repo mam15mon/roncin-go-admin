@@ -17,7 +17,7 @@ func workbenchTodoOrderPredicate(scope biz.WorkbenchScope, ids []uuid.UUID, read
 	types := make([]orderent.BusinessType, 0, len(readable))
 	for _, businessType := range readable {
 		for _, orderType := range scope.ReadableOrderBusinessTypes {
-			if businessType == orderType && (businessType == biz.OrderBusinessSE || businessType == biz.OrderBusinessAE) {
+			if businessType == orderType && (businessType == biz.OrderBusinessSE || businessType == biz.OrderBusinessSI || businessType == biz.OrderBusinessAE || businessType == biz.OrderBusinessAI) {
 				types = append(types, orderent.BusinessType(businessType))
 				break
 			}

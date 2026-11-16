@@ -5360,6 +5360,154 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/order.v1.CreateOrderResponse'
+    /api/v1/orders/export:
+        get:
+            tags:
+                - OrderService
+            operationId: OrderService_ExportOrders
+            parameters:
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: flowStatus
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: businessType
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: customerId
+                  in: query
+                  schema:
+                    type: string
+                - name: terminationStatus
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: closureStatus
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: hasActiveException
+                  in: query
+                  schema:
+                    type: boolean
+                - name: numberType
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: numberKeyword
+                  in: query
+                  schema:
+                    type: string
+                - name: createdAtFrom
+                  in: query
+                  schema:
+                    type: string
+                - name: createdAtTo
+                  in: query
+                  schema:
+                    type: string
+                - name: etdFrom
+                  in: query
+                  schema:
+                    type: string
+                - name: etdTo
+                  in: query
+                  schema:
+                    type: string
+                - name: etaFrom
+                  in: query
+                  schema:
+                    type: string
+                - name: etaTo
+                  in: query
+                  schema:
+                    type: string
+                - name: statusTimeFrom
+                  in: query
+                  schema:
+                    type: string
+                - name: statusTimeTo
+                  in: query
+                  schema:
+                    type: string
+                - name: lockedAtFrom
+                  in: query
+                  schema:
+                    type: string
+                - name: lockedAtTo
+                  in: query
+                  schema:
+                    type: string
+                - name: originLocationId
+                  in: query
+                  schema:
+                    type: string
+                - name: destinationLocationId
+                  in: query
+                  schema:
+                    type: string
+                - name: shippingLineId
+                  in: query
+                  schema:
+                    type: string
+                - name: consigneeShortName
+                  in: query
+                  schema:
+                    type: string
+                - name: shipperShortName
+                  in: query
+                  schema:
+                    type: string
+                - name: operatorId
+                  in: query
+                  schema:
+                    type: string
+                - name: salesId
+                  in: query
+                  schema:
+                    type: string
+                - name: customerServiceId
+                  in: query
+                  schema:
+                    type: string
+                - name: creatorId
+                  in: query
+                  schema:
+                    type: string
+                - name: isLocked
+                  in: query
+                  schema:
+                    type: boolean
+                - name: isShared
+                  in: query
+                  schema:
+                    type: boolean
+                - name: sortBy
+                  in: query
+                  description: 仅支持 orderNo、createdAt、etd、eta；未指定默认 createdAt。
+                  schema:
+                    type: string
+                - name: sortOrder
+                  in: query
+                  description: 仅支持 ascend、descend；未指定默认 descend，空时间始终排最后。
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.ExportOrdersResponse'
     /api/v1/orders/sea-master-bill-candidate:
         get:
             tags:
@@ -19091,6 +19239,28 @@ components:
                     type: string
                 traceId:
                     type: string
+        order.v1.ExportOrdersResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.Order'
+                total:
+                    type: integer
+                    format: int32
+                generatedAt:
+                    type: string
+                traceId:
+                    type: string
+            description: ExportOrdersResponse 为当前完整筛选结果的单次一致性快照。
         order.v1.FeeCorrectionCommissionImpactData:
             type: object
             properties:
@@ -20554,6 +20724,12 @@ components:
         order.v1.OrderContainerRequest:
             type: object
             properties:
+                containerSpecCode:
+                    readOnly: true
+                    type: string
+                containerSpecName:
+                    readOnly: true
+                    type: string
                 id:
                     type: string
                 orderId:

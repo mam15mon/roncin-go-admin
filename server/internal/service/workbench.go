@@ -28,7 +28,7 @@ func NewWorkbenchService(usecase *biz.WorkbenchUsecase, applications *biz.Financ
 func workbenchScopeFromPrincipal(p *biz.Principal) biz.WorkbenchScope {
 	now := time.Now()
 	var readableOrderTypes, readableFeeTypes, readableAbnormalTypes []biz.OrderBusinessType
-	for _, businessType := range []biz.OrderBusinessType{biz.OrderBusinessSE, biz.OrderBusinessAE} {
+	for _, businessType := range []biz.OrderBusinessType{biz.OrderBusinessSE, biz.OrderBusinessSI, biz.OrderBusinessAE, biz.OrderBusinessAI} {
 		permission := access.OrderPermission(access.OrderBusinessType(businessType), access.OrderRead)
 		if p.CanAccessOrganizationForPermission(permission, p.Organization.ID, false) {
 			readableOrderTypes = append(readableOrderTypes, businessType)

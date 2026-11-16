@@ -1,4 +1,5 @@
 import { OrderBusinessType, TradeDirection } from '@/enums.generated';
+import { ORDER_BUSINESS_ROUTES } from '@/features/orders/navigation';
 import { getSeaTemplateSections } from '../../templates';
 import {
   buildSeaCreatePayload,
@@ -11,7 +12,7 @@ import type { OrderKindDefinition } from '../types';
 
 /** SI 复用真实海运实体与字段；进口服务进度由独立业务区维护。 */
 export const seaImportDefinition: OrderKindDefinition = {
-  kind: 'sea-import',
+  kind: ORDER_BUSINESS_ROUTES[OrderBusinessType.BUSINESS_TYPE_SI],
   businessType: OrderBusinessType.BUSINESS_TYPE_SI,
   tradeDirection: TradeDirection.TRADE_DIRECTION_IMPORT,
   transportMode: 'sea',

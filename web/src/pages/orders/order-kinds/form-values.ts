@@ -20,10 +20,10 @@ export type CreateOrderFormValues = {
   unNumber?: string;
   hazardClass?: string;
   /** 危险品包装类别（IATA DGR）；空运专用，0/UNSPECIFIED 视同未选。 */
-  dangerousPackingGroup?: number;
+  dangerousPackingGroup?: number | null;
   factoryName?: string;
   cargoReadyAt?: string | dayjs.Dayjs;
-  declarationCutoffAt?: string | dayjs.Dayjs;
+  declarationCutoffAt?: string | dayjs.Dayjs | null;
   receivedAt?: string | dayjs.Dayjs;
   shipmentType?: number;
   containerOwnership?: number;

@@ -17,3 +17,4 @@
 {"file": ".trellis/spec/server/backend/air-import-contract.md", "reason": "AI真实权限及双模式/ETA/重量/服务基线前置合同，后续PDF及四类横切继续保持"}
 {"file": ".trellis/tasks/11-15-hgj-cross-module-acceptance/research/acceptance-entrypoints.md", "reason": "现有一次性库/财务验收真实入口与旧夹具限制；四类财务/CSV/横切最终实际证据要求"}
 {"file": ".trellis/spec/server/backend/air-waybill-production.md", "reason": "航空真实主体/保存快照/版本、同Blob与长文实际PDF/生产资源验收合同"}
+{"file": ".trellis/spec/server/backend/order-cross-module-export.md", "reason": "四类完整导出同快照/采纳条件/权限裁列与工作台通知边界，真实CSV及财务最终验收"}

@@ -14,7 +14,13 @@ import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
 import { paginationSizeChanger } from '@root/config/pagination';
 import { Button, Card, Dropdown, Space, Tag, Tooltip } from 'antd';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ShipmentType } from '@/enums.generated';
 import { toTableRequest } from '@/utils/api';
 import { formatDate, trimDecimal } from '@/utils/format';
@@ -24,6 +30,7 @@ import { ResponsiveProTable } from '../responsive-table';
 import OrderListSearchFilter from './OrderListSearchFilter';
 import OrderListToolbar from './OrderListToolbar';
 import type {
+  OrderListAcceptedSnapshot,
   OrderListFilterParams,
   OrderListItem,
   OrderListTemplateProps,
@@ -71,6 +78,8 @@ export function OrderListTemplate({
   onCreateOrder,
   onCopyOrder,
   onExportDocuments,
+  onExportTable,
+  exporting = false,
   onViewDetail,
   onEditOrder,
   onOpenFees,
@@ -113,6 +122,28 @@ export function OrderListTemplate({
   const busyRef = useRef(false);
   useOrderAutoRefresh(autoRefresh, actionRef, busyRef);
   const [filterVisible, setFilterVisible] = useState(false);
+  const requestGeneration = useRef(0);
+  const alive = useRef(true);
+  const acceptedRef = useRef<OrderListAcceptedSnapshot | undefined>(undefined);
+  const [accepted, setAccepted] = useState<OrderListAcceptedSnapshot>();
+  const loadedSnapshots = useRef(
+    new WeakMap<
+      OrderListItem[],
+      OrderListAcceptedSnapshot & { generation: number }
+    >(),
+  );
+  useLayoutEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+      acceptedRef.current = undefined;
+    };
+  }, []);
+  const invalidateExport = () => {
+    requestGeneration.current += 1;
+    acceptedRef.current = undefined;
+    setAccepted(undefined);
+  };
 
   // 1. 构建完整表头列定义
   const defaultColumns = useMemo<ProColumns<OrderListItem>[]>(
@@ -682,11 +713,13 @@ export function OrderListTemplate({
           initialValues={queryState.initial.filters}
           initialLabels={queryState.initial.labels}
           onSearch={(values, labels) => {
+            invalidateExport();
             currentFilterRef.current = values;
             queryState.commit(values, labels);
             actionRef.current?.reload(true);
           }}
           onReset={() => {
+            invalidateExport();
             currentFilterRef.current = {};
             queryState.commit({}, {});
             actionRef.current?.reload(true);
@@ -712,6 +745,20 @@ export function OrderListTemplate({
           onCreateOrder={onCreateOrder}
           onCopyOrder={onCopyOrder}
           onExportDocuments={onExportDocuments}
+          onExportTable={
+            onExportTable
+              ? () => {
+                  const snapshot = acceptedRef.current;
+                  if (!snapshot || exporting) return;
+                  onExportTable(
+                    snapshot,
+                    () => alive.current && acceptedRef.current === snapshot,
+                  );
+                }
+              : undefined
+          }
+          exportDisabled={!accepted}
+          exporting={exporting}
           autoRefresh={autoRefresh}
           onAutoRefreshChange={setAutoRefresh}
           filterVisible={filterVisible}
@@ -746,20 +793,46 @@ export function OrderListTemplate({
               setSelectedRows(rows);
             },
           }}
+          onChange={(_pagination, _filters, _sorter, extra) => {
+            if (extra.action === 'sort' || extra.action === 'paginate')
+              invalidateExport();
+          }}
+          onLoad={(data) => {
+            const snapshot = loadedSnapshots.current.get(data);
+            if (!snapshot || snapshot.generation !== requestGeneration.current)
+              return;
+            acceptedRef.current = snapshot;
+            setAccepted(snapshot);
+          }}
           request={async (params, sorter) => {
-            const sorterField = Object.keys(sorter)[0];
-            const sorterOrder = sorterField ? sorter[sorterField] : undefined;
-            const currentFilter = currentFilterRef.current;
-
+            invalidateExport();
+            const generation = requestGeneration.current;
+            const sorted = Object.entries(sorter).find(
+              ([, value]) => value === 'ascend' || value === 'descend',
+            );
+            const filters = structuredClone({
+              ...currentFilterRef.current,
+              ...(sorted
+                ? {
+                    sorterField: sorted[0],
+                    sorterOrder: sorted[1] as 'ascend' | 'descend',
+                  }
+                : {}),
+            });
             const res = await queryOrders({
-              ...currentFilter,
+              ...filters,
               page: params.current,
               pageSize: params.pageSize,
-              sorterField,
-              sorterOrder: sorterOrder as 'ascend' | 'descend',
             });
-
-            return toTableRequest(res);
+            const table = toTableRequest(res);
+            if (table.success) {
+              loadedSnapshots.current.set(table.data, {
+                filters,
+                total: table.total ?? 0,
+                generation,
+              });
+            }
+            return table;
           }}
         />
       </Card>

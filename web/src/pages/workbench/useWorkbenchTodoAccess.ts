@@ -1,4 +1,5 @@
 import { useAccess } from '@/app/access';
+import { ORDER_BUSINESS_ROUTES } from '@/features/orders/navigation';
 
 export type WorkbenchTodoKind = 'fees' | 'abnormal';
 
@@ -6,9 +7,10 @@ export type WorkbenchTodoKind = 'fees' | 'abnormal';
 export function useWorkbenchTodoAccess() {
   const access = useAccess();
   const canRead = (operation: 'fee.read' | 'abnormal_case.read') =>
-    ['SE', 'AE'].some(
+    Object.keys(ORDER_BUSINESS_ROUTES).some(
       (kind) =>
-        access.canOrder(kind, 'read') && access.canOrder(kind, operation),
+        access.canOrder(Number(kind), 'read') &&
+        access.canOrder(Number(kind), operation),
     );
   return {
     fees: canRead('fee.read'),

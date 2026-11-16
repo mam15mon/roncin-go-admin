@@ -95,7 +95,9 @@ vi.mock('@/services/roncin/masterDataService', () => ({
 
 vi.mock('@/services/roncin/orderService', () => ({
   orderServiceListPersonnelOptions: vi.fn().mockResolvedValue({ data: [] }),
-  orderServiceListOrders: vi.fn().mockResolvedValue({ data: [], total: 0 }),
+  orderServiceListOrders: vi
+    .fn()
+    .mockResolvedValue({ success: true, data: [], total: 0 }),
 }));
 
 vi.mock('./components/fees/fee-review/OrderFeeReview', () => ({
@@ -138,7 +140,7 @@ describe('订单列表新建入口权限收口', () => {
     locationState.pathname = '/orders/sea-export';
     accessControl.canCreate = true;
     accessControl.canUpdate = true;
-    mockListOrders.mockResolvedValue({ data: [], total: 0 });
+    mockListOrders.mockResolvedValue({ success: true, data: [], total: 0 });
   });
 
   it('有 create 权限时渲染新增订单按钮', () => {
@@ -186,6 +188,7 @@ describe('订单列表费用入口', () => {
     async (kind) => {
       locationState.pathname = `/orders/${kind}`;
       mockListOrders.mockResolvedValue({
+        success: true,
         data: [{ id: 'order-fees-1', orderNo: 'ORDER-FEES-1' }],
         total: 1,
       });
@@ -214,6 +217,7 @@ describe('订单列表审核入口', () => {
     accessControl.canLock = true;
     accessControl.canReadFees = true;
     mockListOrders.mockResolvedValue({
+      success: true,
       data: [
         {
           id: 'review-order',
@@ -288,6 +292,7 @@ describe('订单品类列设置', () => {
     vi.clearAllMocks();
     localStorage.clear();
     mockListOrders.mockResolvedValue({
+      success: true,
       data: [{ id: 'column-order', orderNo: 'ORDER-COLUMNS' }],
       total: 1,
     });

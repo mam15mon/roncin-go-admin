@@ -115,7 +115,7 @@ type CommonValues = Pick<
 function commonFields(values: Partial<CommonValues>, clearEmpty = false) {
   const text = (value?: string) =>
     value?.trim() || (clearEmpty ? '' : undefined);
-  const time = (value?: CommonValues['receivedAt']) =>
+  const time = (value?: CommonValues['receivedAt'] | null) =>
     value ? dayjs(value).toISOString() : clearEmpty ? '' : undefined;
   return {
     shipmentMode: values.shipmentMode ?? (clearEmpty ? 0 : undefined),
@@ -138,13 +138,12 @@ function commonFields(values: Partial<CommonValues>, clearEmpty = false) {
     goodsDescription: text(values.goodsDescription),
     specialRequirements: text(values.specialRequirements),
     cargoCategoryIds: values.cargoCategoryIds,
-    unNumber: values.unNumber?.trim() || undefined,
-    hazardClass: values.hazardClass?.trim() || undefined,
-    // UNSPECIFIED(0) 视同未选：未选 / 不适用（Class 1/2/7）都不携带。
-    dangerousPackingGroup: values.dangerousPackingGroup || undefined,
-    declarationCutoffAt: values.declarationCutoffAt
-      ? dayjs(values.declarationCutoffAt).toISOString()
-      : undefined,
+    unNumber: text(values.unNumber),
+    hazardClass: text(values.hazardClass),
+    // 创建未选省略；更新显式UNSPECIFIED清除已保存的包装等级。
+    dangerousPackingGroup:
+      values.dangerousPackingGroup || (clearEmpty ? 0 : undefined),
+    declarationCutoffAt: time(values.declarationCutoffAt),
     totalPackages: values.totalPackages,
     totalGrossWeightKg: values.totalGrossWeightKg,
     totalVolumeCbm: values.totalVolumeCbm,

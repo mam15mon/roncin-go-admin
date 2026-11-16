@@ -1,15 +1,21 @@
 import { PageContainer } from '@ant-design/pro-components';
 import { useQuery } from '@tanstack/react-query';
-import { Descriptions, type TableColumnsType, Tag } from 'antd';
+import { Alert, Descriptions, type TableColumnsType, Tag } from 'antd';
 import React from 'react';
 import { useParams } from 'react-router';
 import { useInitialState } from '@/app/AppProvider';
+import { useAccess } from '@/app/access';
 import {
   PageHeaderShell,
   SectionCard,
   ResponsiveTable as Table,
 } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
+import {
+  businessTypeMeta,
+  normalizeBusinessType,
+  statusText,
+} from '@/constants/statusMeta';
 import { FeeCorrectionSection } from '@/features/orders/fee-correction';
 import { history } from '@/router/history';
 import { settlementServiceGetFeeLedgerOrderDetail } from '@/services/roncin/settlementService';
@@ -18,23 +24,27 @@ import { formatAmount, formatDate } from '@/utils/format';
 export default function FinanceFeeDetailPage() {
   const { orderId = '' } = useParams<{ orderId: string }>();
   const { initialState } = useInitialState();
+  const access = useAccess();
+  const organizationId = initialState?.currentUser?.currentOrganization?.id;
   const query = useQuery({
-    queryKey: [
-      'finance',
-      'fee-detail',
-      initialState?.currentUser?.currentOrganization?.id,
-      orderId,
-    ],
-    enabled: Boolean(orderId),
+    queryKey: ['finance', 'fee-detail', organizationId, orderId],
+    enabled: Boolean(orderId && organizationId && access.canReadFinanceFees),
     queryFn: async () => {
       const response = await settlementServiceGetFeeLedgerOrderDetail({
         orderId,
       });
-      if (!response?.data) throw new Error('费用台账详情加载失败');
+      if (
+        response?.success !== true ||
+        !response?.data ||
+        response.data.orderId !== orderId ||
+        response.data.organizationId !== organizationId
+      )
+        throw new Error('费用台账详情与当前公司或订单不一致');
       return response.data;
     },
   });
-  const detail = query.data;
+  const detail =
+    access.canReadFinanceFees && organizationId ? query.data : undefined;
   const loading = query.isFetching;
 
   const feeColumns: TableColumnsType<API.FeeLedgerItem> = [
@@ -83,6 +93,9 @@ export default function FinanceFeeDetailPage() {
         subTitle="仅展示当前财务费用读取权限范围内的订单费用"
         onBack={() => history.push('/finance/fees')}
       />
+      {query.isError && (
+        <Alert type="error" title="费用台账详情加载失败，请刷新重试" />
+      )}
       <SectionCard title="订单与所属公司">
         <Descriptions
           size="small"
@@ -101,7 +114,10 @@ export default function FinanceFeeDetailPage() {
             {
               key: 'business',
               label: '业务类型',
-              children: detail?.businessType || '-',
+              children: statusText(
+                businessTypeMeta,
+                normalizeBusinessType(detail?.businessType),
+              ),
             },
             {
               key: 'customer',
@@ -139,9 +155,14 @@ export default function FinanceFeeDetailPage() {
           columns={feeColumnSettings.columns}
         />
       </SectionCard>
-      <SectionCard title="费用更正记录与审核">
-        <FeeCorrectionSection key={orderId} orderId={orderId} />
-      </SectionCard>
+      {detail && (
+        <SectionCard title="费用更正记录与审核">
+          <FeeCorrectionSection
+            key={`${organizationId}:${orderId}`}
+            orderId={orderId}
+          />
+        </SectionCard>
+      )}
     </PageContainer>
   );
 }

@@ -14,23 +14,27 @@ import (
 )
 
 func TestFeeLedgerMasterNoPostgres(t *testing.T) {
-	for _, business := range []order.BusinessType{order.BusinessTypeSE, order.BusinessTypeAE} {
+	for _, business := range []order.BusinessType{order.BusinessTypeSE, order.BusinessTypeSI, order.BusinessTypeAE, order.BusinessTypeAI} {
 		t.Run(string(business), func(t *testing.T) {
 			d, cleanup := getIntegrationData(t)
 			t.Cleanup(cleanup)
 			f := newFeeLedgerPostgresFixture(t, d)
 			ctx := context.Background()
-			d.db.Order.UpdateOneID(f.orderID).SetBusinessType(business).SaveX(ctx)
+			updateOrder := d.db.Order.UpdateOneID(f.orderID).SetBusinessType(business)
+			if business == order.BusinessTypeSI || business == order.BusinessTypeAI {
+				updateOrder.SetTradeDirection(order.TradeDirectionImport).SetFlowStatus(order.FlowStatusIMPORT_NOT_APPLICABLE)
+			}
+			updateOrder.SaveX(ctx)
 			feeID := f.createLedgerFee("master-no", "300")
 			at := time.Now().UTC().Truncate(time.Microsecond)
 			var currentNo, oldNo, search string
 			var endCurrent func()
-			if business == order.BusinessTypeSE {
+			if business == order.BusinessTypeSE || business == order.BusinessTypeSI {
 				currentNo, oldNo, search = "MBLNEW12345", "MBLOLD98765", "new123"
 				carrier := d.db.ShippingLine.Create().SetScacCode(newTestSCAC()).SetNameZh("台账测试").SetNameEn("Ledger Test").SetCountryCode("CN").SaveX(ctx)
 				execution := d.db.SeaTransportExecution.Create().SetOrganizationID(f.organizationID).SetShippingLineID(carrier.ID).SaveX(ctx)
 				createMaster := func(no string) *ent.SeaMasterBill {
-					return d.db.SeaMasterBill.Create().SetBusinessType("SE").SetOrganizationID(f.organizationID).SetShippingLineID(carrier.ID).SetMasterNo(no).SetNormalizedMasterNo(no).SaveX(ctx)
+					return d.db.SeaMasterBill.Create().SetBusinessType(string(business)).SetOrganizationID(f.organizationID).SetShippingLineID(carrier.ID).SetMasterNo(no).SetNormalizedMasterNo(no).SaveX(ctx)
 				}
 				old, current := createMaster(oldNo), createMaster(currentNo)
 				d.db.SeaMasterBillOrderLink.Create().SetOrganizationID(f.organizationID).SetOrderID(f.orderID).SetMasterBillID(old.ID).SetTransportExecutionID(execution.ID).SetDocumentStructure("DIRECT").SetStatus("ENDED").SetEndedAt(at.Add(-time.Hour)).SetEndedReason(orderTerminationLinkEndedReason).SaveX(ctx)
@@ -50,7 +54,7 @@ func TestFeeLedgerMasterNoPostgres(t *testing.T) {
 				airline := d.db.Airline.Create().SetIataCode("LT").SetNameEn("Ledger Test").SetCountryCode("CN").SaveX(ctx)
 				airport := d.db.Airport.Create().SetIataCode("LGR").SetNameEn("Ledger Airport").SetCountryCode("CN").SaveX(ctx)
 				createMaster := func(no string) *ent.AirMasterWaybill {
-					return d.db.AirMasterWaybill.Create().SetBusinessType("AE").SetOrganizationID(f.organizationID).SetAirlineID(airline.ID).SetOriginAirportID(airport.ID).SetDestinationAirportID(airport.ID).SetMasterNo(no).SaveX(ctx)
+					return d.db.AirMasterWaybill.Create().SetBusinessType(string(business)).SetOrganizationID(f.organizationID).SetAirlineID(airline.ID).SetOriginAirportID(airport.ID).SetDestinationAirportID(airport.ID).SetMasterNo(no).SaveX(ctx)
 				}
 				old, current := createMaster(oldNo), createMaster(currentNo)
 				d.db.AirMasterWaybillOrderLink.Create().SetDocumentMode("DIRECT").SetOrganizationID(f.organizationID).SetOrderID(f.orderID).SetMasterWaybillID(old.ID).SetStatus("ENDED").SetEndedAt(at.Add(-time.Hour)).SetEndedReason("订单终止").SaveX(ctx)

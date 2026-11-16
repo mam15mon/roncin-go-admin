@@ -12,8 +12,9 @@
 | 航空内容及DIRECT/HOUSE | `df217ccd`；`.trellis/tasks/archive/2026-11/11-15-hgj-air-documents/research/` | AE直单无HAWB、HOUSE独立正文/版本/哈希、共享主单模式与成员、重量及锁/恢复；真实PG、定向前端、生成幂等和阶段check:fast通过 | 主分AWB实际PDF及最终业务财务链 |
 | 海运进口及固定服务 | `74f86b3e`；`.trellis/tasks/archive/2026-11/11-15-hgj-sea-import/research/` | SI单证/箱货/费用ETA、五服务/事件/完结重开/并发/回滚及正式迁移；独立复核、build/门禁、真实浏览器和HBL实际PDF通过 | 航空PDF及父最终业务财务/横切闭环 |
 | 空运进口 | `734bb814`；`.trellis/tasks/archive/2026-11/11-15-hgj-air-import/research/` | AI双模式、真实权限/重量/审核/恢复/ETA及五服务；真实PG、120场HTTP、仅AI权限真实UI浏览器及check:fast237.0秒通过 | 航空PDF、四类完整业务财务/工作台/CSV |
+| 航空主分制作与PDF | `b3b5b407`；`.trellis/tasks/archive/2026-11/11-15-hgj-air-waybill-pdf/research/` | AE/AI主分真实保存快照、主体/版本/输入保护、64页极值和6份16页真实下载、生产同域、两独立复核、build/check:fast通过 | 最终横切与CSV/四类业务财务完整验收 |
 
-航空PDF组已完成独立复核、真实输出和生产同域验收，待本组提交归档后记录正式提交。最终横切/CSV/四类财务仍未完成。
+航空PDF组已以`b3b5b407`提交并归档，父任务已完成5/6组。最终横切/CSV/四类财务仍未完成。
 
 普通Go门禁未注入数据库时的集成跳过不算真实数据库通过；以上PG结论以显式注入
 `RONCIN_INTEGRATION_DATABASE_SOURCE`、随机隔离Schema顺序执行正式SQL的专项记录为准。

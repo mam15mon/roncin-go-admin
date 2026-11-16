@@ -223,7 +223,7 @@ func TestFeeReviewMarkdownPreservesTrustedOrderEntry(t *testing.T) {
 				{"空运匹配资源", "\n订单入口：/orders/air-export/" + id.String() + "/fees", "/orders/air-export/" + id.String() + "/fees"},
 				{"不匹配资源", "\n订单入口：/orders/sea-export/" + uuid.NewString() + "/fees", ""},
 				{"空运不匹配资源", "\n订单入口：/orders/air-export/" + uuid.NewString() + "/fees", ""},
-				{"未注册品类", "\n订单入口：/orders/air-import/" + id.String() + "/fees", ""},
+				{"未开放品类", "\n订单入口：/orders/land/" + id.String() + "/fees", ""},
 				{"伪造外链", "\n订单入口：[点我](https://example.com)", ""},
 				{"没有入口", "", ""},
 			} {

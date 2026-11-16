@@ -169,7 +169,7 @@ type WorkbenchEstimatedOpportunity struct {
 	HasMore          bool
 }
 
-// WorkbenchRecentOrder 是本人真实协作且有权读取的近期出口订单投影。
+// WorkbenchRecentOrder 是本人真实协作且有权读取的近期四类订单投影。
 type WorkbenchRecentOrder struct {
 	OrderID           uuid.UUID
 	OrderNo           string
@@ -329,7 +329,7 @@ func (u *WorkbenchUsecase) ListMyReceivables(ctx context.Context, scope Workbenc
 	return u.repo.ListMyReceivables(ctx, scope, f)
 }
 
-// ListMyRecentOrders 返回本人真实协作的近期海运出口订单分页。
+// ListMyRecentOrders 返回本人真实协作的近期四类订单分页。
 func (u *WorkbenchUsecase) ListMyRecentOrders(ctx context.Context, scope WorkbenchScope, f WorkbenchOrderFilter) (*PagedList[*WorkbenchRecentOrder], error) {
 	if !validWorkbenchScope(scope) || !ValidListPagination(f.Page, f.PageSize) {
 		return nil, ErrWorkbenchInvalid

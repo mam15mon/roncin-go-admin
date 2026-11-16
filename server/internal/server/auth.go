@@ -182,7 +182,7 @@ func partnerOrganizationIDs(principal *biz.Principal, permission string, writabl
 func requestOrder(ctx context.Context, request any, orderUsecase *biz.OrderUsecase, scopes []biz.OrderOrganizationScope) (*biz.Order, bool) {
 	var orderID string
 	switch value := request.(type) {
-	case *orderv1.ListOrdersRequest, *orderv1.CreateOrderRequest, *orderv1.CheckOrderReferenceRequest, *orderv1.ListPersonnelOptionsRequest, *orderv1.ListAirMasterWaybillsRequest:
+	case *orderv1.ListOrdersRequest, *orderv1.ExportOrdersRequest, *orderv1.CreateOrderRequest, *orderv1.CheckOrderReferenceRequest, *orderv1.ListPersonnelOptionsRequest, *orderv1.ListAirMasterWaybillsRequest:
 		return nil, false
 	case interface{ GetOrderId() string }:
 		orderID = value.GetOrderId()
@@ -334,6 +334,8 @@ func hasAnyOrderPermissionInCurrentOrganization(principal *biz.Principal, operat
 func requestOrderBusinessType(request any) (access.OrderBusinessType, bool) {
 	switch value := request.(type) {
 	case *orderv1.ListOrdersRequest:
+		return orderBusinessTypeFromAPI(value.GetBusinessType())
+	case *orderv1.ExportOrdersRequest:
 		return orderBusinessTypeFromAPI(value.GetBusinessType())
 	case *orderv1.CreateOrderRequest:
 		return orderBusinessTypeFromAPI(value.GetBusinessType())

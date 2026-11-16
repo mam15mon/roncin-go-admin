@@ -121,7 +121,27 @@ func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersReq
 	if err != nil {
 		return nil, err
 	}
-	options := biz.OrderListOptions{Page: page, PageSize: pageSize, Keyword: request.GetKeyword(), SortBy: request.GetSortBy(), SortOrder: request.GetSortOrder()}
+	options, orderScopes, err := orderListOptionsFromAPI(principal, request)
+	if err != nil {
+		return nil, err
+	}
+	options.Page, options.PageSize = page, pageSize
+	result, err := s.usecase.List(ctx, orderScopes, options)
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.Order, 0, len(result.Items))
+	for _, item := range result.Items {
+		output := orderToAPIForPrincipal(principal, item)
+		data = append(data, output)
+	}
+	return okList(ctx, &v1.ListOrdersResponse{Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize)}), nil
+}
+
+// orderListOptionsFromAPI 为列表和完整导出保持同一组筛选转换及类型权限。
+func orderListOptionsFromAPI(principal *biz.Principal, request *v1.ListOrdersRequest) (biz.OrderListOptions, []biz.OrderOrganizationScope, error) {
+	var err error
+	options := biz.OrderListOptions{Keyword: request.GetKeyword(), SortBy: request.GetSortBy(), SortOrder: request.GetSortOrder()}
 	if request.FlowStatus != nil {
 		options.FlowStatus = orderFlowStatusFromAPI(request.GetFlowStatus())
 	}
@@ -137,10 +157,13 @@ func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersReq
 	}
 	if request.BusinessType != nil {
 		options.BusinessType = orderBusinessTypeFromAPI(request.GetBusinessType())
+		if !options.BusinessType.Valid() {
+			return biz.OrderListOptions{}, nil, biz.ErrOrderInvalidArgument
+		}
 	}
 	orderScopes, err := orderOrganizationScopesForOperation(principal, access.OrderRead, false, options.BusinessType)
 	if err != nil {
-		return nil, err
+		return biz.OrderListOptions{}, nil, err
 	}
 	if options.BusinessType == "" {
 		options.BusinessTypes = orderBusinessTypesFromScopes(orderScopes)
@@ -148,7 +171,7 @@ func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersReq
 	if request.GetCustomerId() != "" {
 		value, parseErr := uuid.Parse(request.GetCustomerId())
 		if parseErr != nil {
-			return nil, biz.ErrOrderInvalidArgument
+			return biz.OrderListOptions{}, nil, biz.ErrOrderInvalidArgument
 		}
 		options.CustomerID = &value
 	}
@@ -165,49 +188,49 @@ func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersReq
 		case v1.OrderNumberFilterType_ORDER_NUMBER_FILTER_TYPE_BOOKING:
 			options.NumberType = biz.OrderNumberFilterBooking
 		default:
-			return nil, biz.ErrOrderInvalidArgument
+			return biz.OrderListOptions{}, nil, biz.ErrOrderInvalidArgument
 		}
 		options.NumberKeyword = request.GetNumberKeyword()
 	} else if strings.TrimSpace(request.GetNumberKeyword()) != "" {
-		return nil, biz.ErrOrderInvalidArgument
+		return biz.OrderListOptions{}, nil, biz.ErrOrderInvalidArgument
 	}
 	if options.CreatedAtRange, err = orderDateRangeFromAPI(request.GetCreatedAtFrom(), request.GetCreatedAtTo()); err != nil {
-		return nil, err
+		return biz.OrderListOptions{}, nil, err
 	}
 	if options.ETDRange, err = orderDateRangeFromAPI(request.GetEtdFrom(), request.GetEtdTo()); err != nil {
-		return nil, err
+		return biz.OrderListOptions{}, nil, err
 	}
 	if options.ETARange, err = orderDateRangeFromAPI(request.GetEtaFrom(), request.GetEtaTo()); err != nil {
-		return nil, err
+		return biz.OrderListOptions{}, nil, err
 	}
 	if options.StatusTimeRange, err = orderDateRangeFromAPI(request.GetStatusTimeFrom(), request.GetStatusTimeTo()); err != nil {
-		return nil, err
+		return biz.OrderListOptions{}, nil, err
 	}
 	if options.LockedAtRange, err = orderDateRangeFromAPI(request.GetLockedAtFrom(), request.GetLockedAtTo()); err != nil {
-		return nil, err
+		return biz.OrderListOptions{}, nil, err
 	}
 	if options.OriginLocationID, err = listOptionalUUID(request.GetOriginLocationId()); err != nil {
-		return nil, err
+		return biz.OrderListOptions{}, nil, err
 	}
 	if options.DestinationLocationID, err = listOptionalUUID(request.GetDestinationLocationId()); err != nil {
-		return nil, err
+		return biz.OrderListOptions{}, nil, err
 	}
 	if options.ShippingLineID, err = listOptionalUUID(request.GetShippingLineId()); err != nil {
-		return nil, err
+		return biz.OrderListOptions{}, nil, err
 	}
 	options.ConsigneeShortName = request.GetConsigneeShortName()
 	options.ShipperShortName = request.GetShipperShortName()
 	if options.Operator, err = orderPersonnelFilterFromAPI(request.GetOperatorId()); err != nil {
-		return nil, err
+		return biz.OrderListOptions{}, nil, err
 	}
 	if options.Sales, err = orderPersonnelFilterFromAPI(request.GetSalesId()); err != nil {
-		return nil, err
+		return biz.OrderListOptions{}, nil, err
 	}
 	if options.CustomerService, err = orderPersonnelFilterFromAPI(request.GetCustomerServiceId()); err != nil {
-		return nil, err
+		return biz.OrderListOptions{}, nil, err
 	}
 	if options.Creator, err = orderPersonnelFilterFromAPI(request.GetCreatorId()); err != nil {
-		return nil, err
+		return biz.OrderListOptions{}, nil, err
 	}
 	if request.IsLocked != nil {
 		value := request.GetIsLocked()
@@ -217,16 +240,7 @@ func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersReq
 		value := request.GetIsShared()
 		options.IsShared = &value
 	}
-	result, err := s.usecase.List(ctx, orderScopes, options)
-	if err != nil {
-		return nil, err
-	}
-	data := make([]*v1.Order, 0, len(result.Items))
-	for _, item := range result.Items {
-		output := orderToAPIForPrincipal(principal, item)
-		data = append(data, output)
-	}
-	return okList(ctx, &v1.ListOrdersResponse{Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize)}), nil
+	return options, orderScopes, nil
 }
 
 func orderDateRangeFromAPI(from, to string) (biz.OrderDateRange, error) {
