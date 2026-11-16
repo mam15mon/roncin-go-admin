@@ -202,6 +202,20 @@ func TestValidateOrderPartnerReferencesBlacklistMatrix(t *testing.T) {
 			targetRole: partnerrole.RoleTypeCustomer, targetLabel: "客户", wantErr: true,
 		},
 		{
+			name: "草稿换入黑名单客户时拒绝",
+			build: func(customerID, targetID uuid.UUID) (*biz.Order, *ent.Order) {
+				return &biz.Order{CustomerID: targetID}, &ent.Order{CustomerID: customerID}
+			},
+			targetRole: partnerrole.RoleTypeCustomer, targetLabel: "客户", wantErr: true,
+		},
+		{
+			name: "草稿保留原黑名单客户时允许",
+			build: func(_, targetID uuid.UUID) (*biz.Order, *ent.Order) {
+				return &biz.Order{CustomerID: targetID}, &ent.Order{CustomerID: targetID}
+			},
+			targetRole: partnerrole.RoleTypeCustomer,
+		},
+		{
 			name: "新建订单拒绝黑名单订舱代理",
 			build: func(customerID, targetID uuid.UUID) (*biz.Order, *ent.Order) {
 				return &biz.Order{CustomerID: customerID, BookingAgentID: &targetID}, nil

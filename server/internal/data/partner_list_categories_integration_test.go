@@ -138,6 +138,31 @@ func TestPartnerListMutuallyExclusiveCategories(t *testing.T) {
 			if selector.Total != wantSelector {
 				t.Fatalf("业务选择器未指定黑名单条件时只能查询启用角色: got=%d want=%d", selector.Total, wantSelector)
 			}
+			// 订单委托单位同时限定档案启用、角色启用和未拉黑；管理页分类仍保留停用角色。
+			for _, keyword := range []string{"", "分类验证"} {
+				options := biz.PartnerListOptions{
+					Page: 1, PageSize: biz.MaxListPageSize, Keyword: keyword, Role: role,
+					Enabled: new(true), RoleEnabled: new(true), Blacklisted: new(false),
+				}
+				candidates, err := repo.List(ctx, []uuid.UUID{company.ID}, options)
+				if err != nil {
+					t.Fatal(err)
+				}
+				want := map[uuid.UUID]bool{}
+				for _, f := range fixtures {
+					if state, exists := f.roles[role]; exists && f.enabled && state.enabled && !state.blacklisted {
+						want[f.id] = true
+					}
+				}
+				if candidates.Total != len(want) || len(candidates.Items) != len(want) {
+					t.Fatalf("候选数量错误（关键词 %q）: total=%d items=%d want=%d", keyword, candidates.Total, len(candidates.Items), len(want))
+				}
+				for _, candidate := range candidates.Items {
+					if !want[candidate.ID] {
+						t.Fatalf("候选包含停用、拉黑、其他角色或外公司档案: %s", candidate.ID)
+					}
+				}
+			}
 		})
 	}
 }

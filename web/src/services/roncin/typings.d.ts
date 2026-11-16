@@ -6888,6 +6888,9 @@ declare namespace API {
  的档案，false 匹配存在未拉黑角色的档案；显式筛选时均不要求角色启用，
  未指定时仅匹配启用角色。 */
     blacklisted?: boolean;
+    /** 按目标业务角色的启用状态过滤，可与黑名单条件组合；不影响档案启停筛选。
+ 未指定时沿用 blacklisted 的角色启停规则。 */
+    roleEnabled?: boolean;
   };
 
   type PartnerServiceRegisterPartnerAttachmentParams = {

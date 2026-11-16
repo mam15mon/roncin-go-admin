@@ -67,15 +67,32 @@ describe('订单远程候选项', () => {
     ]);
   });
 
-  it('合作方联想查询只读取首批匹配结果', async () => {
+  it.each([undefined, '客户'])(
+    '委托单位候选在服务端排除黑名单和停用角色（关键词：%s）',
+    async (keyword) => {
+      listPartners.mockResolvedValue({ data: [] });
+
+      await searchPartnersByRole(1, keyword);
+
+      expect(listPartners).toHaveBeenCalledWith({
+        role: 1,
+        enabled: true,
+        blacklisted: false,
+        roleEnabled: true,
+        keyword,
+        page: 1,
+        pageSize: 50,
+      });
+    },
+  );
+
+  it.each([2, 3])('其他合作角色 %s 保留原有候选范围', async (role) => {
     listPartners.mockResolvedValue({ data: [] });
-
-    await searchPartnersByRole(1, '客户');
-
+    await searchPartnersByRole(role, '合作方');
     expect(listPartners).toHaveBeenCalledWith({
-      role: 1,
+      role,
       enabled: true,
-      keyword: '客户',
+      keyword: '合作方',
       page: 1,
       pageSize: 50,
     });

@@ -1948,7 +1948,10 @@ type ListPartnersRequest struct {
 	// 按业务角色的黑名单状态过滤；缺省不过滤。true 匹配存在已拉黑角色
 	// 的档案，false 匹配存在未拉黑角色的档案；显式筛选时均不要求角色启用，
 	// 未指定时仅匹配启用角色。
-	Blacklisted   *bool `protobuf:"varint,7,opt,name=blacklisted,proto3,oneof" json:"blacklisted,omitempty"`
+	Blacklisted *bool `protobuf:"varint,7,opt,name=blacklisted,proto3,oneof" json:"blacklisted,omitempty"`
+	// 按目标业务角色的启用状态过滤，可与黑名单条件组合；不影响档案启停筛选。
+	// 未指定时沿用 blacklisted 的角色启停规则。
+	RoleEnabled   *bool `protobuf:"varint,8,opt,name=role_enabled,json=roleEnabled,proto3,oneof" json:"role_enabled,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2028,6 +2031,13 @@ func (x *ListPartnersRequest) GetIsCasual() bool {
 func (x *ListPartnersRequest) GetBlacklisted() bool {
 	if x != nil && x.Blacklisted != nil {
 		return *x.Blacklisted
+	}
+	return false
+}
+
+func (x *ListPartnersRequest) GetRoleEnabled() bool {
+	if x != nil && x.RoleEnabled != nil {
+		return *x.RoleEnabled
 	}
 	return false
 }
@@ -7767,7 +7777,7 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\n" +
 	"sort_order\x18\x02 \x01(\x05R\tsortOrder\"(\n" +
 	"\x11GetPartnerRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xa3\x02\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xdc\x02\n" +
 	"\x13ListPartnersRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x18\n" +
@@ -7775,12 +7785,14 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\x04role\x18\x04 \x01(\x0e2\x1b.partner.v1.PartnerRoleTypeR\x04role\x12\x1d\n" +
 	"\aenabled\x18\x05 \x01(\bH\x00R\aenabled\x88\x01\x01\x12 \n" +
 	"\tis_casual\x18\x06 \x01(\bH\x01R\bisCasual\x88\x01\x01\x12%\n" +
-	"\vblacklisted\x18\a \x01(\bH\x02R\vblacklisted\x88\x01\x01B\n" +
+	"\vblacklisted\x18\a \x01(\bH\x02R\vblacklisted\x88\x01\x01\x12&\n" +
+	"\frole_enabled\x18\b \x01(\bH\x03R\vroleEnabled\x88\x01\x01B\n" +
 	"\n" +
 	"\b_enabledB\f\n" +
 	"\n" +
 	"_is_casualB\x0e\n" +
-	"\f_blacklisted\"\x9e\x04\n" +
+	"\f_blacklistedB\x0f\n" +
+	"\r_role_enabled\"\x9e\x04\n" +
 	"\x14CreatePartnerRequest\x12\x17\n" +
 	"\x04code\x18\x01 \x01(\tH\x00R\x04code\x88\x01\x01\x12\"\n" +
 	"\n" +

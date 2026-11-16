@@ -8,6 +8,8 @@ export type PartnerOption = SelectOption & { isCasual?: boolean };
 type PartnerSearchOptions = {
   role?: number;
   enabled?: boolean;
+  blacklisted?: boolean;
+  roleEnabled?: boolean;
 };
 
 export async function searchPartnerOptions(
@@ -20,6 +22,12 @@ export async function searchPartnerOptions(
     keyword,
     role: options.role,
     enabled: options.enabled,
+    ...(options.blacklisted !== undefined && {
+      blacklisted: options.blacklisted,
+    }),
+    ...(options.roleEnabled !== undefined && {
+      roleEnabled: options.roleEnabled,
+    }),
   });
   return unwrapList(response)
     .map((partner) => ({

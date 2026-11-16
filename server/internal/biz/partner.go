@@ -186,6 +186,7 @@ type PartnerListOptions struct {
 	Enabled     *bool
 	IsCasual    *bool
 	Blacklisted *bool
+	RoleEnabled *bool
 }
 
 type PartnerList = PagedList[*Partner]

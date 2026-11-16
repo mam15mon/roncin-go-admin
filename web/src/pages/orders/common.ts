@@ -146,7 +146,14 @@ export async function searchPartnersByRole(
   role: number,
   keyword?: string,
 ): Promise<{ label: string; value: string; code?: string }[]> {
-  return searchPartnerOptions(keyword, { role, enabled: true });
+  return searchPartnerOptions(keyword, {
+    role,
+    enabled: true,
+    ...(role === PARTNER_ROLES.CUSTOMER && {
+      blacklisted: false,
+      roleEnabled: true,
+    }),
+  });
 }
 
 /** 船代使用公共字典，与公司经营档案中的订舱代理、国外代理分开查询。 */

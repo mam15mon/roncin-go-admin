@@ -84,7 +84,10 @@ func (r *partnerRepo) List(ctx context.Context, organizationIDs []uuid.UUID, opt
 	if options.Blacklisted != nil {
 		// 管理页按黑名单状态互斥分组，角色停用不改变分组。
 		rolePredicates = append(rolePredicates, partnerroleent.BlacklistedEQ(*options.Blacklisted))
-	} else {
+	}
+	if options.RoleEnabled != nil {
+		rolePredicates = append(rolePredicates, partnerroleent.EnabledEQ(*options.RoleEnabled))
+	} else if options.Blacklisted == nil {
 		// 业务选择器未指定黑名单条件时，仍只提供启用角色。
 		rolePredicates = append(rolePredicates, partnerroleent.EnabledEQ(true))
 	}

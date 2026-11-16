@@ -8036,6 +8036,13 @@ paths:
                      未指定时仅匹配启用角色。
                   schema:
                     type: boolean
+                - name: roleEnabled
+                  in: query
+                  description: |-
+                    按目标业务角色的启用状态过滤，可与黑名单条件组合；不影响档案启停筛选。
+                     未指定时沿用 blacklisted 的角色启停规则。
+                  schema:
+                    type: boolean
             responses:
                 "200":
                     description: OK

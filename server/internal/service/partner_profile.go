@@ -36,10 +36,11 @@ func (s *PartnerService) ListPartners(ctx context.Context, request *v1.ListPartn
 		return nil, err
 	}
 	options := biz.PartnerListOptions{
-		Page:     page,
-		PageSize: pageSize,
-		Keyword:  request.GetKeyword(),
-		Role:     partnerRoleTypeFromAPI(request.GetRole()),
+		Page:        page,
+		PageSize:    pageSize,
+		Keyword:     request.GetKeyword(),
+		Role:        partnerRoleTypeFromAPI(request.GetRole()),
+		RoleEnabled: request.RoleEnabled,
 	}
 	if request.Enabled != nil {
 		enabled := request.GetEnabled()

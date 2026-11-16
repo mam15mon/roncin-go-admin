@@ -69,3 +69,24 @@ func TestPartnerExportPreservesCasualFilter(t *testing.T) {
 		}
 	}
 }
+
+func TestPartnerListPreservesRoleEnabledFilter(t *testing.T) {
+	companyID := uuid.New()
+	ctx := biz.WithPrincipal(t.Context(), partnerSettlementAccessPrincipal(companyID, access.PartnerRead))
+	for _, roleEnabled := range []*bool{nil, new(true), new(false)} {
+		repo := &partnerWorkspaceRepo{}
+		service := &PartnerService{usecase: biz.NewPartnerUsecase(repo)}
+		if _, err := service.ListPartners(ctx, &v1.ListPartnersRequest{
+			Role:    v1.PartnerRoleType_PARTNER_ROLE_TYPE_CUSTOMER,
+			Enabled: new(true), Blacklisted: new(false), RoleEnabled: roleEnabled,
+		}); err != nil {
+			t.Fatal(err)
+		}
+		if (repo.options.RoleEnabled == nil) != (roleEnabled == nil) || roleEnabled != nil && *repo.options.RoleEnabled != *roleEnabled {
+			t.Fatalf("角色启停筛选未保留三态语义: %+v", repo.options)
+		}
+		if repo.options.Blacklisted == nil || *repo.options.Blacklisted || repo.options.Enabled == nil || !*repo.options.Enabled {
+			t.Fatalf("角色启停筛选改变了档案启停与黑名单条件: %+v", repo.options)
+		}
+	}
+}
