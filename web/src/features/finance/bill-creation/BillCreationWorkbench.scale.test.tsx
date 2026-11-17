@@ -269,10 +269,11 @@ describe('BillCreationWorkbench 规模压测与异常阻断', () => {
     expect(feeTagSum).toBe(40);
 
     // 层级导航：结算单位 → 币种 → 订单 定位第 11 家单位的 USD 叶子。
-    fireEvent.click(screen.getByText('第十一单位 · 200.00 USD'));
+    fireEvent.click(screen.getByTitle('第十一单位 · 200.00 USD'));
     const usdCard = screen
-      .getByText('订单 SE1102')
-      .closest('.ant-card') as HTMLElement;
+      .getAllByText('订单 SE1102')
+      .find((node) => !node.closest('.ant-tree'))
+      ?.closest('.ant-card') as HTMLElement;
     await waitFor(() =>
       expect(within(usdCard).getByDisplayValue('第十一单位')).toBeVisible(),
     );
@@ -281,12 +282,12 @@ describe('BillCreationWorkbench 规模压测与异常阻断', () => {
     });
 
     // 切换到其他叶子再切回，groupKey 草稿不丢失（不按数组下标串状态）。
-    fireEvent.click(screen.getByText('第一单位 · 200.00 CNY'));
+    fireEvent.click(screen.getByTitle('第一单位 · 200.00 CNY'));
     await waitFor(() =>
       expect(screen.getByDisplayValue('第一单位')).toBeVisible(),
     );
     expect(screen.getByDisplayValue('抬头十一USD')).not.toBeVisible();
-    fireEvent.click(screen.getByText('第十一单位 · 200.00 USD'));
+    fireEvent.click(screen.getByTitle('第十一单位 · 200.00 USD'));
     await waitFor(() =>
       expect(screen.getByDisplayValue('抬头十一USD')).toBeVisible(),
     );

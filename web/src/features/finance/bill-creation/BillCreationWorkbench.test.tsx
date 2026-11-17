@@ -152,7 +152,7 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
     expect(
       await screen.findByText('账户 A｜测试银行｜CNY'),
     ).toBeInTheDocument();
-    fireEvent.click(await screen.findByText(/结算单位 B.*USD/));
+    fireEvent.click(await screen.findByTitle(/结算单位 B.*USD/));
     expect(await screen.findByDisplayValue(/结算单位 B/)).toBeInTheDocument();
     expect(
       await screen.findByText('账户 B｜测试银行｜USD'),
@@ -248,7 +248,7 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
       </App>,
     );
     expect(await screen.findByDisplayValue('移除单位')).toBeInTheDocument();
-    fireEvent.click(screen.getByText(/保留单位 · - USD/));
+    fireEvent.click(screen.getByTitle(/保留单位 · - USD/));
     expect(await screen.findByDisplayValue('保留单位')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /刷新快照/ }));
