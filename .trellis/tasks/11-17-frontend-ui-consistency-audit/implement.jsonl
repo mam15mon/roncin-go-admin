@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "组件选型、模板与布局既有规则，统一口径写回处"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "前端质量与验证约定"}
+{"file": ".trellis/spec/web/frontend/finance-ledger-snapshots.md", "reason": "财务列表指标、选择范围与底栏口径"}
+{"file": ".trellis/spec/web/frontend/column-settings.md", "reason": "列表列偏好与列宽能力"}
+{"file": ".trellis/spec/web/frontend/air-order-workspace.md", "reason": "空运订单表单布局约定"}
