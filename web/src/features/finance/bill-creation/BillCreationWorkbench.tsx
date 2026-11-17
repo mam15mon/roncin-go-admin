@@ -450,7 +450,7 @@ export default function BillCreationWorkbench({
     );
     if (firstInvalidGroup?.groupKey) {
       setActiveGroupKey(firstInvalidGroup.groupKey);
-      message.warning('请先补齐首个标记叶子的对账抬头和结算账户');
+      message.warning('请先补齐带 ⚠ 标记账单的对账抬头和结算账户');
       return;
     }
     if (
@@ -460,7 +460,7 @@ export default function BillCreationWorkbench({
         (group) => group.configurationComplete !== true || !group.groupToken,
       )
     ) {
-      message.warning('账单预览快照尚未完整或已失效，请补齐配置后重新预览');
+      message.warning('账单资料尚未补全或已过期，请补齐后刷新账单');
       return;
     }
     let values: WorkbenchFormValue;
@@ -490,12 +490,12 @@ export default function BillCreationWorkbench({
         const feeIds = (group.fees || []).map((fee) => fee.id || '');
         if (!value || !group.groupToken) {
           throw new Error(
-            `账单组 ${group.settlementPartyName || groupKey} 缺少配置数据`,
+            `账单 ${group.settlementPartyName || groupKey} 缺少资料`,
           );
         }
         if (feeIds.length === 0 || feeIds.some((id) => !id)) {
           throw new Error(
-            `账单组 ${group.settlementPartyName || groupKey} 缺少费用标识`,
+            `账单 ${group.settlementPartyName || groupKey} 缺少费用信息`,
           );
         }
         groupSnapshots[groupKey] = group;
@@ -567,7 +567,7 @@ export default function BillCreationWorkbench({
       if (requestedSession !== sessionSequenceRef.current) return;
       const error = rawError as RequestError;
       if (requestReason(error) === 'FINANCE_BILL_PREVIEW_STALE') {
-        message.warning('费用或创建日期已发生变化，请重新预览后再生成账单');
+        message.warning('费用或创建日期已发生变化，请刷新账单后再生成');
         setSubmission(undefined);
         setResult(undefined);
         clearPreviewSnapshot();
@@ -771,8 +771,8 @@ export default function BillCreationWorkbench({
           type="warning"
           showIcon
           style={{ marginBottom: 12 }}
-          title="上次建账结果尚未确认，请确认原请求结果后继续。"
-          description="本次配置已保留，确认时使用相同请求与幂等键，不会重复生成已成功的账单。"
+          title="上次生成结果还未确认，请先确认结果再继续。"
+          description="已填写的内容已保留，再次确认不会重复生成已成功的账单。"
         />
       )}
 

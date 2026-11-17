@@ -80,7 +80,9 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
         ],
       });
     });
-    expect(await screen.findByText('200.00 CNY')).toBeInTheDocument();
+    expect(
+      await screen.findByText('折本位币金额：200.00 CNY'),
+    ).toBeInTheDocument();
 
     // 旧账户预览后完成，不得覆盖金额、系统日期或创建令牌。
     await act(async () => {
@@ -97,8 +99,10 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
       });
     });
     await sleepInAct(300);
-    expect(screen.queryByText('999.00 CNY')).not.toBeInTheDocument();
-    expect(screen.getByText('200.00 CNY')).toBeInTheDocument();
+    expect(
+      screen.queryByText('折本位币金额：999.00 CNY'),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText('折本位币金额：200.00 CNY')).toBeInTheDocument();
     expect(screen.getByText('2026-11-18')).toBeInTheDocument();
     expect(screen.queryByText('2026-11-16')).not.toBeInTheDocument();
 
@@ -162,10 +166,9 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
       expect(mocks.preview).toHaveBeenCalledTimes(baseline + 1),
     );
     // 请求 2：继续填写预计开票汇率，同样挂起。
-    fireEvent.change(
-      screen.getByPlaceholderText('服务端按预计口径计算，可调整'),
-      { target: { value: '6.5' } },
-    );
+    fireEvent.change(screen.getByPlaceholderText('可调整'), {
+      target: { value: '6.5' },
+    });
     await waitFor(() =>
       expect(mocks.preview).toHaveBeenCalledTimes(baseline + 2),
     );
@@ -184,7 +187,9 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
         ],
       });
     });
-    expect(await screen.findByText('300.00 CNY')).toBeInTheDocument();
+    expect(
+      await screen.findByText('折本位币金额：300.00 CNY'),
+    ).toBeInTheDocument();
 
     // 请求 1 后完成，不得覆盖。
     await act(async () => {
@@ -200,8 +205,10 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
       });
     });
     await sleepInAct(300);
-    expect(screen.queryByText('111.00 CNY')).not.toBeInTheDocument();
-    expect(screen.getByText('300.00 CNY')).toBeInTheDocument();
+    expect(
+      screen.queryByText('折本位币金额：111.00 CNY'),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText('折本位币金额：300.00 CNY')).toBeInTheDocument();
 
     const createBtn = await screen.findByRole('button', {
       name: /生成 1 张账单/,

@@ -58,8 +58,8 @@ export default function BillWorkbenchFooter({
               {awaitingConfirmation
                 ? '确认原请求结果'
                 : mode === 'NETTING'
-                  ? `原子生成 ${groupCount} 张账单与 ${nettingPairCount} 张对冲单`
-                  : `生成 ${groupCount} 张账单（逐组提交）`}
+                  ? `生成 ${groupCount} 张账单与 ${nettingPairCount} 张对冲单`
+                  : `生成 ${groupCount} 张账单`}
             </Button>
           )}
         </Space>

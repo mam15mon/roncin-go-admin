@@ -27,7 +27,13 @@ function groupLeafTitle(
     `${formatAmount(group.totalAmount)} ${group.currency || ''}`.trim();
   const fullTitle = `${group.settlementPartyName || group.settlementPartyId || '未命名结算单位'} · ${amount}`;
   return (
-    <Flex align="center" gap={8} style={{ width: '100%' }} title={fullTitle}>
+    <Flex
+      align="center"
+      wrap
+      gap={8}
+      style={{ width: '100%' }}
+      title={fullTitle}
+    >
       {invalid && (
         <Tooltip title="必填配置未完成，点击后在下方补全">
           <WarningOutlined style={{ color: '#d46b08' }} />
@@ -112,22 +118,7 @@ export default function BillGroupNavigator({
   }, [groups, invalidGroupKeys, splitByOrder, splitByTaxRate]);
 
   return (
-    <Card
-      size="small"
-      title="拟生成账单导航"
-      style={{ marginBottom: 16 }}
-      extra={
-        <Text type="secondary">
-          共 {groups.length} 张
-          {invalidGroupKeys.size > 0 && (
-            <Text style={{ color: '#d46b08' }}>
-              {' '}
-              · {invalidGroupKeys.size} 张待补全
-            </Text>
-          )}
-        </Text>
-      }
-    >
+    <Card size="small" title="账单列表" style={{ marginBottom: 12 }}>
       <Tree
         blockNode
         expandedKeys={allKeys.filter((key) => !collapsedKeys.has(key))}

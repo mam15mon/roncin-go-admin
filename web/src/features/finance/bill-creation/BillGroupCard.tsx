@@ -4,7 +4,6 @@ import {
   Alert,
   Card,
   Col,
-  Descriptions,
   Form,
   Input,
   InputNumber,
@@ -22,7 +21,7 @@ import { ResponsiveProTable as ProTable } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { InvoiceRegistrationEditor } from '@/features/finance/invoice-registration';
 import { currencyOptionsQueryOptions } from '@/features/master-data/currencies';
-import { formatAmount, trimDecimal } from '@/utils/format';
+import { formatAmount } from '@/utils/format';
 import BillTermsCreditWarnings from './BillTermsCreditWarnings';
 import BillVerificationFields from './BillVerificationFields';
 import SettlementAccountSelect from './SettlementAccountSelect';
@@ -71,7 +70,7 @@ export default function BillGroupCard({
   return (
     <Card
       size="small"
-      style={{ marginBottom: 16, border: '1px solid #e8e8e8', borderRadius: 6 }}
+      style={{ marginBottom: 16 }}
       title={
         <Space wrap>
           <Tag color={group.direction === 'RECEIVABLE' ? 'green' : 'volcano'}>
@@ -97,8 +96,8 @@ export default function BillGroupCard({
           type="warning"
           showIcon
           style={{ marginBottom: 16 }}
-          title="该叶子尚未形成可创建快照"
-          description="请补齐结算账户或服务端要求的汇率配置后重新预览。"
+          title="这张账单还有必填资料没补全"
+          description="请补齐结算账户或汇率后，点击「刷新账单」。"
         />
       )}
       <BillTermsCreditWarnings
@@ -113,7 +112,7 @@ export default function BillGroupCard({
         billCurrency={group.currency}
       />
       <Row gutter={16} style={{ marginBottom: 8 }}>
-        <Col xs={24} md={8}>
+        <Col xs={24} md={10}>
           <Form.Item
             name={['groups', groupKey, 'statementTitle'] as NamePath}
             label="对账抬头"
@@ -133,12 +132,12 @@ export default function BillGroupCard({
             <Text>{group.billDate || '-'}</Text>
           </Form.Item>
         </Col>
-        <Col xs={24} md={5}>
+        <Col xs={24} md={4}>
           <Form.Item label="账单币种">
             <Input disabled value={group.currency || '-'} />
           </Form.Item>
         </Col>
-        <Col xs={24} md={3}>
+        <Col xs={24} md={5}>
           <Form.Item
             name={['groups', groupKey, 'paymentTermsDays'] as NamePath}
             label="账期（天）"
@@ -164,15 +163,6 @@ export default function BillGroupCard({
             />
           </Form.Item>
         </Col>
-        <Col xs={24} md={3}>
-          <Form.Item
-            name={['groups', groupKey, 'note'] as NamePath}
-            label="备注"
-            rules={[{ max: 500, message: '备注不能超过 500 字' }]}
-          >
-            <Input maxLength={500} placeholder="选填" />
-          </Form.Item>
-        </Col>
         <Col xs={24} md={12}>
           <SettlementAccountSelect
             group={group}
@@ -181,40 +171,19 @@ export default function BillGroupCard({
             onConfigurationChange={onConfigurationChange}
           />
         </Col>
+        <Col xs={24} md={12}>
+          <Form.Item
+            name={['groups', groupKey, 'note'] as NamePath}
+            label="备注"
+            rules={[{ max: 500, message: '备注不能超过 500 字' }]}
+          >
+            <Input maxLength={500} placeholder="选填" />
+          </Form.Item>
+        </Col>
       </Row>
-      <Descriptions
-        bordered
-        size="small"
-        column={3}
-        style={{ marginBottom: 16 }}
-      >
-        <Descriptions.Item label="账单金额">
-          {group.totalAmount
-            ? `${formatAmount(group.totalAmount)} ${group.currency || '-'}`
-            : '-'}
-        </Descriptions.Item>
-        <Descriptions.Item label="组织本位币金额">
-          {group.baseCurrencyAmount
-            ? `${formatAmount(group.baseCurrencyAmount)} ${group.baseCurrency || ''}`.trim()
-            : '服务端未提供'}
-        </Descriptions.Item>
-        <Descriptions.Item label="预计开票币种">
-          {group.estimatedInvoiceCurrency || '服务端未提供'}
-        </Descriptions.Item>
-        <Descriptions.Item label="预计开票汇率">
-          {group.estimatedInvoiceRate
-            ? trimDecimal(group.estimatedInvoiceRate)
-            : '服务端未提供'}
-        </Descriptions.Item>
-        <Descriptions.Item label="预计开票金额">
-          {group.estimatedInvoiceAmount
-            ? formatAmount(group.estimatedInvoiceAmount)
-            : '服务端未提供'}
-        </Descriptions.Item>
-      </Descriptions>
       <Card
         size="small"
-        title="预计开票配置（仅用于预计，不改变固定账单币种）"
+        title="预计开票（仅作预计，不改变账单币种）"
         style={{ marginBottom: 16 }}
       >
         <Row gutter={16}>
@@ -275,13 +244,27 @@ export default function BillGroupCard({
                 }),
               ]}
             >
-              <Input placeholder="服务端按预计口径计算，可调整" />
+              <Input placeholder="可调整" />
             </Form.Item>
           </Col>
           <Col xs={24} md={8}>
-            <Text type="secondary">
-              预计金额由服务端预览返回；实际开票将以开票日期独立重新确定。
-            </Text>
+            <Space orientation="vertical" size={2}>
+              <Text>
+                预计开票金额：
+                {group.estimatedInvoiceAmount
+                  ? `${formatAmount(group.estimatedInvoiceAmount)} ${group.estimatedInvoiceCurrency || ''}`.trim()
+                  : '-'}
+              </Text>
+              <Text>
+                折本位币金额：
+                {group.baseCurrencyAmount
+                  ? `${formatAmount(group.baseCurrencyAmount)} ${group.baseCurrency || ''}`.trim()
+                  : '-'}
+              </Text>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                实际开票时按开票日期重新确定。
+              </Text>
+            </Space>
           </Col>
         </Row>
       </Card>

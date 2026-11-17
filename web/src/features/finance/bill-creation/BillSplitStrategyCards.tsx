@@ -1,17 +1,7 @@
-import {
-  Alert,
-  Card,
-  Col,
-  Descriptions,
-  Row,
-  Space,
-  Switch,
-  Tag,
-  Typography,
-} from 'antd';
+import { Card, Col, Row, Switch, Typography } from 'antd';
 import React from 'react';
 
-const { Text, Title } = Typography;
+const { Text } = Typography;
 
 type BillSplitStrategyCardsProps = {
   splitByOrder: boolean;
@@ -29,75 +19,38 @@ export default function BillSplitStrategyCards({
   selectedCount,
 }: BillSplitStrategyCardsProps) {
   return (
-    <Card>
-      <Title level={5}>拆单维度</Title>
-      <Alert
-        type="info"
-        showIcon
-        style={{ marginBottom: 20 }}
-        title="普通账单按单一收付方向创建；结算单位始终是不可关闭的边界"
-        description="不同结算单位绝不会进入同一张账单。币种、税率和订单只控制额外拆分，不会放宽服务端的财务边界。"
-      />
-      <Row gutter={[24, 16]}>
-        <Col xs={24} lg={12}>
-          <Card size="small" title="按结算单位拆分">
-            <Space vertical>
-              <Tag color="blue">固定边界，不可关闭</Tag>
-              <Text type="secondary">
-                不同结算单位必须分别生成账单；这不是可选拆分项。
-              </Text>
-            </Space>
-          </Card>
-        </Col>
-        <Col xs={24} lg={12}>
-          <Card size="small" title="按币种拆分">
-            <Space vertical>
-              <Tag color="blue">固定边界，不可关闭</Tag>
-              <Text type="secondary">
-                每个普通账单叶子只包含一种费用币种，账单币种固定等于该费用币种。
-              </Text>
-            </Space>
-          </Card>
-        </Col>
-        <Col xs={24} lg={12}>
+    <Card
+      title={`已选 ${selectedCount} 笔费用，怎么拆成账单？`}
+      extra={<Text type="secondary">每张账单只含一个结算单位、一种币种</Text>}
+    >
+      <Row gutter={[16, 16]}>
+        <Col xs={24} md={12}>
           <Card size="small" title="按订单拆分">
-            <Space vertical>
-              <Switch
-                checked={splitByOrder}
-                checkedChildren="已启用"
-                unCheckedChildren="未启用"
-                onChange={setSplitByOrder}
-              />
-              <Text type="secondary">
-                启用后每个业务订单独立成账；关闭时允许同一结算单位的多票订单汇总对账。
-              </Text>
-            </Space>
+            <Switch
+              checked={splitByOrder}
+              checkedChildren="已启用"
+              unCheckedChildren="未启用"
+              onChange={setSplitByOrder}
+            />
+            <Text type="secondary" style={{ display: 'block', marginTop: 8 }}>
+              启用：每个订单单独一张账单。关闭：同一结算单位的多个订单合并成一张。
+            </Text>
           </Card>
         </Col>
-        <Col xs={24} lg={12}>
+        <Col xs={24} md={12}>
           <Card size="small" title="按税率拆分">
-            <Space vertical>
-              <Switch
-                checked={splitByTaxRate}
-                checkedChildren="已启用"
-                unCheckedChildren="未启用"
-                onChange={setSplitByTaxRate}
-              />
-              <Text type="secondary">
-                启用后不同税率独立成账；关闭时税率仍会逐费用行固化，后续开票可按行处理。
-              </Text>
-            </Space>
+            <Switch
+              checked={splitByTaxRate}
+              checkedChildren="已启用"
+              unCheckedChildren="未启用"
+              onChange={setSplitByTaxRate}
+            />
+            <Text type="secondary" style={{ display: 'block', marginTop: 8 }}>
+              启用：不同税率分开成账。关闭：税率不同也合并，开票时仍按每笔费用的税率处理。
+            </Text>
           </Card>
         </Col>
       </Row>
-      <Descriptions size="small" column={2} style={{ marginTop: 20 }}>
-        <Descriptions.Item label="已选费用">
-          {selectedCount} 笔
-        </Descriptions.Item>
-        <Descriptions.Item label="预览机制">
-          服务端实时拆分并签发快照令牌
-        </Descriptions.Item>
-      </Descriptions>
     </Card>
   );
 }

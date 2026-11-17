@@ -95,7 +95,7 @@ describe('批量建账配置阻断与定位', () => {
     fireEvent.click(screen.getByRole('button', { name: /生成 2 张账单/ }));
     await waitFor(() =>
       expect(
-        screen.getByText('请先补齐首个标记叶子的对账抬头和结算账户'),
+        screen.getByText('请先补齐带 ⚠ 标记账单的对账抬头和结算账户'),
       ).toBeInTheDocument(),
     );
     // 整批被阻断时自动跳到缺配置叶子，其他叶子不再置前展示。

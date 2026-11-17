@@ -55,7 +55,7 @@ type BillGroupConfigurationStepProps = {
   onUserEdit?: () => void;
 };
 
-/** 建账工作台第 3 步：拆单策略微调、汇总、对冲配对与逐叶子账单资料 */
+/** 建账工作台第 3 步：拆分方式、汇总、对冲配对，左侧账单列表、右侧当前账单资料 */
 export default function BillGroupConfigurationStep({
   mode,
   form,
@@ -79,7 +79,6 @@ export default function BillGroupConfigurationStep({
   onUserEdit,
 }: BillGroupConfigurationStepProps) {
   const groups = preview.data ?? [];
-  const activeGroup = groups.find((group) => group.groupKey === activeGroupKey);
 
   return (
     <Form
@@ -117,14 +116,14 @@ export default function BillGroupConfigurationStep({
             <Space size="large" wrap>
               <Space>
                 <SettingOutlined style={{ color: '#1677ff' }} />
-                <Text strong>拆单策略微调：</Text>
+                <Text strong>拆分方式：</Text>
               </Space>
               <Space>
-                <Text type="secondary">按币种拆分：</Text>
+                <Text type="secondary">按币种：</Text>
                 <Tag color="blue">固定启用</Tag>
               </Space>
               <Space>
-                <Text type="secondary">按订单拆分：</Text>
+                <Text type="secondary">按订单：</Text>
                 <Switch
                   size="small"
                   checked={splitByOrder}
@@ -140,7 +139,7 @@ export default function BillGroupConfigurationStep({
                 />
               </Space>
               <Space>
-                <Text type="secondary">按税率拆分：</Text>
+                <Text type="secondary">按税率：</Text>
                 <Switch
                   size="small"
                   checked={splitByTaxRate}
@@ -159,7 +158,7 @@ export default function BillGroupConfigurationStep({
           </Col>
           <Col xs={24} md={8} style={{ textAlign: 'right' }}>
             <Space>
-              <Tag color="blue">共 {groups.length} 张拟生成账单</Tag>
+              <Tag color="blue">共 {groups.length} 张账单</Tag>
               <Button
                 size="small"
                 icon={<ReloadOutlined />}
@@ -167,7 +166,7 @@ export default function BillGroupConfigurationStep({
                 disabled={frozen}
                 onClick={() => void loadPreview()}
               >
-                刷新快照
+                刷新账单
               </Button>
             </Space>
           </Col>
@@ -175,40 +174,47 @@ export default function BillGroupConfigurationStep({
       </Card>
       <BillBatchSummary
         groups={groups}
-        currentGroup={activeGroup}
         incompleteCount={invalidGroupKeys.size}
       />
       {mode === 'NETTING' && (
         <NettingPairsCard pairs={preview.nettingPairs || []} />
       )}
-      <BillGroupNavigator
-        groups={groups}
-        splitByTaxRate={splitByTaxRate}
-        splitByOrder={splitByOrder}
-        activeGroupKey={activeGroupKey}
-        invalidGroupKeys={invalidGroupKeys}
-        onSelect={onActiveGroupKeyChange}
-      />
-      {groups.map((group) => {
-        const isCurrent = group.groupKey === activeGroupKey;
-        return (
-          <div
-            key={group.groupKey}
-            style={{ display: isCurrent ? 'block' : 'none' }}
-          >
-            <BillGroupCard
-              group={group}
-              organizationId={organizationId || ''}
-              sessionIdentity={sessionIdentity}
-              feeColumns={getPreviewFeeColumns(
-                frozen ? undefined : onRemoveFee,
-              )}
-              directionText={directionText}
-              onConfigurationChange={onConfigurationChange}
+      <Row gutter={16} align="top">
+        <Col xs={24} lg={8} xl={7}>
+          <div style={{ position: 'sticky', top: 0 }}>
+            <BillGroupNavigator
+              groups={groups}
+              splitByTaxRate={splitByTaxRate}
+              splitByOrder={splitByOrder}
+              activeGroupKey={activeGroupKey}
+              invalidGroupKeys={invalidGroupKeys}
+              onSelect={onActiveGroupKeyChange}
             />
           </div>
-        );
-      })}
+        </Col>
+        <Col xs={24} lg={16} xl={17}>
+          {groups.map((group) => {
+            const isCurrent = group.groupKey === activeGroupKey;
+            return (
+              <div
+                key={group.groupKey}
+                style={{ display: isCurrent ? 'block' : 'none' }}
+              >
+                <BillGroupCard
+                  group={group}
+                  organizationId={organizationId || ''}
+                  sessionIdentity={sessionIdentity}
+                  feeColumns={getPreviewFeeColumns(
+                    frozen ? undefined : onRemoveFee,
+                  )}
+                  directionText={directionText}
+                  onConfigurationChange={onConfigurationChange}
+                />
+              </div>
+            );
+          })}
+        </Col>
+      </Row>
     </Form>
   );
 }

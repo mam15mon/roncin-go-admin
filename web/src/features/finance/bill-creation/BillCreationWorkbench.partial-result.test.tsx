@@ -129,10 +129,10 @@ describe('批量建账部分结果与原请求重试', () => {
     });
     await renderReady();
     expect(
-      await screen.findByText('上次建账结果尚未确认，请确认原请求结果后继续。'),
+      await screen.findByText('上次生成结果还未确认，请先确认结果再继续。'),
     ).toBeInTheDocument();
     expect(screen.getByDisplayValue('结算单位甲')).toBeDisabled();
-    expect(screen.getByRole('button', { name: /刷新快照/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /刷新账单/ })).toBeDisabled();
     expect(screen.getByRole('button', { name: /上一步/ })).toBeDisabled();
     fireEvent.click(screen.getByRole('button', { name: /确认原请求结果/ }));
     await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(2));

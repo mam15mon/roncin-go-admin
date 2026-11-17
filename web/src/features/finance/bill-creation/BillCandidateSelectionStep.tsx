@@ -41,7 +41,7 @@ export default function BillCandidateSelectionStep({
         type="info"
         showIcon
         title={`已从${sourceLabel || '业务页面'}带入 ${selectedIds.length} 笔未建账费用`}
-        description="费用必须已批准且无待审核补录；审核版本、结算维度和金额快照将在预览及最终建账时由服务端再次校验。"
+        description="仅已批准且没有待审核补录的费用可以转账单，生成前会再核对一次。"
       />
       <div style={{ marginTop: 12 }}>
         来源公司：

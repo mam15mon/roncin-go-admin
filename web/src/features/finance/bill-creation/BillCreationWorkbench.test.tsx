@@ -158,7 +158,7 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
       await screen.findByText('账户 B｜测试银行｜USD'),
     ).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: /刷新快照/ }));
+    fireEvent.click(screen.getByRole('button', { name: /刷新账单/ }));
     expect(
       (await screen.findAllByText(/结算单位 B.*重排/)).length,
     ).toBeGreaterThan(0);
@@ -251,7 +251,7 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
     fireEvent.click(screen.getByTitle(/保留单位 · - USD/));
     expect(await screen.findByDisplayValue('保留单位')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: /刷新快照/ }));
+    fireEvent.click(screen.getByRole('button', { name: /刷新账单/ }));
     await waitFor(() =>
       expect(screen.queryByDisplayValue('移除单位')).not.toBeInTheDocument(),
     );
@@ -304,7 +304,7 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
     fireEvent.click(screen.getByRole('button', { name: /生成 1 张账单/ }));
     await waitFor(() =>
       expect(
-        screen.getByText('请先补齐首个标记叶子的对账抬头和结算账户'),
+        screen.getByText('请先补齐带 ⚠ 标记账单的对账抬头和结算账户'),
       ).toBeInTheDocument(),
     );
     expect(mocks.create).not.toHaveBeenCalled();
@@ -357,10 +357,9 @@ describe('BillCreationWorkbench 预览触发边界', () => {
     await waitFor(() => expect(mocks.preview).toHaveBeenCalledTimes(4));
 
     // 预计开票汇率变化触发预览。
-    fireEvent.change(
-      screen.getByPlaceholderText('服务端按预计口径计算，可调整'),
-      { target: { value: '6.5' } },
-    );
+    fireEvent.change(screen.getByPlaceholderText('可调整'), {
+      target: { value: '6.5' },
+    });
     await waitFor(() => expect(mocks.preview).toHaveBeenCalledTimes(5));
     await sleepInAct(500);
     expect(mocks.preview).toHaveBeenCalledTimes(5);
