@@ -1,0 +1,8 @@
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "前端验证和测试约束"}
+{"file": ".trellis/spec/server/backend/order-lock-and-document-version.md", "reason": "共享主单活动链接和生命周期相邻回归"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "跨层退役与生成链"}
+{"file": ".trellis/spec/adr/0001-contract-single-direction-flow.md", "reason": "Proto与客户端单向生成"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "Ent Schema与正式迁移"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "隔离数据库真实验证与跳过口径"}
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "契约生成物与字段存在性"}
+{"file": ".trellis/tasks/11-17-retire-shipment-mode/research/scope-audit.md", "reason": "字段调用链、删除与保留清单"}

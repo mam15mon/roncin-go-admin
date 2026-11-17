@@ -1,0 +1,32 @@
+{
+  "id": "retire-shipment-mode",
+  "name": "retire-shipment-mode",
+  "title": "退役订单集运跨境模式",
+  "description": "核查并规划移除海空运订单集运跨境模式字段及关联展示，保留普通运输与主分单能力",
+  "status": "planning",
+  "dev_type": "fullstack",
+  "scope": "orders",
+  "package": null,
+  "priority": "P2",
+  "creator": "mam15mon",
+  "assignee": "mam15mon",
+  "createdAt": "2026-11-17",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "server/api/order/v1/order.proto",
+    "server/internal/data/ent/schema/order.go",
+    "web/src/pages/orders/common.ts",
+    "web/src/pages/orders/list.tsx",
+    "web/config/routes.ts"
+  ],
+  "notes": "已获得任务创建及范围整理同意；规划文档待用户最终审阅，未批准实施。",
+  "meta": {}
+}
