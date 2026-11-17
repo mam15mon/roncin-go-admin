@@ -90,8 +90,18 @@ afterEach(() => {
 });
 
 describe('账单费用维护', () => {
-  it('只为有效行提供移除，省略 active 的历史行不可操作', async () => {
-    mount(wireBill());
+  it('只展示有效费用，隐藏省略 active 或显式 false 的已释放行', async () => {
+    const bill = wireBill();
+    bill.lines?.push({
+      id: 'line-false',
+      feeName: '显式释放费',
+      active: false,
+    });
+    mount(bill);
+    expect(screen.getByText('海运费')).toBeInTheDocument();
+    expect(screen.getByText('订舱费')).toBeInTheDocument();
+    expect(screen.queryByText('已释放费')).not.toBeInTheDocument();
+    expect(screen.queryByText('显式释放费')).not.toBeInTheDocument();
     expect(removeButtons()).toHaveLength(2);
     expect(removeButtons()[0]).toBeEnabled();
     expect(screen.getByRole('button', { name: '添加费用' })).toBeEnabled();
@@ -143,15 +153,34 @@ describe('账单费用维护', () => {
   });
 
   it('移除提交当前版本，成功后回传新账单', async () => {
-    const updated = wireBill({ version: '4' });
+    const updated = wireBill({
+      version: '4',
+      feeCount: 1,
+      lines: [
+        { id: 'line-a', orderFeeId: 'fee-a', feeName: '海运费' },
+        { id: 'line-b', orderFeeId: 'fee-b', feeName: '订舱费', active: true },
+      ],
+    });
     updateFees.mockResolvedValue({
       success: true,
       data: updated,
     } as UpdateResult);
-    const { onUpdated } = mount(wireBill());
+    const { onUpdated, rerender } = mount(wireBill());
     fireEvent.click(removeButtons()[0]);
     fireEvent.click(await screen.findByRole('button', { name: /确\s*定|OK/ }));
     await waitFor(() => expect(onUpdated).toHaveBeenCalledWith(updated));
+    rerender(
+      <BillFeeMaintenance
+        bill={updated}
+        lineColumns={lineColumns}
+        onUpdated={onUpdated}
+        onRefresh={vi.fn()}
+      />,
+    );
+    expect(screen.queryByText('海运费')).not.toBeInTheDocument();
+    expect(screen.getByText('订舱费')).toBeInTheDocument();
+    expect(removeButtons()).toHaveLength(1);
+    expect(removeButtons()[0]).toBeDisabled();
     expect(updateFees).toHaveBeenCalledWith(
       { id: 'bill-1' },
       {

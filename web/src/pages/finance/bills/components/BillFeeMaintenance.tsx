@@ -255,7 +255,7 @@ export default function BillFeeMaintenance({
         size="small"
         bordered
         pagination={false}
-        dataSource={bill.lines || []}
+        dataSource={activeLines}
         columns={columns}
       />
       <Modal

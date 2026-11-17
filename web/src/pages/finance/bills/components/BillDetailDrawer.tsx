@@ -93,13 +93,6 @@ export default function BillDetailDrawer({
         `${formatAmount(row.baseCurrencyAmount)} ${row.baseCurrency}`,
       align: 'right',
     },
-    {
-      title: '关联状态',
-      key: 'active',
-      render: (_, row) =>
-        row.active ? <Tag color="blue">有效</Tag> : <Tag>已释放</Tag>,
-      width: 85,
-    },
   ];
 
   const lineColumnSettings = useColumnSettings<
@@ -276,7 +269,9 @@ export default function BillDetailDrawer({
               size="small"
               bordered
               pagination={false}
-              dataSource={detail.lines || []}
+              dataSource={(detail.lines ?? []).filter(
+                (line) => line.active === true,
+              )}
               columns={lineColumnSettings.columns}
             />
           )}

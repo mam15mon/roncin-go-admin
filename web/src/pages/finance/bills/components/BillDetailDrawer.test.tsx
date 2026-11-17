@@ -9,7 +9,32 @@ vi.mock('@/services/roncin/partnerService', () => ({
   partnerServiceListPartnerAccounts: vi.fn(),
 }));
 
-describe('BillDetailDrawer 结算账户快照', () => {
+describe('BillDetailDrawer 账单详情', () => {
+  it('只读明细只展示有效费用，不显示已释放行及关联状态列', async () => {
+    renderWithApp(
+      <BillDetailDrawer
+        open
+        loading={false}
+        onClose={vi.fn()}
+        detail={{
+          id: 'bill-lines',
+          billNo: 'BILL-LINES',
+          lines: [
+            { id: 'active', feeName: '当前费用', active: true },
+            { id: 'released', feeName: '已移除费用', active: false },
+            { id: 'omitted', feeName: '省略零值的已移除费用' },
+          ],
+        }}
+      />,
+    );
+    expect(screen.getByText('当前费用')).toBeInTheDocument();
+    expect(screen.queryByText('已移除费用')).not.toBeInTheDocument();
+    expect(screen.queryByText('省略零值的已移除费用')).not.toBeInTheDocument();
+    expect(screen.queryByText('关联状态')).not.toBeInTheDocument();
+    expect(screen.queryByText('已释放')).not.toBeInTheDocument();
+    await act(async () => {});
+  });
+
   it('只展示账单 DTO 固化的账户快照，不请求往来单位账户主数据', async () => {
     renderWithApp(
       <BillDetailDrawer

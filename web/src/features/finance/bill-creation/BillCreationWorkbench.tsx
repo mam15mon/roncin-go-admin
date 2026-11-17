@@ -104,8 +104,8 @@ export default function BillCreationWorkbench({
   const [form] = Form.useForm<WorkbenchFormValue>();
   const [current, setCurrent] = useState(0);
   const [selectedFeeIds, setSelectedFeeIds] = useState<React.Key[]>([]);
-  const [splitByOrder, setSplitByOrder] = useState(false);
-  const [splitByTaxRate, setSplitByTaxRate] = useState(false);
+  const [splitByOrder, setSplitByOrder] = useState(true);
+  const [splitByTaxRate, setSplitByTaxRate] = useState(true);
   const { initialState } = useInitialState();
   const access = useAccess();
   const currentOrganization = initialState?.currentUser?.currentOrganization;
@@ -341,8 +341,8 @@ export default function BillCreationWorkbench({
     previewInitKeyRef.current = initKey;
     clearPreviewSnapshot();
     setSelectedFeeIds(initialIds);
-    setSplitByOrder(false);
-    setSplitByTaxRate(false);
+    setSplitByOrder(true);
+    setSplitByTaxRate(true);
     setResult(undefined);
     setSubmission(undefined);
     setSubmitting(false);
@@ -355,8 +355,8 @@ export default function BillCreationWorkbench({
       void runPreviewRef
         .current(initialIds, {
           mode: groupingMode,
-          splitByOrder: false,
-          splitByTaxRate: false,
+          splitByOrder: true,
+          splitByTaxRate: true,
         })
         .then((ok) => {
           if (requestedSession === sessionSequenceRef.current)

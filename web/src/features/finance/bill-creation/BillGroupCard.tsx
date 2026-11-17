@@ -135,6 +135,7 @@ export default function BillGroupCard({
           <Form.Item
             name={['groups', groupKey, 'billDate'] as NamePath}
             label="账单日期"
+            tooltip="本次账单的业务日期，用于确定折本币汇率；填写账期后，到期日按账单日期加账期天数计算。"
             rules={[{ required: true, message: '请选择账单日期' }]}
           >
             <DatePicker allowClear={false} style={{ width: '100%' }} />

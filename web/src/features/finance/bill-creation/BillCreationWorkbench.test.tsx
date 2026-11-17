@@ -48,8 +48,8 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
         organizationId: 'A',
         groupingPolicy: {
           mode: BillGroupingMode.BILL_GROUPING_MODE_NORMAL,
-          splitByOrder: false,
-          splitByTaxRate: false,
+          splitByOrder: true,
+          splitByTaxRate: true,
         },
       }),
       expect.anything(),
