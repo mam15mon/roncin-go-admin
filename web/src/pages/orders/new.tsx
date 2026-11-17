@@ -14,6 +14,8 @@ import {
   getFormDraftScope,
 } from '@/components/layout/formDraft';
 import { resolveTabKey } from '@/components/layout/routeUtils';
+import { isTabDirty } from '@/components/layout/tabCloseGuard';
+import { useRouteLeaveGuard } from '@/components/layout/useRouteLeaveGuard';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
 import type { OrderFormTemplateActions } from '@/components/ui/order-template/types';
 import { SeaDocumentStructure } from '@/enums.generated';
@@ -85,6 +87,13 @@ function NewOrderContent({
   const draftScope = getFormDraftScope(
     initialState?.currentUser?.id,
     initialState?.currentUser?.currentOrganization?.id,
+  );
+  // 取消/侧栏跳走等路由离开：有未保存输入先确认，确认放弃即清草稿；建单成功跳转不拦截。
+  const newTabKey = resolveTabKey(`/orders/${kind}/new`);
+  useRouteLeaveGuard(
+    newTabKey,
+    () => !navigatedRef.current && isTabDirty(newTabKey, draftScope),
+    draftScope,
   );
 
   // 实例卸载即失效，覆盖 A→B→A 以及 StrictMode 的 setup/cleanup 往返。
@@ -488,6 +497,8 @@ function NewOrderContent({
       }
       createIdempotencyKeyRef.current = generateUUID();
       message.success('创建订单成功');
+      // 建单成功后的跳转不经离开确认；草稿由模板在提交成功后清理。
+      navigatedRef.current = true;
       history.push(`/orders/${definition.kind}/${createdId}`);
       return true;
     } catch (error: unknown) {

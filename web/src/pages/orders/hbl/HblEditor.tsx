@@ -155,7 +155,7 @@ export default function HblEditor({
       ? hblValuesFingerprint(values) !== hblValuesFingerprint(baselineValues)
       : false;
   };
-  useRouteLeaveGuard(tabKey, hasChanges);
+  useRouteLeaveGuard(tabKey, hasChanges, scope);
   // 模板只在输入事件标脏；显式带入也是编辑，此守卫按完整表单快照保护工作区切换。
   useTabCloseGuard({ tabKey, isDirty: hasChanges });
 

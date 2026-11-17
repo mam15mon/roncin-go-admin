@@ -1,10 +1,19 @@
 import { App } from 'antd';
 import { useEffect, useRef } from 'react';
 import { useBlocker, useLocation } from 'react-router';
+import { clearTabDrafts } from './formDraft';
 import { getTabGuardMessage, isTabDepartureConfirmed } from './tabCloseGuard';
 
-/** 真实路由离开复用页签确认，取消时保留当前表单。 */
-export function useRouteLeaveGuard(tabKey: string, isDirty: () => boolean) {
+/**
+ * 真实路由离开复用页签确认，取消时保留当前表单。
+ * 传入 draftScope 的页面（新建订单等持久草稿）确认「放弃并离开」即清当前页签草稿，
+ * 与关闭页签口径一致，避免下次进入恢复已放弃的输入。
+ */
+export function useRouteLeaveGuard(
+  tabKey: string,
+  isDirty: () => boolean,
+  draftScope?: string,
+) {
   const { modal } = App.useApp();
   const location = useLocation();
   const dirtyRef = useRef(isDirty);
@@ -32,6 +41,7 @@ export function useRouteLeaveGuard(tabKey: string, isDirty: () => boolean) {
       centered: true,
       onOk: () => {
         confirmationRef.current = undefined;
+        clearTabDrafts(tabKey, draftScope);
         blocker.proceed();
       },
       onCancel: () => {
@@ -39,7 +49,7 @@ export function useRouteLeaveGuard(tabKey: string, isDirty: () => boolean) {
         blocker.reset();
       },
     });
-  }, [blocker, modal, tabKey]);
+  }, [blocker, modal, tabKey, draftScope]);
 
   useEffect(() => () => confirmationRef.current?.destroy(), []);
 }
