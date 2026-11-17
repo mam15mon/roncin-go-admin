@@ -203,7 +203,6 @@ export const airExportFormAdapter: OrderKindFormAdapter = {
     airMasterMode: 'NEW',
     airDocumentMode: 'HOUSE',
     creatorUserId: creator?.userId,
-    totalPackageUnit: 'CTNS',
     cargoCategoryIds: cargoCategoryOptions.find(
       (item) => item.code === 'GENERAL',
     )?.value

@@ -86,7 +86,6 @@ export function SeaConsignedMeasurementFields({
       <ProFormDigit
         name="totalGrossWeightKg"
         label="委托毛重（KG）"
-        placeholder="0"
         disabled={disabled}
         min={0}
         fieldProps={{ precision: 3, style: { width: '100%' } }}
@@ -94,7 +93,6 @@ export function SeaConsignedMeasurementFields({
       <ProFormDigit
         name="totalVolumeCbm"
         label="委托体积（CBM）"
-        placeholder="0"
         disabled={disabled}
         min={0}
         fieldProps={{ precision: 3, style: { width: '100%' } }}

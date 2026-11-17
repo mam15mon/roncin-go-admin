@@ -74,7 +74,6 @@ export function buildSeaExportCreateDefaults(
     paymentTerm: 1,
     shipmentType: ShipmentType.SHIPMENT_TYPE_FCL,
     containerOwnership: ContainerOwnership.CONTAINER_OWNERSHIP_COC,
-    tradeTerm: TradeTerm.TRADE_TERM_CIF,
     seaMasterBillContent: seaBillContentFormValues(),
     seaHouseBill: {
       houseNo: '',

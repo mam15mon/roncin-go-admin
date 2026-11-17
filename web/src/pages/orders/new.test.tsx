@@ -15,7 +15,6 @@ import {
   OrderBusinessType,
   SeaDocumentStructure,
   TradeDirection,
-  TradeTerm,
 } from '@/enums.generated';
 import { history } from '@/router/history';
 import { orderServiceCreateOrder } from '@/services/roncin/orderService';
@@ -330,12 +329,10 @@ describe('NewOrderPage', () => {
     await flushMountRequests();
   });
 
-  it('海运出口订单默认贸易条款为 CIF、货主箱标记为船东箱 COC', async () => {
+  it('海运出口订单不预填贸易条款、货主箱标记为船东箱 COC', async () => {
     renderWithApp(<NewOrderPage />);
 
-    expect(lastTemplateProps?.initialValues?.tradeTerm).toBe(
-      TradeTerm.TRADE_TERM_CIF,
-    );
+    expect(lastTemplateProps?.initialValues?.tradeTerm).toBeUndefined();
     expect(lastTemplateProps?.initialValues?.containerOwnership).toBe(
       ContainerOwnership.CONTAINER_OWNERSHIP_COC,
     );

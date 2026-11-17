@@ -16,7 +16,7 @@ export const PackageCountInput: React.FC<PackageCountInputProps> = ({
   countName,
   unitName,
   countPlaceholder = '件数',
-  unitPlaceholder = '单位',
+  unitPlaceholder = '请选择单位',
   disabled = false,
   unitWidth = 130,
   unitOptions = PACKAGE_UNIT_OPTIONS,

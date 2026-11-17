@@ -8,7 +8,6 @@ import {
   SeaHouseBillIssuerSource,
   ShipmentType,
   TradeDirection,
-  TradeTerm,
 } from '@/enums.generated';
 import {
   buildSeaExportCreateDefaults,
@@ -24,7 +23,7 @@ describe('buildSeaExportCreateDefaults', () => {
     displayName: '张三',
   };
 
-  it('生成默认托运类型、贸易条款与推荐服务', () => {
+  it('生成默认托运类型与推荐服务，不预填贸易条款', () => {
     const defaults = buildSeaExportCreateDefaults({
       creator,
       cargoCategoryOptions: [
@@ -37,7 +36,7 @@ describe('buildSeaExportCreateDefaults', () => {
     expect(defaults.containerOwnership).toBe(
       ContainerOwnership.CONTAINER_OWNERSHIP_COC,
     );
-    expect(defaults.tradeTerm).toBe(TradeTerm.TRADE_TERM_CIF);
+    expect(defaults.tradeTerm).toBeUndefined();
     expect(defaults.paymentTerm).toBe(1);
     const terms = {
       freightTerms: 'FREIGHT PREPAID',

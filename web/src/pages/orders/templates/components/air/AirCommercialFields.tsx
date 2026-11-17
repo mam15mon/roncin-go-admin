@@ -101,6 +101,7 @@ export function getAirCommercialFields(props: TemplateProps) {
             amountName="cargoValue"
             currencyOptions={props.currencyOptions}
             disabled={props.readonly}
+            amountPlaceholder="金额"
             requireAmountWhenCurrency
             amountRuleMessage="请输入正确的货值，最多 4 位小数"
             emptyAmountMessage="请输入货值"
@@ -117,6 +118,7 @@ export function getAirCommercialFields(props: TemplateProps) {
             amountName="insurancePremium"
             currencyOptions={props.currencyOptions}
             disabled={props.readonly}
+            amountPlaceholder="金额"
             requireAmountWhenCurrency
             amountRuleMessage="请输入正确的保费，最多 4 位小数"
             emptyAmountMessage="请输入保费"
