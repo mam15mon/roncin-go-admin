@@ -226,7 +226,7 @@ describe('订单完整筛选专用导出', () => {
     expect(value('货值')).toBe('15362.50');
     expect(value('件数')).toBe('0');
     expect(value('毛重(KG)')).toBe('12.345');
-    expect(value('体积(m³)')).toBe('0');
+    expect(value('体积（CBM）')).toBe('0');
     expect(value('附件数')).toBe('');
     expect(value('ETA')).toBe(formatDate(generatedAt, 'minute'));
     expect(value('主分单模式')).toBe('直单');

@@ -80,7 +80,7 @@ export default function AirCargoDimensionsAssist() {
           </Space>
           <span>
             {count} 件 · 换算体积 {volume || '-'}{' '}
-            m³。点击后填写当前体积，不与已有体积重复相加。
+            CBM。点击后填写当前体积，不与已有体积重复相加。
           </span>
           <Button
             size="small"

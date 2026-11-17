@@ -92,7 +92,7 @@ describe('详情实际箱入口', () => {
       ],
     });
     const { context, shared } = setup();
-    await screen.findByText('独占箱 1 箱 · 20 件 · 200 KGS · 3 CBM');
+    await screen.findByText('独占箱 1 箱 · 20 件 · 200 KG · 3 CBM');
     fireEvent.change(screen.getByLabelText('订单备注'), {
       target: { value: '未保存录入' },
     });
@@ -101,7 +101,7 @@ describe('详情实际箱入口', () => {
     expect(drawer.props.hideSharedEntry).toBe(true);
     list.mockResolvedValueOnce({ data: [{ id: 'box-1' }, { id: 'box-2' }] });
     await act(async () => fireEvent.click(screen.getByText('模拟箱保存完成')));
-    await screen.findByText('独占箱 2 箱 · 0 件 · 0 KGS · 0 CBM');
+    await screen.findByText('独占箱 2 箱 · 0 件 · 0 KG · 0 CBM');
     expect(screen.getByLabelText('订单备注')).toHaveValue('未保存录入');
     expect(context.refreshOrderAndLock).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: '跨订单共享箱' }));

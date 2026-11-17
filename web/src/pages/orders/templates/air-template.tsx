@@ -98,7 +98,7 @@ export function getAirTemplateSections(
             />
             <ProFormDigit
               name="totalVolumeCbm"
-              label="委托体积（m³）"
+              label="委托体积（CBM）"
               min={0}
               disabled={props.readonly}
               fieldProps={{ precision: 3, style: { width: '100%' } }}

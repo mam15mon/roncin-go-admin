@@ -496,9 +496,9 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
       render: (_, row) => formatAmount(row.nettedAmount),
     },
 
-    // 8. 实际总毛重(KGS)、实际总体积、备注
+    // 8. 实际总毛重（KG）、实际总体积、备注
     {
-      title: '实际总毛重(KGS)',
+      title: '实际总毛重（KG）',
       dataIndex: 'grossWeightKg',
       width: 115,
       align: 'right',

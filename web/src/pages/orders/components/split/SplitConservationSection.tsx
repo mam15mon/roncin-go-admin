@@ -59,14 +59,14 @@ export default function SplitConservationSection({
         <Col span={8}>
           <Card size="small" title="原始基线总量" type="inner">
             <div>件数：{previewData?.baseline?.packageCount ?? '-'} 件</div>
-            <div>毛重：{previewData?.baseline?.grossWeightKg ?? '-'} KGS</div>
+            <div>毛重：{previewData?.baseline?.grossWeightKg ?? '-'} KG</div>
             <div>体积：{previewData?.baseline?.volumeCbm ?? '-'} CBM</div>
           </Card>
         </Col>
         <Col span={8}>
           <Card size="small" title="各票分配累计" type="inner">
             <div>件数：{previewData?.allocated?.packageCount ?? '-'} 件</div>
-            <div>毛重：{previewData?.allocated?.grossWeightKg ?? '-'} KGS</div>
+            <div>毛重：{previewData?.allocated?.grossWeightKg ?? '-'} KG</div>
             <div>体积：{previewData?.allocated?.volumeCbm ?? '-'} CBM</div>
           </Card>
         </Col>
@@ -105,10 +105,10 @@ export default function SplitConservationSection({
                 wtStatusText = '已完全分配 (守恒)';
               } else if (remWt.isPositive()) {
                 wtColor = '#1677ff';
-                wtStatusText = `进行中 (待分配 ${remainingWeightValue} KGS)`;
+                wtStatusText = `进行中 (待分配 ${remainingWeightValue} KG)`;
               } else {
                 wtColor = '#f5222d';
-                wtStatusText = `超出分配 (超出 ${remWt.abs().toFixed(3)} KGS)`;
+                wtStatusText = `超出分配 (超出 ${remWt.abs().toFixed(3)} KG)`;
               }
             }
 
@@ -160,7 +160,7 @@ export default function SplitConservationSection({
                 <div style={{ marginBottom: 4 }}>
                   毛重差额：
                   <Text strong style={{ color: wtColor }}>
-                    {previewData?.remaining?.grossWeightKg ?? '-'} KGS
+                    {previewData?.remaining?.grossWeightKg ?? '-'} KG
                   </Text>
                   <Tag
                     color={
@@ -220,7 +220,7 @@ export default function SplitConservationSection({
                   title={`${pr.resultRole === 'ORIGINAL' ? '原票' : '新票'}: ${pr.clientResultKey}`}
                 >
                   <div>
-                    分配货物：{pr.packageCount} 件 / {pr.grossWeightKg} KGS /{' '}
+                    分配货物：{pr.packageCount} 件 / {pr.grossWeightKg} KG /{' '}
                     {pr.volumeCbm} CBM
                   </div>
                   <div>

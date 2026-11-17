@@ -25,7 +25,7 @@ export default function SplitBaselineSection({
           <Statistic
             title="总毛重 (Gross Weight)"
             value={previewData?.baseline?.grossWeightKg ?? '-'}
-            suffix="KGS"
+            suffix="KG"
           />
         </Col>
         <Col span={4}>

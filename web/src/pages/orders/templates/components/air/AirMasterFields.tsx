@@ -269,7 +269,7 @@ export function AirMasterDeclarationFields({
       />
       <ProFormDigit
         name={name('declaredVolumeCbm')}
-        label="主单申报体积（m³）"
+        label="主单申报体积（CBM）"
         min={0}
         disabled={props.readonly}
         fieldProps={{ precision: 3 }}
@@ -725,7 +725,7 @@ export function AirMasterTransportSummary({
         },
         {
           key: 'volume',
-          label: '主单申报体积（m³）',
+          label: '主单申报体积（CBM）',
           children: trimDecimal(content?.declaredVolumeCbm),
         },
       ]}

@@ -66,7 +66,7 @@ export default function SplitAllocationSection({
       key: 'cargoSummary',
       render: (_, c) => (
         <span>
-          {c.packageCount ?? 0} 件 / {c.grossWeightKg ?? 0} KGS /{' '}
+          {c.packageCount ?? 0} 件 / {c.grossWeightKg ?? 0} KG /{' '}
           {c.volumeCbm ?? 0} CBM
         </span>
       ),
@@ -235,7 +235,7 @@ export default function SplitAllocationSection({
                   <Space>
                     <Text strong>{ci.cargoName || '货物项'}</Text>
                     <Text type="secondary">
-                      （基准总量：{baselinePkg} 件 / {ci.grossWeightKg} KGS /{' '}
+                      （基准总量：{baselinePkg} 件 / {ci.grossWeightKg} KG /{' '}
                       {ci.volumeCbm} CBM）
                     </Text>
                   </Space>
@@ -248,7 +248,7 @@ export default function SplitAllocationSection({
                   ) : (
                     <Tag color="error">
                       差额: {baselinePkg - totalAllocPkg} 件 /{' '}
-                      {baselineWt.sub(totalAllocWt).toFixed(3)} KGS /{' '}
+                      {baselineWt.sub(totalAllocWt).toFixed(3)} KG /{' '}
                       {baselineVol.sub(totalAllocVol).toFixed(6)} CBM
                     </Tag>
                   )
@@ -397,7 +397,7 @@ export default function SplitAllocationSection({
                           {sa.containerSpecName || '-'})
                         </Text>
                         <Text type="secondary">
-                          （分配基准：{baselinePkg} 件 / {sa.grossWeightKg} KGS
+                          （分配基准：{baselinePkg} 件 / {sa.grossWeightKg} KG
                           / {sa.volumeCbm} CBM）
                         </Text>
                       </Space>
@@ -410,7 +410,7 @@ export default function SplitAllocationSection({
                       ) : (
                         <Tag color="error">
                           差额: {baselinePkg - totalAllocPkg} 件 /{' '}
-                          {baselineWt.sub(totalAllocWt).toFixed(3)} KGS /{' '}
+                          {baselineWt.sub(totalAllocWt).toFixed(3)} KG /{' '}
                           {baselineVol.sub(totalAllocVol).toFixed(6)} CBM
                         </Tag>
                       )
@@ -514,7 +514,7 @@ function SplitResultAllocationTable({
       ),
     },
     {
-      title: '分配毛重 (KGS)',
+      title: '分配毛重 （KG）',
       key: 'grossWeightKg',
       width: 180,
       render: (_, r) => (

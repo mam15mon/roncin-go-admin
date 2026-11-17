@@ -311,7 +311,7 @@ export function SeaBillContentFormFields({
     },
     {
       label: '毛重',
-      unit: 'KGS',
+      unit: 'KG',
       ...compareMeasurement(consignedGrossWeightKg, actualGrossWeightKg),
     },
     {
@@ -1145,7 +1145,7 @@ export function SeaBillContentFormFields({
                 borderTop: '1px solid #f0f0f0',
               }}
             >
-              <div style={comparisonLabelCellStyle}>毛重（KGS）</div>
+              <div style={comparisonLabelCellStyle}>毛重（KG）</div>
               {showCargoMeasurements && (
                 <div style={comparisonValueCellStyle}>
                   <ProFormDigit
@@ -1285,12 +1285,12 @@ export function SeaBillContentFormFields({
                 </div>
               </div>
               <div className="measurement-column">
-                <div className="measurement-heading">毛重（KGS）</div>
+                <div className="measurement-heading">毛重（KG）</div>
                 <div className="measurement-cell">
                   <span className="measurement-mobile-label" aria-hidden="true">
                     委托
                   </span>
-                  <output aria-label="委托毛重（KGS）">
+                  <output aria-label="委托毛重（KG）">
                     {trimDecimal(consignedGrossWeightKg)}
                   </output>
                 </div>
@@ -1305,7 +1305,7 @@ export function SeaBillContentFormFields({
                       disabled={disabled || undefined}
                       min={0}
                       fieldProps={{
-                        'aria-label': '实际毛重（KGS）',
+                        'aria-label': '实际毛重（KG）',
                         precision: 3,
                         formatter: (value, { userTyping, input }) =>
                           userTyping

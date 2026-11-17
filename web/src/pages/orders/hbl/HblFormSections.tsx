@@ -171,7 +171,7 @@ export function buildHblFormSections({
             />
             <ProFormDigit
               name={['content', 'grossWeightKg']}
-              label="毛重 (KGS)"
+              label="毛重 （KG）"
               min={0}
             />
             <ProFormDigit

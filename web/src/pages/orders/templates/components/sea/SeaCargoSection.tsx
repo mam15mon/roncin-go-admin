@@ -85,7 +85,7 @@ export function SeaConsignedMeasurementFields({
       </FormCell>
       <ProFormDigit
         name="totalGrossWeightKg"
-        label="委托毛重（KGS）"
+        label="委托毛重（KG）"
         placeholder="0"
         disabled={disabled}
         min={0}

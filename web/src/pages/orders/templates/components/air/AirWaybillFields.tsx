@@ -245,7 +245,7 @@ function RateLines({ prefix, disabled }: Props) {
                 />
                 <DecimalField
                   name={[field.name, 'grossWeightKg']}
-                  label="毛重 KG"
+                  label="毛重（KG）"
                   disabled={disabled}
                 />
                 <ProFormText
@@ -262,7 +262,7 @@ function RateLines({ prefix, disabled }: Props) {
                 />
                 <DecimalField
                   name={[field.name, 'chargeableWeightKg']}
-                  label="计费重 KG"
+                  label="计费重（KG）"
                   disabled={disabled}
                 />
                 <DecimalField

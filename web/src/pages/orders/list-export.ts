@@ -128,7 +128,7 @@ export function orderExportColumns(access: {
       value: (row) => csvDecimal(row.grossWeightKg),
     },
     {
-      header: '体积(m³)',
+      header: '体积（CBM）',
       kind: 'number',
       value: (row) => csvDecimal(row.volumeCbm),
     },

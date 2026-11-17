@@ -205,37 +205,37 @@ export default function AirWeightPanel({
               items={[
                 {
                   key: 'gross',
-                  label: '来源毛重 KG',
+                  label: '来源毛重（KG）',
                   children: trimDecimal(data.grossWeightKg),
                 },
                 {
                   key: 'volume',
-                  label: '来源体积 m³',
+                  label: '来源体积（CBM）',
                   children: trimDecimal(data.volumeCbm),
                 },
                 {
                   key: 'volumetric',
-                  label: '体积重 KG',
+                  label: '体积重（KG）',
                   children: trimDecimal(data.volumetricWeightKg),
                 },
                 {
                   key: 'bubble',
-                  label: '泡差 KG',
+                  label: '泡差（KG）',
                   children: trimDecimal(data.bubbleDifferenceKg),
                 },
                 {
                   key: 'shared',
-                  label: '分泡重量 KG',
+                  label: '分泡重量（KG）',
                   children: trimDecimal(data.sharedBubbleWeightKg),
                 },
                 {
                   key: 'suggested',
-                  label: '参考计费重 KG',
+                  label: '参考计费重（KG）',
                   children: trimDecimal(data.suggestedChargeableWeightKg),
                 },
                 {
                   key: 'confirmed',
-                  label: '已确认计费重 KG',
+                  label: '已确认计费重（KG）',
                   children: trimDecimal(
                     data.currentConfirmation?.confirmedWeightKg,
                   ),

@@ -476,12 +476,12 @@ function AirMasterContent({
                 },
                 {
                   key: 'gross',
-                  label: '成员订单申报毛重 KG',
+                  label: '成员订单申报毛重（KG）',
                   children: formatCargoSummary(totals.grossWeightKg),
                 },
                 {
                   key: 'volume',
-                  label: '成员订单申报体积 m³',
+                  label: '成员订单申报体积（CBM）',
                   children: formatCargoSummary(totals.volumeCbm),
                 },
                 {
@@ -491,12 +491,12 @@ function AirMasterContent({
                 },
                 {
                   key: 'declaredGross',
-                  label: '主单申报毛重 KG / 差异',
+                  label: '主单申报毛重（KG）/ 差异',
                   children: `${formatCargoSummary(input?.declaredGrossWeightKg)} / ${input?.declaredGrossWeightKg === undefined ? '-' : formatCargoSummary(input.declaredGrossWeightKg - (totals.grossWeightKg || 0))}`,
                 },
                 {
                   key: 'declaredVolume',
-                  label: '主单申报体积 m³ / 差异',
+                  label: '主单申报体积（CBM）/ 差异',
                   children: `${formatCargoSummary(input?.declaredVolumeCbm)} / ${input?.declaredVolumeCbm === undefined ? '-' : formatCargoSummary(input.declaredVolumeCbm - (totals.volumeCbm || 0))}`,
                 },
               ]}
@@ -567,7 +567,7 @@ function AirMasterContent({
                     : item.houseNo || '-',
               },
               {
-                title: '计划确认计费重 KG',
+                title: '计划确认计费重（KG）',
                 render: (_, item) =>
                   `${trimDecimal(item.confirmedChargeableWeightKg)}${item.confirmationStale ? '（依据已变化）' : ''}`,
               },
@@ -577,11 +577,11 @@ function AirMasterContent({
                   `${item.packages ?? '-'} ${item.packageUnit || ''}`,
               },
               {
-                title: '毛重 KG',
+                title: '毛重（KG）',
                 render: (_, item) => trimDecimal(item.grossWeightKg),
               },
               {
-                title: '体积 m³',
+                title: '体积（CBM）',
                 render: (_, item) => trimDecimal(item.volumeCbm),
               },
               {

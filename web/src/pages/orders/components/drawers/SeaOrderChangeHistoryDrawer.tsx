@@ -63,7 +63,7 @@ function renderEventSummary(record: API.SeaOrderChangeEventSummary) {
               ) : (
                 result.orderNo
               )}{' '}
-              ({result.packageCount} 件 / {result.grossWeightKg} KGS /{' '}
+              ({result.packageCount} 件 / {result.grossWeightKg} KG /{' '}
               {result.volumeCbm} CBM)
               {result.finalMasterNo ? ` · MBL ${result.finalMasterNo}` : ''}
             </Tag>

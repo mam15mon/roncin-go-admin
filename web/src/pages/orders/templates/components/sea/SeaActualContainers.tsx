@@ -102,7 +102,7 @@ export function SeaActualContainers({
       ) : summary ? (
         <Typography.Text>
           独占箱 {rows?.length} 箱 · {summary.packages} 件 ·{' '}
-          {trimDecimal(summary.weight)} KGS · {trimDecimal(summary.volume)} CBM
+          {trimDecimal(summary.weight)} KG · {trimDecimal(summary.volume)} CBM
         </Typography.Text>
       ) : null}
       {!supportsExclusive ? (

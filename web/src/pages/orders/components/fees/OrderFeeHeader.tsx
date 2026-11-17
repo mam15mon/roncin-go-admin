@@ -337,7 +337,7 @@ export default function OrderFeeHeader({
               label: '件重尺',
               children: `${order.totalPackages || '-'} 件 / ${
                 order.totalGrossWeightKg || '-'
-              } kg / ${order.totalVolumeCbm || '-'} m³`,
+              } KG / ${order.totalVolumeCbm || '-'} CBM`,
             },
             {
               key: 'sales',

@@ -79,7 +79,7 @@ describe('航空结构化正文控件', () => {
     fireEvent.change(screen.getByRole('textbox', { name: '运价行金额' }), {
       target: { value: '123.45678901' },
     });
-    fireEvent.change(screen.getByRole('textbox', { name: '计费重 KG' }), {
+    fireEvent.change(screen.getByRole('textbox', { name: '计费重（KG）' }), {
       target: { value: '0' },
     });
     fireEvent.click(screen.getByRole('checkbox', { name: /AS ARRANGED/ }));

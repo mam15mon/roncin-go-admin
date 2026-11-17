@@ -115,12 +115,12 @@ export default function AirCargoWorkspace({
           },
           {
             key: 'planned-gross',
-            label: '已保存委托毛重 KG',
+            label: '已保存委托毛重（KG）',
             children: trimDecimal(order.totalGrossWeightKg),
           },
           {
             key: 'planned-volume',
-            label: '已保存委托体积 m³',
+            label: '已保存委托体积（CBM）',
             children: trimDecimal(order.totalVolumeCbm),
           },
         ]}
@@ -155,14 +155,14 @@ export default function AirCargoWorkspace({
                 },
                 {
                   key: 'actual-gross',
-                  label: '实际总毛重 KG',
+                  label: '实际总毛重（KG）',
                   children: cargo.data.count
                     ? trimDecimal(cargo.data.gross)
                     : '-',
                 },
                 {
                   key: 'actual-volume',
-                  label: '实际总体积 m³',
+                  label: '实际总体积（CBM）',
                   children: cargo.data.count
                     ? trimDecimal(cargo.data.volume)
                     : '-',

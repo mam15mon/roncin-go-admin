@@ -247,10 +247,10 @@ describe('SeaDocumentSectionComponent', () => {
 
     let panel = within(screen.getByRole('tabpanel'));
     expect(panel.getByLabelText('委托件数及单位')).toHaveTextContent(/^0$/);
-    expect(panel.getByLabelText('委托毛重（KGS）')).toHaveTextContent(/^-$/);
+    expect(panel.getByLabelText('委托毛重（KG）')).toHaveTextContent(/^-$/);
     expect(panel.getByLabelText('委托体积（CBM）')).toHaveTextContent(/^10.5$/);
     expect(panel.getByLabelText('实际体积（CBM）')).toHaveValue('0');
-    const actualWeight = panel.getByLabelText('实际毛重（KGS）');
+    const actualWeight = panel.getByLabelText('实际毛重（KG）');
     fireEvent.focus(actualWeight);
     fireEvent.change(actualWeight, {
       target: { value: '15.125' },
@@ -266,7 +266,7 @@ describe('SeaDocumentSectionComponent', () => {
 
     fireEvent.click(screen.getByRole('tab', { name: /分单 \(HBL\)/ }));
     panel = within(screen.getByRole('tabpanel'));
-    expect(panel.getByLabelText('实际毛重（KGS）')).toHaveValue('4.5');
+    expect(panel.getByLabelText('实际毛重（KG）')).toHaveValue('4.5');
     expect(panel.getByLabelText('实际体积（CBM）')).toHaveValue('');
     act(() => {
       capturedForm.setFieldsValue({
@@ -280,7 +280,7 @@ describe('SeaDocumentSectionComponent', () => {
       expect(panel.getByLabelText('委托件数及单位')).toHaveTextContent(
         /^20 CTNS$/,
       );
-      expect(panel.getByLabelText('委托毛重（KGS）')).toHaveTextContent(
+      expect(panel.getByLabelText('委托毛重（KG）')).toHaveTextContent(
         /^33.25$/,
       );
       expect(panel.getByLabelText('委托体积（CBM）')).toHaveTextContent(
@@ -301,7 +301,7 @@ describe('SeaDocumentSectionComponent', () => {
         volumeCbm: 6.5,
       });
     });
-    expect(panel.getByLabelText('实际毛重（KGS）')).toHaveValue('33.25');
+    expect(panel.getByLabelText('实际毛重（KG）')).toHaveValue('33.25');
     expect(panel.getByLabelText('实际体积（CBM）')).toHaveValue('6.5');
     expect(
       capturedForm.getFieldValue(['seaMasterBillContent', 'packageCount']),
@@ -314,6 +314,6 @@ describe('SeaDocumentSectionComponent', () => {
     expect(panel.getByLabelText('委托件数及单位')).toHaveTextContent(
       /^20 CTNS$/,
     );
-    expect(panel.getByLabelText('实际毛重（KGS）')).toHaveValue('15.125');
+    expect(panel.getByLabelText('实际毛重（KG）')).toHaveValue('15.125');
   });
 });
