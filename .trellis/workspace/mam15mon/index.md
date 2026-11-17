@@ -7,9 +7,9 @@
 ## Current Status
 
 <!-- @@@auto:current-status -->
-- **Active File**: `journal-3.md`
-- **Total Sessions**: 217
-- **Last Active**: 2026-11-16
+- **Active File**: `journal-4.md`
+- **Total Sessions**: 218
+- **Last Active**: 2026-11-17
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,8 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-3.md` | ~1999 | Active |
+| `journal-4.md` | ~47 | Active |
+| `journal-3.md` | ~1999 | Archived |
 | `journal-2.md` | ~2003 | Archived |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
@@ -31,6 +32,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 218 | 2026-11-17 | 退役订单集运跨境模式与自拼汇总 | `34216cbd`, `f6f40f1c` | `codex/retire-shipment-mode` |
 | 217 | 2026-11-16 | 空运 MAWB 同号主单判断对齐海运 | `ee7ecfbf`, `6562d2a1` | `main` |
 | 216 | 2026-11-16 | 空运订单新建与详情页排版对齐海运 | `16ca0e99`, `255083de` | `main` |
 | 215 | 2026-11-16 | 全站服务端状态迁移与请求生命周期收敛 | `dee1312a`, `28ad3458`, `4e5ab166`, `b541b59a`, `f9f87462`, `91ec95be`, `ee491086`, `ad0ade3e`, `a899e7a0`, `548a0b25` | `codex/global-server-state-migration` |
