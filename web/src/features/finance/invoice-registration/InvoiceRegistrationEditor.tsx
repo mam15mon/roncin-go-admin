@@ -1,7 +1,6 @@
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import {
-  Alert,
   App,
   Button,
   Card,
@@ -12,6 +11,7 @@ import {
   Row,
   Select,
   Space,
+  Tooltip,
   Typography,
 } from 'antd';
 import Decimal from 'decimal.js';
@@ -176,12 +176,16 @@ export default function InvoiceRegistrationEditor({
   }, [onlyProfile, recordCount, form, name]);
   return (
     <>
-      <Alert
-        type="info"
-        showIcon
-        title="登记已有发票。发票总额默认带出所选账单未登记余额并自动分配，请按实际发票修改；单账单单费用时改总额会同步分配。税额按来源税率给出建议值，请以实际发票为准。手动修改过的金额和税额不会被自动覆盖，分配不平时显示差额。"
-        style={{ marginBottom: 12 }}
-      />
+      <div style={{ textAlign: 'right', marginBottom: 8 }}>
+        <Tooltip
+          placement="topRight"
+          title="登记已有发票。发票总额默认带出所选账单未登记余额并自动分配，请按实际发票修改；单账单单费用时改总额会同步分配。税额按来源税率给出建议值，请以实际发票为准。手动修改过的金额和税额不会被自动覆盖，分配不平时显示差额。"
+        >
+          <Button type="link" size="small" icon={<QuestionCircleOutlined />}>
+            填写说明
+          </Button>
+        </Tooltip>
+      </div>
       <Form.List
         name={name}
         rules={[

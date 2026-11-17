@@ -1,7 +1,10 @@
-import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import {
+  MinusCircleOutlined,
+  PlusOutlined,
+  QuestionCircleOutlined,
+} from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import {
-  Alert,
   Button,
   Card,
   Checkbox,
@@ -11,6 +14,7 @@ import {
   Input,
   Row,
   Select,
+  Tooltip,
   Typography,
 } from 'antd';
 import dayjs from 'dayjs';
@@ -95,12 +99,16 @@ export default function BillVerificationFields({
       title="同次核销（可不登记发票先核销）"
       style={{ marginBottom: 16 }}
     >
-      <Alert
-        type="info"
-        showIcon
-        title="核销与本组建账一起保存；任一记录失败，本组全部回滚。"
-        style={{ marginBottom: 12 }}
-      />
+      <div style={{ textAlign: 'right', marginBottom: 8 }}>
+        <Tooltip
+          placement="topRight"
+          title="核销与本组建账一起保存；任一记录失败，这张账单的核销全部撤销。"
+        >
+          <Button type="link" size="small" icon={<QuestionCircleOutlined />}>
+            填写说明
+          </Button>
+        </Tooltip>
+      </div>
       <Form.List name={['groups', groupKey, 'verifications']}>
         {(fields, { add, remove }) => (
           <>
