@@ -325,7 +325,7 @@ const initialPreview = await request('/api/v1/finance/bill-batches/preview', {
 assert(initialPreview.data?.length === 1, '单笔应付费用应只生成一个预览分组');
 assert(
   initialPreview.data[0].configurationComplete !== true,
-  '初次预览未配置日期与账户时应为待补齐状态',
+  '初次预览未配置账户时应为待补齐状态',
 );
 
 const preview = await request('/api/v1/finance/bill-batches/preview', {
@@ -337,7 +337,6 @@ const preview = await request('/api/v1/finance/bill-batches/preview', {
     groupConfigs: [
       {
         groupKey: initialPreview.data[0].groupKey,
-        billDate: today,
         settlementAccountId: settlementAccount.id,
       },
     ],
@@ -361,7 +360,6 @@ const batchResponse = await request('/api/v1/finance/bill-batches', {
         groupToken: previewGroup.groupToken,
         feeIds: previewGroup.fees.map((item) => item.id),
         statementTitle: supplierName,
-        billDate: today,
         paymentTermsDays: 30,
         settlementAccountId: settlementAccount.id,
         note: '应付账单端到端自动验收',

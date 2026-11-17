@@ -2,7 +2,7 @@ import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType } from '@ant-design/pro-components';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { App, Form } from 'antd';
-import dayjs, { type Dayjs } from 'dayjs';
+import type { Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
 import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
@@ -76,7 +76,7 @@ const billFilterFields: FilterSettingsField[] = [
   { name: 'keyword', label: '综合搜索' },
   { name: 'direction', label: '账单属性' },
   { name: 'status', label: '账单状态' },
-  { name: 'billDateRange', label: '账单日期' },
+  { name: 'billDateRange', label: '创建日期' },
   { name: 'dueDateRange', label: '到期日期' },
   { name: 'onlyUnsettled', label: '结清状态' },
   { name: 'onlyOverdue', label: '逾期状态' },
@@ -207,7 +207,7 @@ export default function FinanceBillsPage() {
     },
     {
       name: 'billDateRange',
-      label: '账单日期',
+      label: '创建日期',
       type: 'date-range',
       placeholder: ['开始日期', '结束日期'],
     },
@@ -301,7 +301,6 @@ export default function FinanceBillsPage() {
     setEditing(bill);
     form.setFieldsValue({
       statementTitle: bill.statementTitle,
-      billDate: bill.billDate ? dayjs(bill.billDate) : dayjs(),
       paymentTermsDays: bill.paymentTermsDays,
       note: bill.note,
       settlementAccountId: bill.settlementAccountId,
@@ -375,7 +374,6 @@ export default function FinanceBillsPage() {
           id: editing.id,
           expectedVersion: editing.version,
           statementTitle: values.statementTitle.trim(),
-          billDate: values.billDate.format('YYYY-MM-DD'),
           paymentTermsDays: values.paymentTermsDays,
           note: values.note?.trim() || undefined,
           settlementAccountId: values.settlementAccountId,
@@ -387,7 +385,7 @@ export default function FinanceBillsPage() {
       if (session !== editSession.current || !response) return false;
       if (response.data?.id !== editing.id || response.success === false)
         throw new Error('更新账单失败，请重试');
-      message.success('账单已成功更新并自动刷新汇率快照');
+      message.success('账单已成功更新');
       setEditOpen(false);
       void queryClient.invalidateQueries({ queryKey: ['finance'] });
       reload();

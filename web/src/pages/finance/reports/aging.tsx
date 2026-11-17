@@ -25,7 +25,7 @@ const columns: ProColumns<API.AgingReportRow>[] = [
     renderText: (value) => directionLabels[value] ?? value,
   },
   { title: '结算单位', dataIndex: 'settlementPartyName', width: 190 },
-  { title: '账单日', dataIndex: 'billDate', width: 120 },
+  { title: '创建日期', dataIndex: 'billDate', width: 120 },
   {
     title: '到期日',
     dataIndex: 'dueDate',

@@ -111,7 +111,7 @@ func financeBillableFeeFromEnt(item *ent.OrderFee) (*biz.FinanceBillableFee, err
 //  7. 提成经济重算与审计。
 //
 // 与发票、核销、对冲确认、取消账单、费用汇率联动等写路径一样先锁订单再锁账单，不引入反向等待。
-func (r *financeBillRepo) UpdateFees(ctx context.Context, organizationIDs []uuid.UUID, input biz.UpdateFinanceBillFeesInput, audit *biz.AuditEvent) error {
+func (r *financeBillRepo) UpdateFees(ctx context.Context, organizationIDs []uuid.UUID, input biz.UpdateFinanceBillFeesInput, refresh func(context.Context, *biz.FinanceBill) error, audit *biz.AuditEvent) error {
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		client := tx.Client()
 		head, err := client.FinanceBill.Query().Where(financebillent.IDEQ(input.ID), financeBillOrganizationScopePredicate(organizationIDs)).Only(ctx)
@@ -203,7 +203,7 @@ func (r *financeBillRepo) UpdateFees(ctx context.Context, organizationIDs []uuid
 		lineFeeIDs := make([]uuid.UUID, 0, len(lines))
 		removedLineIDs := make([]uuid.UUID, 0, len(input.RemoveFeeIDs))
 		kept := make([]*biz.FinanceBillLine, 0, len(lines)+len(input.AddFeeIDs))
-		storedBase := make(map[uuid.UUID]string, len(lines))
+		storedLines := make(map[uuid.UUID]struct{}, len(lines))
 		for _, line := range lines {
 			lineFeeIDs = append(lineFeeIDs, line.OrderFeeID)
 			if removeSet[line.OrderFeeID] {
@@ -214,7 +214,7 @@ func (r *financeBillRepo) UpdateFees(ctx context.Context, organizationIDs []uuid
 			if convertErr != nil {
 				return convertErr
 			}
-			storedBase[line.ID] = line.BaseCurrencyAmount
+			storedLines[line.ID] = struct{}{}
 			kept = append(kept, converted)
 		}
 		// 移除目标必须是本账单当前有效行。
@@ -242,6 +242,13 @@ func (r *financeBillRepo) UpdateFees(ctx context.Context, organizationIDs []uuid
 		if len(kept) == 0 {
 			return biz.ErrFinanceBillLastFee
 		}
+		if refresh == nil {
+			return biz.ErrFinanceBillInvalidArgument
+		}
+		bill.Lines = kept
+		if err := refresh(ctx, bill); err != nil {
+			return err
+		}
 		if err := biz.RecomputeFinanceBillAmounts(bill, kept); err != nil {
 			return err
 		}
@@ -257,11 +264,9 @@ func (r *financeBillRepo) UpdateFees(ctx context.Context, organizationIDs []uuid
 		}
 		builders := make([]*ent.FinanceBillLineCreate, 0, len(input.AddFeeIDs))
 		for _, line := range bill.Lines {
-			if previous, exists := storedBase[line.ID]; exists {
-				if previous != line.BaseCurrencyAmount.StringFixed(8) {
-					if _, updateErr := client.FinanceBillLine.UpdateOneID(line.ID).SetExchangeRate(line.ExchangeRate.StringFixed(8)).SetBaseCurrencyAmount(line.BaseCurrencyAmount.StringFixed(8)).Save(ctx); updateErr != nil {
-						return updateErr
-					}
+			if _, exists := storedLines[line.ID]; exists {
+				if _, updateErr := client.FinanceBillLine.UpdateOneID(line.ID).SetExchangeRate(line.ExchangeRate.StringFixed(8)).SetBaseCurrencyAmount(line.BaseCurrencyAmount.StringFixed(8)).Save(ctx); updateErr != nil {
+					return updateErr
 				}
 				continue
 			}
@@ -280,7 +285,10 @@ func (r *financeBillRepo) UpdateFees(ctx context.Context, organizationIDs []uuid
 		}
 		update := client.FinanceBill.UpdateOneID(bill.ID).
 			SetTotalAmount(bill.TotalAmount.StringFixed(8)).SetNetAmount(bill.NetAmount.StringFixed(8)).SetTaxAmount(bill.TaxAmount.StringFixed(8)).
-			SetBaseCurrencyAmount(bill.BaseCurrencyAmount.StringFixed(8)).SetFeeCount(bill.FeeCount).SetVersion(newVersion)
+			SetBaseCurrencyAmount(bill.BaseCurrencyAmount.StringFixed(8)).SetFeeCount(bill.FeeCount).
+			SetBillDate(bill.BillDate).SetNillableDueDate(bill.DueDate).
+			SetExchangeRate(bill.ExchangeRate.StringFixed(8)).SetExchangeRateSource(financebillent.ExchangeRateSource(bill.ExchangeRateSource)).
+			SetExchangeRateDate(bill.ExchangeRateDate).SetNillableExchangeRateSettingID(bill.ExchangeRateSettingID).SetVersion(newVersion)
 		if bill.EstimatedInvoiceAmount != nil {
 			update.SetEstimatedInvoiceAmount(bill.EstimatedInvoiceAmount.StringFixed(8))
 		}

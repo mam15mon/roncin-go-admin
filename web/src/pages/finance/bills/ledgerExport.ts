@@ -97,7 +97,7 @@ export const billExportColumns: CsvColumn<API.FinanceBill>[] = [
     kind: 'number',
     value: (row) => csvDecimal(row.feeCount),
   },
-  { header: '账单日期', value: (row) => row.billDate },
+  { header: '创建日期', value: (row) => row.billDate },
   { header: '到期日', value: (row) => row.dueDate },
   {
     header: '逾期天数',

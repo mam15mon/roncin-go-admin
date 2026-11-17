@@ -24,7 +24,7 @@ import (
 	partneraccountent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
 )
 
-const financeBillIntegrationDate = "2026-08-30"
+var financeBillIntegrationDate = biz.FinanceBusinessDate(time.Now())
 
 type financeBillPostgresFixture struct {
 	t              *testing.T
@@ -587,7 +587,6 @@ func (f *financeBillPostgresFixture) createUnbilledFeeWithCurrency(key, currency
 		SetExchangeRateDate(financeBillIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount(baseAmount).
-
 		SetVersion(1).
 		Save(context.Background())
 	if err != nil {
@@ -598,11 +597,12 @@ func (f *financeBillPostgresFixture) createUnbilledFeeWithCurrency(key, currency
 
 func (f *financeBillPostgresFixture) createExchangeRateSetting(rate string) uuid.UUID {
 	f.t.Helper()
+	effectiveFrom, _ := biz.ExchangeRateWeekWindow(time.Now())
 	setting, err := f.data.db.ExchangeRateSetting.Create().
 		SetOrganizationID(f.organizationID).
 		SetFromCurrency("USD").
 		SetToCurrency("CNY").
-		SetEffectiveFrom(time.Date(2026, 8, 24, 0, 0, 0, 0, biz.ExchangeRateBusinessLocation())).
+		SetEffectiveFrom(effectiveFrom).
 		SetRate(rate).
 		SetIsActive(true).
 		Save(context.Background())

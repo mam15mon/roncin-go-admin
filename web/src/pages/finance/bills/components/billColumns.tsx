@@ -254,7 +254,7 @@ export function getFinanceBillColumns({
       },
     },
     {
-      title: '账单日期',
+      title: '创建日期',
       dataIndex: 'billDate',
       width: 120,
       search: false,

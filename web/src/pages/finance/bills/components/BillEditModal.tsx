@@ -4,7 +4,6 @@ import {
   App,
   Button,
   Card,
-  DatePicker,
   Form,
   type FormInstance,
   Input,
@@ -259,7 +258,7 @@ export default function BillEditModal({
             type="warning"
             showIcon
             style={{ marginBottom: 12 }}
-            title={`账单已有${protectedFactText}，只能修改对账抬头和备注；如需调整账单日期、账期、结算账户或预计开票，请先撤销相关财务记录。`}
+            title={`账单已有${protectedFactText}，只能修改对账抬头和备注；如需调整账期、结算账户或预计开票，请先撤销相关财务记录。`}
           />
         ) : null}
         <BillTermsCreditWarnings
@@ -286,12 +285,10 @@ export default function BillEditModal({
             <Input maxLength={200} />
           </Form.Item>
           <Form.Item
-            name="billDate"
-            label="账单日期"
-            extra="修改账单日期将自动按新账单日重置 BILL 汇率快照"
-            rules={[{ required: true, message: '请选择账单日期' }]}
+            label="创建日期"
+            tooltip="由系统维护。未开票时增减费用会更新创建日期，开票后固定。"
           >
-            <DatePicker allowClear={false} disabled={fieldsProtected} />
+            <span>{editing?.billDate || '-'}</span>
           </Form.Item>
           <Form.Item name="paymentTermsDays" label="账期（天，可选）">
             <InputNumber
@@ -320,7 +317,7 @@ export default function BillEditModal({
           </Form.Item>
           <Card
             size="small"
-            title="固定账单币种与账单日汇率"
+            title="固定账单币种与汇率"
             style={{ width: '100%' }}
           >
             <Space wrap>

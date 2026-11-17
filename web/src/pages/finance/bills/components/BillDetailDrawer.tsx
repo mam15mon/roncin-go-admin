@@ -205,7 +205,7 @@ export default function BillDetailDrawer({
           <Descriptions.Item label="汇率生效日期">
             {detail.exchangeRateDate || detail.billDate || '-'}
           </Descriptions.Item>
-          <Descriptions.Item label="账单日期">
+          <Descriptions.Item label="创建日期">
             {detail.billDate}
           </Descriptions.Item>
           <Descriptions.Item label="到期日">

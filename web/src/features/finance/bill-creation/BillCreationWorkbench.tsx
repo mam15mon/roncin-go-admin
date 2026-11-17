@@ -1,6 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, App, Drawer, Form, Steps } from 'antd';
-import dayjs from 'dayjs';
 import React, {
   useCallback,
   useEffect,
@@ -154,7 +153,7 @@ export default function BillCreationWorkbench({
     [selectedFeeIds],
   );
 
-  // 拆单预览：350ms 防抖后的参数进 queryKey。D1→D2、币种/汇率、固定来源
+  // 拆单预览：350ms 防抖后的参数进 queryKey。账户、币种/汇率、固定来源
   // 切换等竞态一律由库按 queryKey 隔离（迟到响应只写自己的缓存键），
   // 不再使用任何请求令牌比对。会话序号进 key 并在快照清空时递增，
   // 用于切断换参期间 keepPreviousData 的跨会话旧数据桥接。
@@ -451,7 +450,7 @@ export default function BillCreationWorkbench({
     );
     if (firstInvalidGroup?.groupKey) {
       setActiveGroupKey(firstInvalidGroup.groupKey);
-      message.warning('请先补齐首个标记叶子的日期和结算账户');
+      message.warning('请先补齐首个标记叶子的对账抬头和结算账户');
       return;
     }
     if (
@@ -505,7 +504,6 @@ export default function BillCreationWorkbench({
           groupToken: group.groupToken,
           feeIds,
           statementTitle: value.statementTitle.trim(),
-          billDate: value.billDate.format('YYYY-MM-DD'),
           paymentTermsDays: value.paymentTermsDays,
           note: value.note?.trim() || undefined,
           settlementAccountId: value.settlementAccountId || '',
@@ -569,7 +567,7 @@ export default function BillCreationWorkbench({
       if (requestedSession !== sessionSequenceRef.current) return;
       const error = rawError as RequestError;
       if (requestReason(error) === 'FINANCE_BILL_PREVIEW_STALE') {
-        message.warning('费用已发生变化，请重新预览后再生成账单');
+        message.warning('费用或创建日期已发生变化，请重新预览后再生成账单');
         setSubmission(undefined);
         setResult(undefined);
         clearPreviewSnapshot();
@@ -630,7 +628,6 @@ export default function BillCreationWorkbench({
         | undefined;
       nextGroups[group.groupKey] = existing || {
         statementTitle: group.settlementPartyName || '',
-        billDate: dayjs(),
         paymentTermsDays:
           group.defaultPaymentTermsDays !== undefined &&
           group.defaultPaymentTermsDays !== null

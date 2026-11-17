@@ -4,7 +4,6 @@ import {
   Alert,
   Card,
   Col,
-  DatePicker,
   Descriptions,
   Form,
   Input,
@@ -59,10 +58,9 @@ export default function BillGroupCard({
     ['groups', groupKey, 'paymentTermsDays'],
     form,
   );
-  const billDate = Form.useWatch(['groups', groupKey, 'billDate'], form);
   const derivedDueDate =
-    billDate && typeof paymentTermsDays === 'number'
-      ? dayjs(billDate).add(paymentTermsDays, 'day').format('YYYY-MM-DD')
+    group.billDate && typeof paymentTermsDays === 'number'
+      ? dayjs(group.billDate).add(paymentTermsDays, 'day').format('YYYY-MM-DD')
       : undefined;
 
   const feeColumnSettings = useColumnSettings<ProColumns<API.FeeLedgerItem>>({
@@ -100,11 +98,7 @@ export default function BillGroupCard({
           showIcon
           style={{ marginBottom: 16 }}
           title="该叶子尚未形成可创建快照"
-          description={
-            group.isTemporaryBillDate
-              ? '请确认账单日期和结算账户；服务端将按正式账单日期重新解析账单币种至组织本位币的汇率。'
-              : '请补齐结算账户或服务端要求的汇率配置后重新预览。'
-          }
+          description="请补齐结算账户或服务端要求的汇率配置后重新预览。"
         />
       )}
       <BillTermsCreditWarnings
@@ -133,12 +127,10 @@ export default function BillGroupCard({
         </Col>
         <Col xs={24} md={5}>
           <Form.Item
-            name={['groups', groupKey, 'billDate'] as NamePath}
-            label="账单日期"
-            tooltip="本次账单的业务日期，用于确定折本币汇率；填写账期后，到期日按账单日期加账期天数计算。"
-            rules={[{ required: true, message: '请选择账单日期' }]}
+            label="创建日期"
+            tooltip="由系统维护。未开票时增减费用会更新创建日期，开票后固定。"
           >
-            <DatePicker allowClear={false} style={{ width: '100%' }} />
+            <Text>{group.billDate || '-'}</Text>
           </Form.Item>
         </Col>
         <Col xs={24} md={5}>
@@ -202,11 +194,9 @@ export default function BillGroupCard({
             : '-'}
         </Descriptions.Item>
         <Descriptions.Item label="组织本位币金额">
-          {group.isTemporaryBillDate
-            ? '选择账单日期后计算'
-            : group.baseCurrencyAmount
-              ? `${formatAmount(group.baseCurrencyAmount)} ${group.baseCurrency || ''}`.trim()
-              : '服务端未提供'}
+          {group.baseCurrencyAmount
+            ? `${formatAmount(group.baseCurrencyAmount)} ${group.baseCurrency || ''}`.trim()
+            : '服务端未提供'}
         </Descriptions.Item>
         <Descriptions.Item label="预计开票币种">
           {group.estimatedInvoiceCurrency || '服务端未提供'}

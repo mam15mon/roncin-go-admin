@@ -526,7 +526,8 @@ message GetBillRequest {
 
 message CreateBillRequest {
   repeated string fee_ids = 1 [(google.api.field_behavior) = REQUIRED];
-  string bill_date = 2 [(google.api.field_behavior) = REQUIRED];
+  reserved 2;
+  reserved "bill_date";
   optional string due_date = 3;
   optional string note = 4;
   string idempotency_key = 5 [(google.api.field_behavior) = REQUIRED];
@@ -537,7 +538,8 @@ message CreateBillRequest {
 
 message UpdateBillRequest {
   string id = 1 [(google.api.field_behavior) = REQUIRED];
-  string bill_date = 2 [(google.api.field_behavior) = REQUIRED];
+  reserved 2;
+  reserved "bill_date";
   optional string due_date = 3;
   optional string note = 4;
   uint64 expected_version = 5 [(google.api.field_behavior) = REQUIRED];
@@ -608,6 +610,7 @@ message FinanceBill {
   string tax_amount = 11;
   string base_currency_amount = 12;
   int32 fee_count = 13;
+  // 自动业务创建日期；初建取北京时间当天，未开票增删费用后更新，首次创建时刻另见 created_at。
   string bill_date = 14;
   optional string due_date = 15;
   optional string note = 16;
@@ -727,7 +730,8 @@ message PreviewBillBatchRequest {
 // 初次预览可以省略，服务端会返回待补齐状态，但不会签发可创建的预览令牌。
 message BillBatchPreviewGroupConfigInput {
   string group_key = 1 [(google.api.field_behavior) = REQUIRED];
-  string bill_date = 2;
+  reserved 2;
+  reserved "bill_date";
   string settlement_account_id = 3;
   optional string estimated_invoice_currency = 4;
   optional string estimated_invoice_rate = 5;
@@ -748,7 +752,8 @@ message BillBatchPreviewGroup {
   string net_amount = 12;
   string tax_amount = 13;
   string base_currency_amount = 14;
-  bool is_temporary_bill_date = 15;
+  reserved 15;
+  reserved "is_temporary_bill_date";
   bool configuration_complete = 16;
   string estimated_invoice_currency = 17;
   string estimated_invoice_rate = 18;
@@ -763,6 +768,8 @@ message BillBatchPreviewGroup {
   // group_token 是该组费用（ID、版本、金额）与叶子配置的摘要；配置完整时才签发，
   // 创建时每组携带自己的令牌，陈旧只影响该组。
   string group_token = 26;
+  // 服务端自动维护的北京时间业务创建日期；费用增删成功时更新，开票后冻结。
+  string bill_date = 27;
 }
 
 message PreviewBillBatchResponse {
@@ -792,7 +799,8 @@ message BillBatchNettingPair {
 message CreateBillBatchGroupInput {
   string group_key = 1 [(google.api.field_behavior) = REQUIRED];
   string statement_title = 2 [(google.api.field_behavior) = REQUIRED];
-  string bill_date = 3 [(google.api.field_behavior) = REQUIRED];
+  reserved 3;
+  reserved "bill_date";
   optional string due_date = 4;
   optional int32 payment_terms_days = 5;
   optional string note = 6;

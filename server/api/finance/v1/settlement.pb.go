@@ -2993,7 +2993,6 @@ func (x *GetBillRequest) GetId() string {
 type CreateBillRequest struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
 	FeeIds              []string               `protobuf:"bytes,1,rep,name=fee_ids,json=feeIds,proto3" json:"fee_ids,omitempty"`
-	BillDate            string                 `protobuf:"bytes,2,opt,name=bill_date,json=billDate,proto3" json:"bill_date,omitempty"`
 	DueDate             *string                `protobuf:"bytes,3,opt,name=due_date,json=dueDate,proto3,oneof" json:"due_date,omitempty"`
 	Note                *string                `protobuf:"bytes,4,opt,name=note,proto3,oneof" json:"note,omitempty"`
 	IdempotencyKey      string                 `protobuf:"bytes,5,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
@@ -3041,13 +3040,6 @@ func (x *CreateBillRequest) GetFeeIds() []string {
 	return nil
 }
 
-func (x *CreateBillRequest) GetBillDate() string {
-	if x != nil {
-		return x.BillDate
-	}
-	return ""
-}
-
 func (x *CreateBillRequest) GetDueDate() string {
 	if x != nil && x.DueDate != nil {
 		return *x.DueDate
@@ -3093,7 +3085,6 @@ func (x *CreateBillRequest) GetSettlementAccountId() string {
 type UpdateBillRequest struct {
 	state                    protoimpl.MessageState `protogen:"open.v1"`
 	Id                       string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	BillDate                 string                 `protobuf:"bytes,2,opt,name=bill_date,json=billDate,proto3" json:"bill_date,omitempty"`
 	DueDate                  *string                `protobuf:"bytes,3,opt,name=due_date,json=dueDate,proto3,oneof" json:"due_date,omitempty"`
 	Note                     *string                `protobuf:"bytes,4,opt,name=note,proto3,oneof" json:"note,omitempty"`
 	ExpectedVersion          uint64                 `protobuf:"varint,5,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
@@ -3139,13 +3130,6 @@ func (*UpdateBillRequest) Descriptor() ([]byte, []int) {
 func (x *UpdateBillRequest) GetId() string {
 	if x != nil {
 		return x.Id
-	}
-	return ""
-}
-
-func (x *UpdateBillRequest) GetBillDate() string {
-	if x != nil {
-		return x.BillDate
 	}
 	return ""
 }
@@ -3760,54 +3744,55 @@ func (x *FinanceBillLine) GetInvoiceableAmount() string {
 }
 
 type FinanceBill struct {
-	state                     protoimpl.MessageState `protogen:"open.v1"`
-	Id                        string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	BillNo                    string                 `protobuf:"bytes,2,opt,name=bill_no,json=billNo,proto3" json:"bill_no,omitempty"`
-	Direction                 string                 `protobuf:"bytes,3,opt,name=direction,proto3" json:"direction,omitempty"`
-	Status                    FinanceBillStatus      `protobuf:"varint,4,opt,name=status,proto3,enum=finance.v1.FinanceBillStatus" json:"status,omitempty"`
-	SettlementPartyId         string                 `protobuf:"bytes,5,opt,name=settlement_party_id,json=settlementPartyId,proto3" json:"settlement_party_id,omitempty"`
-	SettlementPartyName       string                 `protobuf:"bytes,6,opt,name=settlement_party_name,json=settlementPartyName,proto3" json:"settlement_party_name,omitempty"`
-	Currency                  string                 `protobuf:"bytes,7,opt,name=currency,proto3" json:"currency,omitempty"`
-	BaseCurrency              string                 `protobuf:"bytes,8,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
-	TotalAmount               string                 `protobuf:"bytes,9,opt,name=total_amount,json=totalAmount,proto3" json:"total_amount,omitempty"`
-	NetAmount                 string                 `protobuf:"bytes,10,opt,name=net_amount,json=netAmount,proto3" json:"net_amount,omitempty"`
-	TaxAmount                 string                 `protobuf:"bytes,11,opt,name=tax_amount,json=taxAmount,proto3" json:"tax_amount,omitempty"`
-	BaseCurrencyAmount        string                 `protobuf:"bytes,12,opt,name=base_currency_amount,json=baseCurrencyAmount,proto3" json:"base_currency_amount,omitempty"`
-	FeeCount                  int32                  `protobuf:"varint,13,opt,name=fee_count,json=feeCount,proto3" json:"fee_count,omitempty"`
-	BillDate                  string                 `protobuf:"bytes,14,opt,name=bill_date,json=billDate,proto3" json:"bill_date,omitempty"`
-	DueDate                   *string                `protobuf:"bytes,15,opt,name=due_date,json=dueDate,proto3,oneof" json:"due_date,omitempty"`
-	Note                      *string                `protobuf:"bytes,16,opt,name=note,proto3,oneof" json:"note,omitempty"`
-	Version                   uint64                 `protobuf:"varint,17,opt,name=version,proto3" json:"version,omitempty"`
-	ConfirmedAt               *string                `protobuf:"bytes,18,opt,name=confirmed_at,json=confirmedAt,proto3,oneof" json:"confirmed_at,omitempty"`
-	ConfirmedBy               *string                `protobuf:"bytes,19,opt,name=confirmed_by,json=confirmedBy,proto3,oneof" json:"confirmed_by,omitempty"`
-	CancelledAt               *string                `protobuf:"bytes,20,opt,name=cancelled_at,json=cancelledAt,proto3,oneof" json:"cancelled_at,omitempty"`
-	CancelledBy               *string                `protobuf:"bytes,21,opt,name=cancelled_by,json=cancelledBy,proto3,oneof" json:"cancelled_by,omitempty"`
-	CancellationReason        *string                `protobuf:"bytes,22,opt,name=cancellation_reason,json=cancellationReason,proto3,oneof" json:"cancellation_reason,omitempty"`
-	Lines                     []*FinanceBillLine     `protobuf:"bytes,23,rep,name=lines,proto3" json:"lines,omitempty"`
-	CreatedAt                 string                 `protobuf:"bytes,24,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt                 string                 `protobuf:"bytes,25,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	VerifiedAmount            string                 `protobuf:"bytes,26,opt,name=verified_amount,json=verifiedAmount,proto3" json:"verified_amount,omitempty"`
-	UnverifiedAmount          string                 `protobuf:"bytes,27,opt,name=unverified_amount,json=unverifiedAmount,proto3" json:"unverified_amount,omitempty"`
-	BatchId                   *string                `protobuf:"bytes,28,opt,name=batch_id,json=batchId,proto3,oneof" json:"batch_id,omitempty"`
-	BatchNo                   *string                `protobuf:"bytes,29,opt,name=batch_no,json=batchNo,proto3,oneof" json:"batch_no,omitempty"`
-	StatementTitle            *string                `protobuf:"bytes,30,opt,name=statement_title,json=statementTitle,proto3,oneof" json:"statement_title,omitempty"`
-	PaymentTermsDays          *int32                 `protobuf:"varint,31,opt,name=payment_terms_days,json=paymentTermsDays,proto3,oneof" json:"payment_terms_days,omitempty"`
-	ExchangeRate              string                 `protobuf:"bytes,32,opt,name=exchange_rate,json=exchangeRate,proto3" json:"exchange_rate,omitempty"`
-	ExchangeRateSource        string                 `protobuf:"bytes,33,opt,name=exchange_rate_source,json=exchangeRateSource,proto3" json:"exchange_rate_source,omitempty"`
-	ExchangeRateDate          string                 `protobuf:"bytes,34,opt,name=exchange_rate_date,json=exchangeRateDate,proto3" json:"exchange_rate_date,omitempty"`
-	ExchangeRateSettingId     *string                `protobuf:"bytes,35,opt,name=exchange_rate_setting_id,json=exchangeRateSettingId,proto3,oneof" json:"exchange_rate_setting_id,omitempty"`
-	OrganizationId            string                 `protobuf:"bytes,37,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	OrganizationName          string                 `protobuf:"bytes,38,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
-	SettlementAccountId       string                 `protobuf:"bytes,39,opt,name=settlement_account_id,json=settlementAccountId,proto3" json:"settlement_account_id,omitempty"`
-	SettlementAccountName     string                 `protobuf:"bytes,40,opt,name=settlement_account_name,json=settlementAccountName,proto3" json:"settlement_account_name,omitempty"`
-	SettlementAccountHolder   string                 `protobuf:"bytes,41,opt,name=settlement_account_holder,json=settlementAccountHolder,proto3" json:"settlement_account_holder,omitempty"`
-	SettlementBankName        string                 `protobuf:"bytes,42,opt,name=settlement_bank_name,json=settlementBankName,proto3" json:"settlement_bank_name,omitempty"`
-	SettlementBankAccount     string                 `protobuf:"bytes,43,opt,name=settlement_bank_account,json=settlementBankAccount,proto3" json:"settlement_bank_account,omitempty"`
-	SettlementAccountCurrency string                 `protobuf:"bytes,44,opt,name=settlement_account_currency,json=settlementAccountCurrency,proto3" json:"settlement_account_currency,omitempty"`
-	SettlementSwiftCode       string                 `protobuf:"bytes,45,opt,name=settlement_swift_code,json=settlementSwiftCode,proto3" json:"settlement_swift_code,omitempty"`
-	EstimatedInvoiceCurrency  *string                `protobuf:"bytes,46,opt,name=estimated_invoice_currency,json=estimatedInvoiceCurrency,proto3,oneof" json:"estimated_invoice_currency,omitempty"`
-	EstimatedInvoiceRate      *string                `protobuf:"bytes,47,opt,name=estimated_invoice_rate,json=estimatedInvoiceRate,proto3,oneof" json:"estimated_invoice_rate,omitempty"`
-	EstimatedInvoiceAmount    *string                `protobuf:"bytes,48,opt,name=estimated_invoice_amount,json=estimatedInvoiceAmount,proto3,oneof" json:"estimated_invoice_amount,omitempty"`
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	Id                  string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	BillNo              string                 `protobuf:"bytes,2,opt,name=bill_no,json=billNo,proto3" json:"bill_no,omitempty"`
+	Direction           string                 `protobuf:"bytes,3,opt,name=direction,proto3" json:"direction,omitempty"`
+	Status              FinanceBillStatus      `protobuf:"varint,4,opt,name=status,proto3,enum=finance.v1.FinanceBillStatus" json:"status,omitempty"`
+	SettlementPartyId   string                 `protobuf:"bytes,5,opt,name=settlement_party_id,json=settlementPartyId,proto3" json:"settlement_party_id,omitempty"`
+	SettlementPartyName string                 `protobuf:"bytes,6,opt,name=settlement_party_name,json=settlementPartyName,proto3" json:"settlement_party_name,omitempty"`
+	Currency            string                 `protobuf:"bytes,7,opt,name=currency,proto3" json:"currency,omitempty"`
+	BaseCurrency        string                 `protobuf:"bytes,8,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
+	TotalAmount         string                 `protobuf:"bytes,9,opt,name=total_amount,json=totalAmount,proto3" json:"total_amount,omitempty"`
+	NetAmount           string                 `protobuf:"bytes,10,opt,name=net_amount,json=netAmount,proto3" json:"net_amount,omitempty"`
+	TaxAmount           string                 `protobuf:"bytes,11,opt,name=tax_amount,json=taxAmount,proto3" json:"tax_amount,omitempty"`
+	BaseCurrencyAmount  string                 `protobuf:"bytes,12,opt,name=base_currency_amount,json=baseCurrencyAmount,proto3" json:"base_currency_amount,omitempty"`
+	FeeCount            int32                  `protobuf:"varint,13,opt,name=fee_count,json=feeCount,proto3" json:"fee_count,omitempty"`
+	// 自动业务创建日期；初建取北京时间当天，未开票增删费用后更新，首次创建时刻另见 created_at。
+	BillDate                  string             `protobuf:"bytes,14,opt,name=bill_date,json=billDate,proto3" json:"bill_date,omitempty"`
+	DueDate                   *string            `protobuf:"bytes,15,opt,name=due_date,json=dueDate,proto3,oneof" json:"due_date,omitempty"`
+	Note                      *string            `protobuf:"bytes,16,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	Version                   uint64             `protobuf:"varint,17,opt,name=version,proto3" json:"version,omitempty"`
+	ConfirmedAt               *string            `protobuf:"bytes,18,opt,name=confirmed_at,json=confirmedAt,proto3,oneof" json:"confirmed_at,omitempty"`
+	ConfirmedBy               *string            `protobuf:"bytes,19,opt,name=confirmed_by,json=confirmedBy,proto3,oneof" json:"confirmed_by,omitempty"`
+	CancelledAt               *string            `protobuf:"bytes,20,opt,name=cancelled_at,json=cancelledAt,proto3,oneof" json:"cancelled_at,omitempty"`
+	CancelledBy               *string            `protobuf:"bytes,21,opt,name=cancelled_by,json=cancelledBy,proto3,oneof" json:"cancelled_by,omitempty"`
+	CancellationReason        *string            `protobuf:"bytes,22,opt,name=cancellation_reason,json=cancellationReason,proto3,oneof" json:"cancellation_reason,omitempty"`
+	Lines                     []*FinanceBillLine `protobuf:"bytes,23,rep,name=lines,proto3" json:"lines,omitempty"`
+	CreatedAt                 string             `protobuf:"bytes,24,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt                 string             `protobuf:"bytes,25,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	VerifiedAmount            string             `protobuf:"bytes,26,opt,name=verified_amount,json=verifiedAmount,proto3" json:"verified_amount,omitempty"`
+	UnverifiedAmount          string             `protobuf:"bytes,27,opt,name=unverified_amount,json=unverifiedAmount,proto3" json:"unverified_amount,omitempty"`
+	BatchId                   *string            `protobuf:"bytes,28,opt,name=batch_id,json=batchId,proto3,oneof" json:"batch_id,omitempty"`
+	BatchNo                   *string            `protobuf:"bytes,29,opt,name=batch_no,json=batchNo,proto3,oneof" json:"batch_no,omitempty"`
+	StatementTitle            *string            `protobuf:"bytes,30,opt,name=statement_title,json=statementTitle,proto3,oneof" json:"statement_title,omitempty"`
+	PaymentTermsDays          *int32             `protobuf:"varint,31,opt,name=payment_terms_days,json=paymentTermsDays,proto3,oneof" json:"payment_terms_days,omitempty"`
+	ExchangeRate              string             `protobuf:"bytes,32,opt,name=exchange_rate,json=exchangeRate,proto3" json:"exchange_rate,omitempty"`
+	ExchangeRateSource        string             `protobuf:"bytes,33,opt,name=exchange_rate_source,json=exchangeRateSource,proto3" json:"exchange_rate_source,omitempty"`
+	ExchangeRateDate          string             `protobuf:"bytes,34,opt,name=exchange_rate_date,json=exchangeRateDate,proto3" json:"exchange_rate_date,omitempty"`
+	ExchangeRateSettingId     *string            `protobuf:"bytes,35,opt,name=exchange_rate_setting_id,json=exchangeRateSettingId,proto3,oneof" json:"exchange_rate_setting_id,omitempty"`
+	OrganizationId            string             `protobuf:"bytes,37,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
+	OrganizationName          string             `protobuf:"bytes,38,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
+	SettlementAccountId       string             `protobuf:"bytes,39,opt,name=settlement_account_id,json=settlementAccountId,proto3" json:"settlement_account_id,omitempty"`
+	SettlementAccountName     string             `protobuf:"bytes,40,opt,name=settlement_account_name,json=settlementAccountName,proto3" json:"settlement_account_name,omitempty"`
+	SettlementAccountHolder   string             `protobuf:"bytes,41,opt,name=settlement_account_holder,json=settlementAccountHolder,proto3" json:"settlement_account_holder,omitempty"`
+	SettlementBankName        string             `protobuf:"bytes,42,opt,name=settlement_bank_name,json=settlementBankName,proto3" json:"settlement_bank_name,omitempty"`
+	SettlementBankAccount     string             `protobuf:"bytes,43,opt,name=settlement_bank_account,json=settlementBankAccount,proto3" json:"settlement_bank_account,omitempty"`
+	SettlementAccountCurrency string             `protobuf:"bytes,44,opt,name=settlement_account_currency,json=settlementAccountCurrency,proto3" json:"settlement_account_currency,omitempty"`
+	SettlementSwiftCode       string             `protobuf:"bytes,45,opt,name=settlement_swift_code,json=settlementSwiftCode,proto3" json:"settlement_swift_code,omitempty"`
+	EstimatedInvoiceCurrency  *string            `protobuf:"bytes,46,opt,name=estimated_invoice_currency,json=estimatedInvoiceCurrency,proto3,oneof" json:"estimated_invoice_currency,omitempty"`
+	EstimatedInvoiceRate      *string            `protobuf:"bytes,47,opt,name=estimated_invoice_rate,json=estimatedInvoiceRate,proto3,oneof" json:"estimated_invoice_rate,omitempty"`
+	EstimatedInvoiceAmount    *string            `protobuf:"bytes,48,opt,name=estimated_invoice_amount,json=estimatedInvoiceAmount,proto3,oneof" json:"estimated_invoice_amount,omitempty"`
 	// netted_amount 是有效对冲分摊合计；unverified_amount 已扣除该抵销额。
 	NettedAmount         string  `protobuf:"bytes,49,opt,name=netted_amount,json=nettedAmount,proto3" json:"netted_amount,omitempty"`
 	OverdueDays          int32   `protobuf:"varint,50,opt,name=overdue_days,json=overdueDays,proto3" json:"overdue_days,omitempty"`
@@ -4793,7 +4778,6 @@ func (x *PreviewBillBatchRequest) GetGroupConfigs() []*BillBatchPreviewGroupConf
 type BillBatchPreviewGroupConfigInput struct {
 	state                    protoimpl.MessageState `protogen:"open.v1"`
 	GroupKey                 string                 `protobuf:"bytes,1,opt,name=group_key,json=groupKey,proto3" json:"group_key,omitempty"`
-	BillDate                 string                 `protobuf:"bytes,2,opt,name=bill_date,json=billDate,proto3" json:"bill_date,omitempty"`
 	SettlementAccountId      string                 `protobuf:"bytes,3,opt,name=settlement_account_id,json=settlementAccountId,proto3" json:"settlement_account_id,omitempty"`
 	EstimatedInvoiceCurrency *string                `protobuf:"bytes,4,opt,name=estimated_invoice_currency,json=estimatedInvoiceCurrency,proto3,oneof" json:"estimated_invoice_currency,omitempty"`
 	EstimatedInvoiceRate     *string                `protobuf:"bytes,5,opt,name=estimated_invoice_rate,json=estimatedInvoiceRate,proto3,oneof" json:"estimated_invoice_rate,omitempty"`
@@ -4838,13 +4822,6 @@ func (x *BillBatchPreviewGroupConfigInput) GetGroupKey() string {
 	return ""
 }
 
-func (x *BillBatchPreviewGroupConfigInput) GetBillDate() string {
-	if x != nil {
-		return x.BillDate
-	}
-	return ""
-}
-
 func (x *BillBatchPreviewGroupConfigInput) GetSettlementAccountId() string {
 	if x != nil {
 		return x.SettlementAccountId
@@ -4882,7 +4859,6 @@ type BillBatchPreviewGroup struct {
 	NetAmount                string                 `protobuf:"bytes,12,opt,name=net_amount,json=netAmount,proto3" json:"net_amount,omitempty"`
 	TaxAmount                string                 `protobuf:"bytes,13,opt,name=tax_amount,json=taxAmount,proto3" json:"tax_amount,omitempty"`
 	BaseCurrencyAmount       string                 `protobuf:"bytes,14,opt,name=base_currency_amount,json=baseCurrencyAmount,proto3" json:"base_currency_amount,omitempty"`
-	IsTemporaryBillDate      bool                   `protobuf:"varint,15,opt,name=is_temporary_bill_date,json=isTemporaryBillDate,proto3" json:"is_temporary_bill_date,omitempty"`
 	ConfigurationComplete    bool                   `protobuf:"varint,16,opt,name=configuration_complete,json=configurationComplete,proto3" json:"configuration_complete,omitempty"`
 	EstimatedInvoiceCurrency string                 `protobuf:"bytes,17,opt,name=estimated_invoice_currency,json=estimatedInvoiceCurrency,proto3" json:"estimated_invoice_currency,omitempty"`
 	EstimatedInvoiceRate     string                 `protobuf:"bytes,18,opt,name=estimated_invoice_rate,json=estimatedInvoiceRate,proto3" json:"estimated_invoice_rate,omitempty"`
@@ -4896,7 +4872,9 @@ type BillBatchPreviewGroup struct {
 	IsCreditExceeded       bool    `protobuf:"varint,25,opt,name=is_credit_exceeded,json=isCreditExceeded,proto3" json:"is_credit_exceeded,omitempty"`
 	// group_token 是该组费用（ID、版本、金额）与叶子配置的摘要；配置完整时才签发，
 	// 创建时每组携带自己的令牌，陈旧只影响该组。
-	GroupToken    string `protobuf:"bytes,26,opt,name=group_token,json=groupToken,proto3" json:"group_token,omitempty"`
+	GroupToken string `protobuf:"bytes,26,opt,name=group_token,json=groupToken,proto3" json:"group_token,omitempty"`
+	// 服务端自动维护的北京时间业务创建日期；费用增删成功时更新，开票后冻结。
+	BillDate      string `protobuf:"bytes,27,opt,name=bill_date,json=billDate,proto3" json:"bill_date,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -5029,13 +5007,6 @@ func (x *BillBatchPreviewGroup) GetBaseCurrencyAmount() string {
 	return ""
 }
 
-func (x *BillBatchPreviewGroup) GetIsTemporaryBillDate() bool {
-	if x != nil {
-		return x.IsTemporaryBillDate
-	}
-	return false
-}
-
 func (x *BillBatchPreviewGroup) GetConfigurationComplete() bool {
 	if x != nil {
 		return x.ConfigurationComplete
@@ -5109,6 +5080,13 @@ func (x *BillBatchPreviewGroup) GetIsCreditExceeded() bool {
 func (x *BillBatchPreviewGroup) GetGroupToken() string {
 	if x != nil {
 		return x.GroupToken
+	}
+	return ""
+}
+
+func (x *BillBatchPreviewGroup) GetBillDate() string {
+	if x != nil {
+		return x.BillDate
 	}
 	return ""
 }
@@ -5303,7 +5281,6 @@ type CreateBillBatchGroupInput struct {
 	state                    protoimpl.MessageState `protogen:"open.v1"`
 	GroupKey                 string                 `protobuf:"bytes,1,opt,name=group_key,json=groupKey,proto3" json:"group_key,omitempty"`
 	StatementTitle           string                 `protobuf:"bytes,2,opt,name=statement_title,json=statementTitle,proto3" json:"statement_title,omitempty"`
-	BillDate                 string                 `protobuf:"bytes,3,opt,name=bill_date,json=billDate,proto3" json:"bill_date,omitempty"`
 	DueDate                  *string                `protobuf:"bytes,4,opt,name=due_date,json=dueDate,proto3,oneof" json:"due_date,omitempty"`
 	PaymentTermsDays         *int32                 `protobuf:"varint,5,opt,name=payment_terms_days,json=paymentTermsDays,proto3,oneof" json:"payment_terms_days,omitempty"`
 	Note                     *string                `protobuf:"bytes,6,opt,name=note,proto3,oneof" json:"note,omitempty"`
@@ -5361,13 +5338,6 @@ func (x *CreateBillBatchGroupInput) GetGroupKey() string {
 func (x *CreateBillBatchGroupInput) GetStatementTitle() string {
 	if x != nil {
 		return x.StatementTitle
-	}
-	return ""
-}
-
-func (x *CreateBillBatchGroupInput) GetBillDate() string {
-	if x != nil {
-		return x.BillDate
 	}
 	return ""
 }
@@ -22092,10 +22062,9 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x05total\x18\x05 \x01(\x03R\x05total\x12\x19\n" +
 	"\btrace_id\x18\x06 \x01(\tR\atraceId\"%\n" +
 	"\x0eGetBillRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\x95\x03\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\x84\x03\n" +
 	"\x11CreateBillRequest\x12\x1c\n" +
-	"\afee_ids\x18\x01 \x03(\tB\x03\xe0A\x02R\x06feeIds\x12 \n" +
-	"\tbill_date\x18\x02 \x01(\tB\x03\xe0A\x02R\bbillDate\x12\x1e\n" +
+	"\afee_ids\x18\x01 \x03(\tB\x03\xe0A\x02R\x06feeIds\x12\x1e\n" +
 	"\bdue_date\x18\x03 \x01(\tH\x00R\adueDate\x88\x01\x01\x12\x17\n" +
 	"\x04note\x18\x04 \x01(\tH\x01R\x04note\x88\x01\x01\x12,\n" +
 	"\x0fidempotency_key\x18\x05 \x01(\tB\x03\xe0A\x02R\x0eidempotencyKey\x12,\n" +
@@ -22105,10 +22074,9 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\t_due_dateB\a\n" +
 	"\x05_noteB\x12\n" +
 	"\x10_statement_titleB\x15\n" +
-	"\x13_payment_terms_days\"\xc6\x04\n" +
+	"\x13_payment_terms_daysJ\x04\b\x02\x10\x03R\tbill_date\"\xb5\x04\n" +
 	"\x11UpdateBillRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12 \n" +
-	"\tbill_date\x18\x02 \x01(\tB\x03\xe0A\x02R\bbillDate\x12\x1e\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\x1e\n" +
 	"\bdue_date\x18\x03 \x01(\tH\x00R\adueDate\x88\x01\x01\x12\x17\n" +
 	"\x04note\x18\x04 \x01(\tH\x01R\x04note\x88\x01\x01\x12.\n" +
 	"\x10expected_version\x18\x05 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12,\n" +
@@ -22123,7 +22091,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x10_statement_titleB\x15\n" +
 	"\x13_payment_terms_daysB\x1d\n" +
 	"\x1b_estimated_invoice_currencyB\x19\n" +
-	"\x17_estimated_invoice_rate\"\x98\x01\n" +
+	"\x17_estimated_invoice_rateJ\x04\b\x02\x10\x03R\tbill_date\"\x98\x01\n" +
 	"\x1cListBillFeeCandidatesRequest\x12\x1c\n" +
 	"\abill_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x06billId\x12\x12\n" +
 	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x1b\n" +
@@ -22311,15 +22279,14 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\afee_ids\x18\x01 \x03(\tB\x03\xe0A\x02R\x06feeIds\x12L\n" +
 	"\x0fgrouping_policy\x18\x02 \x01(\v2\x1e.finance.v1.BillGroupingPolicyB\x03\xe0A\x02R\x0egroupingPolicy\x12,\n" +
 	"\x0forganization_id\x18\x03 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\x12Q\n" +
-	"\rgroup_configs\x18\x04 \x03(\v2,.finance.v1.BillBatchPreviewGroupConfigInputR\fgroupConfigs\"\xcd\x02\n" +
+	"\rgroup_configs\x18\x04 \x03(\v2,.finance.v1.BillBatchPreviewGroupConfigInputR\fgroupConfigs\"\xc1\x02\n" +
 	" BillBatchPreviewGroupConfigInput\x12 \n" +
-	"\tgroup_key\x18\x01 \x01(\tB\x03\xe0A\x02R\bgroupKey\x12\x1b\n" +
-	"\tbill_date\x18\x02 \x01(\tR\bbillDate\x122\n" +
+	"\tgroup_key\x18\x01 \x01(\tB\x03\xe0A\x02R\bgroupKey\x122\n" +
 	"\x15settlement_account_id\x18\x03 \x01(\tR\x13settlementAccountId\x12A\n" +
 	"\x1aestimated_invoice_currency\x18\x04 \x01(\tH\x00R\x18estimatedInvoiceCurrency\x88\x01\x01\x129\n" +
 	"\x16estimated_invoice_rate\x18\x05 \x01(\tH\x01R\x14estimatedInvoiceRate\x88\x01\x01B\x1d\n" +
 	"\x1b_estimated_invoice_currencyB\x19\n" +
-	"\x17_estimated_invoice_rate\"\x92\n" +
+	"\x17_estimated_invoice_rateJ\x04\b\x02\x10\x03R\tbill_date\"\x98\n" +
 	"\n" +
 	"\x15BillBatchPreviewGroup\x12\x1b\n" +
 	"\tgroup_key\x18\x01 \x01(\tR\bgroupKey\x12\x1c\n" +
@@ -22338,8 +22305,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"net_amount\x18\f \x01(\tR\tnetAmount\x12\x1d\n" +
 	"\n" +
 	"tax_amount\x18\r \x01(\tR\ttaxAmount\x120\n" +
-	"\x14base_currency_amount\x18\x0e \x01(\tR\x12baseCurrencyAmount\x123\n" +
-	"\x16is_temporary_bill_date\x18\x0f \x01(\bR\x13isTemporaryBillDate\x125\n" +
+	"\x14base_currency_amount\x18\x0e \x01(\tR\x12baseCurrencyAmount\x125\n" +
 	"\x16configuration_complete\x18\x10 \x01(\bR\x15configurationComplete\x12<\n" +
 	"\x1aestimated_invoice_currency\x18\x11 \x01(\tR\x18estimatedInvoiceCurrency\x124\n" +
 	"\x16estimated_invoice_rate\x18\x12 \x01(\tR\x14estimatedInvoiceRate\x128\n" +
@@ -22351,14 +22317,15 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x18current_unsettled_amount\x18\x18 \x01(\tH\x06R\x16currentUnsettledAmount\x88\x01\x01\x12,\n" +
 	"\x12is_credit_exceeded\x18\x19 \x01(\bR\x10isCreditExceeded\x12\x1f\n" +
 	"\vgroup_token\x18\x1a \x01(\tR\n" +
-	"groupTokenB\v\n" +
+	"groupToken\x12\x1b\n" +
+	"\tbill_date\x18\x1b \x01(\tR\bbillDateB\v\n" +
 	"\t_order_idB\v\n" +
 	"\t_order_noB\v\n" +
 	"\t_tax_rateB\x1d\n" +
 	"\x1b_default_payment_terms_daysB\x16\n" +
 	"\x14_credit_limit_amountB\x12\n" +
 	"\x10_credit_currencyB\x1b\n" +
-	"\x19_current_unsettled_amount\"\x90\x02\n" +
+	"\x19_current_unsettled_amountJ\x04\b\x0f\x10\x10R\x16is_temporary_bill_date\"\x90\x02\n" +
 	"\x18PreviewBillBatchResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -22374,11 +22341,10 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x14payable_gross_amount\x18\x05 \x01(\tR\x12payableGrossAmount\x12#\n" +
 	"\roffset_amount\x18\x06 \x01(\tR\foffsetAmount\x122\n" +
 	"\x15net_receivable_amount\x18\a \x01(\tR\x13netReceivableAmount\x12,\n" +
-	"\x12net_payable_amount\x18\b \x01(\tR\x10netPayableAmount\"\xe8\x05\n" +
+	"\x12net_payable_amount\x18\b \x01(\tR\x10netPayableAmount\"\xd7\x05\n" +
 	"\x19CreateBillBatchGroupInput\x12 \n" +
 	"\tgroup_key\x18\x01 \x01(\tB\x03\xe0A\x02R\bgroupKey\x12,\n" +
-	"\x0fstatement_title\x18\x02 \x01(\tB\x03\xe0A\x02R\x0estatementTitle\x12 \n" +
-	"\tbill_date\x18\x03 \x01(\tB\x03\xe0A\x02R\bbillDate\x12\x1e\n" +
+	"\x0fstatement_title\x18\x02 \x01(\tB\x03\xe0A\x02R\x0estatementTitle\x12\x1e\n" +
 	"\bdue_date\x18\x04 \x01(\tH\x00R\adueDate\x88\x01\x01\x121\n" +
 	"\x12payment_terms_days\x18\x05 \x01(\x05H\x01R\x10paymentTermsDays\x88\x01\x01\x12\x17\n" +
 	"\x04note\x18\x06 \x01(\tH\x02R\x04note\x88\x01\x01\x127\n" +
@@ -22395,7 +22361,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x13_payment_terms_daysB\a\n" +
 	"\x05_noteB\x1d\n" +
 	"\x1b_estimated_invoice_currencyB\x19\n" +
-	"\x17_estimated_invoice_rate\"\xcc\x02\n" +
+	"\x17_estimated_invoice_rateJ\x04\b\x03\x10\x04R\tbill_date\"\xcc\x02\n" +
 	"\x15BillBatchInvoiceInput\x121\n" +
 	"\x12invoice_profile_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x10invoiceProfileId\x12&\n" +
 	"\finvoice_type\x18\x02 \x01(\tB\x03\xe0A\x02R\vinvoiceType\x12)\n" +

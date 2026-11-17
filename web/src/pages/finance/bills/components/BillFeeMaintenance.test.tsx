@@ -155,6 +155,8 @@ describe('账单费用维护', () => {
   it('移除提交当前版本，成功后回传新账单', async () => {
     const updated = wireBill({
       version: '4',
+      billDate: '2026-11-17',
+      createdAt: '2026-11-01T08:00:00Z',
       feeCount: 1,
       lines: [
         { id: 'line-a', orderFeeId: 'fee-a', feeName: '海运费' },

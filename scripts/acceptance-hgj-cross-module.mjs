@@ -162,9 +162,9 @@ for (const kind of orderKinds) {
     const fee = fees[i]; const direction = i === 0 ? 'RECEIVABLE' : 'PAYABLE';
     const common = { organizationId: companyA.id, feeIds: [fee.id], groupingPolicy: { mode: 1, splitByOrder: true } };
     const initial = await post('/api/v1/finance/bill-batches/preview', common);
-    const preview = await post('/api/v1/finance/bill-batches/preview', { ...common, groupConfigs: initial.data.map((group) => ({ groupKey: group.groupKey, billDate: today, settlementAccountId: accounts[direction].id })) });
+    const preview = await post('/api/v1/finance/bill-batches/preview', { ...common, groupConfigs: initial.data.map((group) => ({ groupKey: group.groupKey, settlementAccountId: accounts[direction].id })) });
     const batch = requireSuccessfulBillBatch(await post('/api/v1/finance/bill-batches', { organizationId: companyA.id, groupingPolicy: common.groupingPolicy, idempotencyKey: `hgj-bill-${kind.code}-${direction}-${stamp}`,
-      groups: preview.data.map((group) => ({ groupKey: group.groupKey, groupToken: group.groupToken, feeIds: [fee.id], billDate: today, paymentTermsDays: 30, settlementAccountId: accounts[direction].id, statementTitle: `${kind.code}四类财务验收` })) }), 1);
+      groups: preview.data.map((group) => ({ groupKey: group.groupKey, groupToken: group.groupToken, feeIds: [fee.id], paymentTermsDays: 30, settlementAccountId: accounts[direction].id, statementTitle: `${kind.code}四类财务验收` })) }), 1);
     let bill = batch.bills[0];
     const agingBefore = await request(`/api/v1/finance/reports/aging?organizationId=${companyA.id}&direction=${direction}&keyword=${bill.billNo}&page=1&pageSize=200`);
     assert.equal(Number(agingBefore.total), 1, `${kind.code}${direction}未清账龄真实存在`);

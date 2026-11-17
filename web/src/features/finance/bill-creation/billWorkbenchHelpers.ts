@@ -31,7 +31,6 @@ export type BillVerificationDraft = {
 };
 export type GroupFormValue = {
   statementTitle: string;
-  billDate: Dayjs;
   paymentTermsDays?: number;
   note?: string;
   settlementAccountId?: string;
@@ -109,7 +108,7 @@ export function requestMessage(
     return '所选费用必须为未建账状态且尚未进入其他账单';
   }
   if (reason === financeErrorReasons.FINANCE_BILL_PREVIEW_STALE) {
-    return '费用已发生变化，请重新预览后再生成账单';
+    return '费用或创建日期已发生变化，请重新预览后再生成账单';
   }
   return fallback;
 }
@@ -120,7 +119,6 @@ export function makeGroupConfig(
 ): API.BillBatchPreviewGroupConfigInput {
   return {
     groupKey,
-    billDate: value?.billDate?.format('YYYY-MM-DD'),
     settlementAccountId: value?.settlementAccountId,
     estimatedInvoiceCurrency: value?.estimatedInvoiceCurrency,
     estimatedInvoiceRate: value?.estimatedInvoiceRate,
@@ -131,11 +129,7 @@ export function isGroupComplete(
   value?: GroupFormValue,
   groupCurrency?: string,
 ) {
-  if (
-    !value?.statementTitle?.trim() ||
-    !value.billDate ||
-    !value.settlementAccountId
-  ) {
+  if (!value?.statementTitle?.trim() || !value.settlementAccountId) {
     return false;
   }
   const estimatedCurrency = value.estimatedInvoiceCurrency?.trim();
@@ -219,7 +213,7 @@ export function normalizeBillBatchResponse(
       itemErrors: item.error.items,
       errorMessage:
         reason === financeErrorReasons.FINANCE_BILL_PREVIEW_STALE
-          ? '费用已发生变化，请返回调整失败组后重新预览'
+          ? '费用或创建日期已发生变化，请返回调整失败组后重新预览'
           : item.error.message,
     };
   });

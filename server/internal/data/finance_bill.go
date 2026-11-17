@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"encoding/json"
 	"sort"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
+	auditlogent "github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	currencyent "github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
 	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	financebilllineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
@@ -382,7 +384,27 @@ func (r *financeBillRepo) GetByIdempotencyKey(ctx context.Context, organizationI
 	if err != nil {
 		return nil, err
 	}
-	return financeBillToBiz(item)
+	bill, err := financeBillToBiz(item)
+	if err != nil || item.BatchID != nil {
+		return bill, err
+	}
+	// 创建意图独立于可编辑账单内容；缺少摘要的既有单据不重建、不兼容猜测。
+	creation, err := client.AuditLog.Query().Where(
+		auditlogent.OrganizationIDEQ(organizationID), auditlogent.ResourceTypeEQ("finance_bill"),
+		auditlogent.ResourceIDEQ(item.ID.String()), auditlogent.ActionEQ("finance.bill.create"), auditlogent.ResultEQ(auditlogent.ResultSuccess),
+	).Only(ctx)
+	if ent.IsNotFound(err) {
+		return bill, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	var details map[string]string
+	if err := json.Unmarshal(creation.Details, &details); err != nil {
+		return nil, biz.ErrFinanceBillIdempotencyConflict
+	}
+	bill.CreateRequestHash = details["create_request_hash"]
+	return bill, nil
 }
 
 func financeBillOrganizationScopePredicate(organizationIDs []uuid.UUID) predicate.FinanceBill {

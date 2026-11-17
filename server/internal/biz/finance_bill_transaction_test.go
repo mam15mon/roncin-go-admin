@@ -36,6 +36,9 @@ type financeBillTransactionRepoStub struct {
 }
 
 func (s *financeBillTransactionRepoStub) GetByIdempotencyKey(ctx context.Context, _ uuid.UUID, _ string) (*FinanceBill, error) {
+	if active, _ := ctx.Value(financeBillTransactionContextKey{}).(bool); !active {
+		return nil, nil
+	}
 	if err := requireFinanceBillTransaction(ctx); err != nil {
 		return nil, err
 	}

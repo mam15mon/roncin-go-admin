@@ -49,17 +49,17 @@ func TestFinanceBillAutoConfirmPostgres(t *testing.T) {
 		netting, allocation := f.createNetting("protected-update", financenettingent.StatusCONFIRMED, bill, "100", true)
 
 		_, err := usecase.Update(ctx, []uuid.UUID{f.organizationID}, f.actorID, biz.UpdateFinanceBillInput{
-			ID: bill.ID, ExpectedVersion: bill.Version, BillDate: "2026-08-31", SettlementAccountID: f.accountID,
+			ID: bill.ID, ExpectedVersion: bill.Version, SettlementAccountID: f.usdAccountID,
 		})
 		if !errors.Is(err, biz.ErrFinanceBillProtectedFields) {
-			t.Fatalf("已确认对冲后改账单日期应拒绝，实际 %v", err)
+			t.Fatalf("已确认对冲后改结算账户应拒绝，实际 %v", err)
 		}
 		unchanged, err := data.db.FinanceBill.Get(ctx, bill.ID)
 		if err != nil || unchanged.Version != bill.Version || unchanged.BillDate != bill.BillDate {
 			t.Fatalf("拒绝时不得写入: %#v %v", unchanged, err)
 		}
 
-		note, title, dueDate := "受保护后补充备注", "受保护对账抬头", "2026-09-30"
+		note, title, dueDate := "受保护后补充备注", "受保护对账抬头", time.Now().In(biz.ExchangeRateBusinessLocation()).AddDate(0, 0, 30).Format("2006-01-02")
 		updated, err := usecase.Update(ctx, []uuid.UUID{f.organizationID}, f.actorID, biz.UpdateFinanceBillInput{
 			ID: bill.ID, ExpectedVersion: bill.Version, BillDate: financeBillIntegrationDate, SettlementAccountID: f.accountID,
 			Note: &note, StatementTitle: &title, DueDate: &dueDate,
@@ -85,14 +85,14 @@ func TestFinanceBillAutoConfirmPostgres(t *testing.T) {
 			ID: bill.ID, ExpectedVersion: updated.Version, BillDate: "2026-08-31", SettlementAccountID: f.accountID,
 		})
 		if err != nil {
-			t.Fatalf("撤销对冲后改账单日期应允许: %v", err)
+			t.Fatalf("撤销对冲后普通更新应允许且保留原日期: %v", err)
 		}
-		if released.BillDate != "2026-08-31" || released.Version != updated.Version+1 {
+		if released.BillDate != bill.BillDate || released.Version != updated.Version+1 {
 			t.Fatalf("解除保护后更新结果错误: %#v", released)
 		}
 	})
 
-	t.Run("草稿对冲不阻止改账单日期", func(t *testing.T) {
+	t.Run("草稿对冲不阻止普通更新且不推进日期", func(t *testing.T) {
 		f := newFeeLedgerPostgresFixture(t, data)
 		usecase := f.newUsecase(NewFinanceBillRepo(data))
 		feeID := f.createLedgerFee("draft-netting-update", "100")
@@ -102,8 +102,8 @@ func TestFinanceBillAutoConfirmPostgres(t *testing.T) {
 		updated, err := usecase.Update(ctx, []uuid.UUID{f.organizationID}, f.actorID, biz.UpdateFinanceBillInput{
 			ID: bill.ID, ExpectedVersion: bill.Version, BillDate: "2026-08-31", SettlementAccountID: f.accountID,
 		})
-		if err != nil || updated.BillDate != "2026-08-31" {
-			t.Fatalf("草稿对冲不应阻止改账单日期: %#v %v", updated, err)
+		if err != nil || updated.BillDate != bill.BillDate {
+			t.Fatalf("草稿对冲不应阻止普通更新: %#v %v", updated, err)
 		}
 	})
 }

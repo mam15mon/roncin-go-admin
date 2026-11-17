@@ -318,7 +318,7 @@ for (const [index, price] of ['100.00', '25.00'].entries()) {
 
 const feeIds = createdFees.map((fee) => fee.id);
 const draftLifecycle = await verifyDraftFeeBillLifecycle(request, raw, {
-  organizationId: me.data.currentOrganization.id, orderInput, settlementAccountId: settlementAccount.id, billDate: today, stamp,
+  organizationId: me.data.currentOrganization.id, orderInput, settlementAccountId: settlementAccount.id, stamp,
   feeInput: { direction: 1, settlementPartyId: settlementParty.id, quantity: '1', unitPrice: '7.25', currency: options.baseCurrency, feeSettingId: feeSetting.id, billingUnitId: feeSetting.defaultBillingUnitId, taxInclusive: true },
 });
 
@@ -400,9 +400,10 @@ assert(
 );
 assert(
   initialPreview.data[0].configurationComplete !== true,
-  '初次预览未配置日期与账户时应为待补齐状态',
+  '初次预览未配置账户时应为待补齐状态',
 );
 assert(initialPreview.data?.every((group) => !group.groupToken), '初次预览不应签发创建令牌');
+assert(initialPreview.data?.every((group) => /^\d{4}-\d{2}-\d{2}$/.test(group.billDate || '')), '初次预览必须返回服务端自动创建日期');
 
 const preview = await request('/api/v1/finance/bill-batches/preview', {
   method: 'POST',
@@ -412,12 +413,11 @@ const preview = await request('/api/v1/finance/bill-batches/preview', {
     organizationId: me.data.currentOrganization.id,
     groupConfigs: initialPreview.data.map((group) => ({
       groupKey: group.groupKey,
-      billDate: today,
       settlementAccountId: settlementAccount.id,
     })),
   }),
 });
-assert(preview.data?.every((group) => group.groupToken), '配置账单日期与账户后预览未签发创建令牌');
+assert(preview.data?.every((group) => group.groupToken), '配置结算账户后预览未签发创建令牌');
 
 const createBody = (idempotencyKey) => ({
   groupingPolicy: { mode: 1, splitByOrder: true, splitByTaxRate: true },
@@ -428,7 +428,6 @@ const createBody = (idempotencyKey) => ({
     groupToken: group.groupToken,
     feeIds: (group.fees || []).map((item) => item.id),
     statementTitle: customer.legalName,
-    billDate: today,
     paymentTermsDays: 30,
     settlementAccountId: settlementAccount.id,
     note: '财务批量转账单自动验收',
@@ -458,6 +457,7 @@ assert(
 assert(batch?.id && batch?.batchNo, '批量建单响应缺少批次信息');
 assert(batch.bills?.length === 1, '批量建单结果账单数不正确');
 assert(batch.bills[0].lines?.length === 2, '账单未固化两条费用明细');
+assert(batch.bills[0].billDate === preview.data[0].billDate, '账单创建日期必须与服务端预览日期一致');
 
 const idempotentRetry = await request('/api/v1/finance/bill-batches', {
   method: 'POST',

@@ -11477,8 +11477,6 @@ components:
                     type: string
                 baseCurrencyAmount:
                     type: string
-                isTemporaryBillDate:
-                    type: boolean
                 configurationComplete:
                     type: boolean
                 estimatedInvoiceCurrency:
@@ -11506,14 +11504,15 @@ components:
                     description: |-
                         group_token 是该组费用（ID、版本、金额）与叶子配置的摘要；配置完整时才签发，
                          创建时每组携带自己的令牌，陈旧只影响该组。
+                billDate:
+                    type: string
+                    description: 服务端自动维护的北京时间业务创建日期；费用增删成功时更新，开票后冻结。
         finance.v1.BillBatchPreviewGroupConfigInput:
             required:
                 - groupKey
             type: object
             properties:
                 groupKey:
-                    type: string
-                billDate:
                     type: string
                 settlementAccountId:
                     type: string
@@ -12250,7 +12249,6 @@ components:
             required:
                 - groupKey
                 - statementTitle
-                - billDate
                 - settlementAccountId
                 - groupToken
                 - feeIds
@@ -12259,8 +12257,6 @@ components:
                 groupKey:
                     type: string
                 statementTitle:
-                    type: string
-                billDate:
                     type: string
                 dueDate:
                     type: string
@@ -12343,7 +12339,6 @@ components:
         finance.v1.CreateBillRequest:
             required:
                 - feeIds
-                - billDate
                 - idempotencyKey
                 - settlementAccountId
             type: object
@@ -12352,8 +12347,6 @@ components:
                     type: array
                     items:
                         type: string
-                billDate:
-                    type: string
                 dueDate:
                     type: string
                 note:
@@ -13368,6 +13361,7 @@ components:
                     format: int32
                 billDate:
                     type: string
+                    description: 自动业务创建日期；初建取北京时间当天，未开票增删费用后更新，首次创建时刻另见 created_at。
                 dueDate:
                     type: string
                 note:
@@ -16337,14 +16331,11 @@ components:
         finance.v1.UpdateBillRequest:
             required:
                 - id
-                - billDate
                 - expectedVersion
                 - settlementAccountId
             type: object
             properties:
                 id:
-                    type: string
-                billDate:
                     type: string
                 dueDate:
                     type: string

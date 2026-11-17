@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"encoding/json"
 	"log/slog"
 	"regexp"
 	"sort"
@@ -30,7 +31,7 @@ var (
 	ErrFinanceBillSettlementAccountInvalid = errors.BadRequest(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_BILL_SETTLEMENT_ACCOUNT_INVALID), "结算账户与账单结算单位、方向、币种或启用状态不匹配")
 	ErrFinanceBillGroupingModeUnsupported  = errors.BadRequest("FINANCE_BILL_GROUPING_MODE_UNSUPPORTED", "当前阶段暂不支持对冲建账模式")
 	// ErrFinanceBillProtectedFields 表示账单已有有效发票、核销或已确认对冲，只能修改不影响金额与结算的字段。
-	ErrFinanceBillProtectedFields = errors.Conflict("FINANCE_BILL_PROTECTED_FIELDS", "账单已登记发票、核销或对冲，只能修改备注、对账标题和到期日；如需调整账单日期、账户、账期或预计开票，请先撤销相关财务记录")
+	ErrFinanceBillProtectedFields = errors.Conflict("FINANCE_BILL_PROTECTED_FIELDS", "账单已登记发票、核销或对冲，只能修改备注、对账标题和到期日；如需调整账户、账期或预计开票，请先撤销相关财务记录")
 )
 
 var financeBillCurrencyPattern = regexp.MustCompile(`^[A-Z]{3}$`)
@@ -40,10 +41,20 @@ type FinanceBillUsecase struct {
 	exchangeRate *ExchangeRateUsecase
 	transactor   Transactor
 	logger       *slog.Logger
+	now          func() time.Time
 }
 
 func NewFinanceBillUsecase(repo FinanceBillRepo, exchangeRate *ExchangeRateUsecase, transactor Transactor, logger *slog.Logger) *FinanceBillUsecase {
-	return &FinanceBillUsecase{repo: repo, exchangeRate: exchangeRate, transactor: transactor, logger: logger}
+	return &FinanceBillUsecase{repo: repo, exchangeRate: exchangeRate, transactor: transactor, logger: logger, now: time.Now}
+}
+
+// businessDate 以服务端北京时间确定业务创建日；不读取客户端日期或主机本地时区。
+func (uc *FinanceBillUsecase) businessDate() string {
+	now := time.Now
+	if uc.now != nil {
+		now = uc.now
+	}
+	return FinanceBusinessDate(now())
 }
 
 func (uc *FinanceBillUsecase) List(ctx context.Context, organizationIDs []uuid.UUID, filter FinanceBillFilter) (*FinanceBillListResult, error) {
@@ -144,22 +155,48 @@ func (uc *FinanceBillUsecase) ResolveBillableFeeOrganization(ctx context.Context
 }
 
 func (uc *FinanceBillUsecase) Create(ctx context.Context, organizationID, actorID uuid.UUID, input CreateFinanceBillInput) (*FinanceBill, error) {
-	if organizationID == uuid.Nil || actorID == uuid.Nil {
+	if organizationID == uuid.Nil || actorID == uuid.Nil || uc.transactor == nil {
 		return nil, ErrFinanceBillInvalidArgument
 	}
-	normalized, err := normalizeCreateFinanceBill(input)
+	// 幂等摘要只含客户明确提交的意图；服务器日期、默认账期与自动到期日不参与。
+	normalized, err := normalizeFinanceBillCreateIntent(input)
 	if err != nil {
 		return nil, err
 	}
+	requestHash := financeBillCreateRequestHash(normalized)
+	existing, err := uc.repo.GetByIdempotencyKey(ctx, organizationID, normalized.IdempotencyKey)
+	if err != nil {
+		return nil, err
+	}
+	if existing != nil {
+		if existing.CreateRequestHash != requestHash {
+			return nil, ErrFinanceBillIdempotencyConflict
+		}
+		return uc.repo.Get(ctx, []uuid.UUID{organizationID}, existing.ID)
+	}
 	var created *FinanceBill
 	err = uc.transactor.WithinTransaction(ctx, func(txCtx context.Context) error {
+		// 同键并发在进入新建准入前先复核；重放不依赖当前费用资格和今日汇率。
+		existing, transactionErr := uc.repo.GetByIdempotencyKey(txCtx, organizationID, normalized.IdempotencyKey)
+		if transactionErr != nil {
+			return transactionErr
+		}
+		if existing != nil {
+			if existing.CreateRequestHash != requestHash {
+				return ErrFinanceBillIdempotencyConflict
+			}
+			created = existing
+			return nil
+		}
 		fees, transactionErr := uc.repo.LoadBillableFees(txCtx, organizationID, normalized.FeeIDs)
 		if transactionErr != nil {
 			return transactionErr
 		}
-		// 服务端兜底注入（design 决策 A）：API 直录未显式提供账期且未提供到期日时，
-		// 按预览同口径注入默认账期并联动到期日（散客恒 0；正式客户取激活规则默认账期）。
-		// 注入在幂等意图比对之前，使重放请求按注入后的生效值与已存账单比对。
+		normalized.BillDate = uc.businessDate()
+		normalized, transactionErr = normalizeCreateFinanceBill(normalized)
+		if transactionErr != nil {
+			return transactionErr
+		}
 		if normalized.PaymentTermsDays == nil && normalized.DueDate == nil && len(fees) > 0 {
 			injected, injectErr := uc.defaultFinanceBillPaymentTermsDays(txCtx, organizationID, fees[0])
 			if injectErr != nil {
@@ -168,29 +205,13 @@ func (uc *FinanceBillUsecase) Create(ctx context.Context, organizationID, actorI
 			if injected != nil {
 				normalized.PaymentTermsDays = injected
 				normalized.DueDate = normalizedFinanceBillDueDate(normalized.BillDate, nil, injected)
-				if !validFinanceBillTerms(normalized.BillDate, normalized.DueDate, injected) {
-					return ErrFinanceBillInvalidArgument
-				}
 			}
-		}
-		existing, transactionErr := uc.repo.GetByIdempotencyKey(txCtx, organizationID, normalized.IdempotencyKey)
-		if transactionErr != nil {
-			return transactionErr
-		}
-		if existing != nil {
-			if !sameFinanceBillCreateIntent(existing, normalized) {
-				return ErrFinanceBillIdempotencyConflict
-			}
-			created = existing
-			return nil
 		}
 		bill, transactionErr := buildFinanceBill(organizationID, fees, normalized)
 		if transactionErr != nil {
 			return transactionErr
 		}
-		// 账单免人工确认：创建人即确认人。
-		bill.ConfirmedBy = &actorID
-		// 与批量建账保持相同锁序：费用 → 账户 → 汇率设置。
+		bill.ConfirmedBy, bill.CreateRequestHash = &actorID, requestHash
 		if transactionErr = uc.repo.HydrateBillSettlementAccounts(txCtx, []*FinanceBill{bill}); transactionErr != nil {
 			return transactionErr
 		}
@@ -200,17 +221,47 @@ func (uc *FinanceBillUsecase) Create(ctx context.Context, organizationID, actorI
 		if transactionErr = uc.applyBillExchangeRate(txCtx, organizationID, bill); transactionErr != nil {
 			return transactionErr
 		}
-		created, transactionErr = uc.repo.Create(txCtx, bill, financeBillAudit(organizationID, actorID, bill.ID, "finance.bill.create"))
+		audit := financeBillAudit(organizationID, actorID, bill.ID, "finance.bill.create")
+		audit.Details["create_request_hash"] = requestHash
+		created, transactionErr = uc.repo.Create(txCtx, bill, audit)
 		return transactionErr
 	})
 	if err == nil {
 		return uc.repo.Get(ctx, []uuid.UUID{organizationID}, created.ID)
 	}
 	existing, lookupErr := uc.repo.GetByIdempotencyKey(ctx, organizationID, normalized.IdempotencyKey)
-	if lookupErr == nil && existing != nil && sameFinanceBillCreateIntent(existing, normalized) {
-		return existing, nil
+	if lookupErr == nil && existing != nil && existing.CreateRequestHash == requestHash {
+		return uc.repo.Get(ctx, []uuid.UUID{organizationID}, existing.ID)
 	}
 	return nil, err
+}
+
+// 原始客户意图在创建审计中固化，后续增减费用和修改备注不会改变该摘要。
+func financeBillCreateRequestHash(input CreateFinanceBillInput) string {
+	payload, _ := json.Marshal(struct {
+		FeeIDs                        []uuid.UUID
+		DueDate, Note, StatementTitle *string
+		PaymentTermsDays              *int
+		SettlementAccountID           uuid.UUID
+	}{input.FeeIDs, input.DueDate, input.Note, input.StatementTitle, input.PaymentTermsDays, input.SettlementAccountID})
+	return financeSHA256(string(payload))
+}
+
+func normalizeFinanceBillCreateIntent(input CreateFinanceBillInput) (CreateFinanceBillInput, error) {
+	input.BillDate = ""
+	input.DueDate = normalizedOptionalFinanceString(input.DueDate)
+	input.Note = normalizedOptionalFinanceString(input.Note)
+	input.StatementTitle = normalizedOptionalFinanceString(input.StatementTitle)
+	input.IdempotencyKey = strings.TrimSpace(input.IdempotencyKey)
+	if input.IdempotencyKey == "" || utf8.RuneCountInString(input.IdempotencyKey) > 128 || input.SettlementAccountID == uuid.Nil || (input.DueDate != nil && !validFinanceDate(*input.DueDate)) || (input.PaymentTermsDays != nil && (*input.PaymentTermsDays < 0 || *input.PaymentTermsDays > 3650)) || (input.Note != nil && utf8.RuneCountInString(*input.Note) > 500) || (input.StatementTitle != nil && utf8.RuneCountInString(*input.StatementTitle) > 200) {
+		return CreateFinanceBillInput{}, ErrFinanceBillInvalidArgument
+	}
+	feeIDs, err := normalizeFinanceBillFeeIDs(input.FeeIDs)
+	if err != nil {
+		return CreateFinanceBillInput{}, err
+	}
+	input.FeeIDs = feeIDs
+	return input, nil
 }
 
 func (uc *FinanceBillUsecase) applyBillExchangeRate(ctx context.Context, organizationID uuid.UUID, bill *FinanceBill) error {
@@ -248,12 +299,11 @@ func (uc *FinanceBillUsecase) applyBillExchangeRate(ctx context.Context, organiz
 }
 
 func (uc *FinanceBillUsecase) Update(ctx context.Context, organizationIDs []uuid.UUID, actorID uuid.UUID, input UpdateFinanceBillInput) (*FinanceBill, error) {
-	input.BillDate = strings.TrimSpace(input.BillDate)
+	input.BillDate = ""
 	input.DueDate = normalizedOptionalFinanceString(input.DueDate)
 	input.Note = normalizedOptionalFinanceString(input.Note)
 	input.StatementTitle = normalizedOptionalFinanceString(input.StatementTitle)
-	input.DueDate = normalizedFinanceBillDueDate(input.BillDate, input.DueDate, input.PaymentTermsDays)
-	if !validFinanceBillOrganizationIDs(organizationIDs) || actorID == uuid.Nil || input.ID == uuid.Nil || input.ExpectedVersion == 0 || !validFinanceDate(input.BillDate) || !validFinanceBillTerms(input.BillDate, input.DueDate, input.PaymentTermsDays) || (input.Note != nil && utf8.RuneCountInString(*input.Note) > 500) || (input.StatementTitle != nil && utf8.RuneCountInString(*input.StatementTitle) > 200) {
+	if !validFinanceBillOrganizationIDs(organizationIDs) || actorID == uuid.Nil || input.ID == uuid.Nil || input.ExpectedVersion == 0 || (input.Note != nil && utf8.RuneCountInString(*input.Note) > 500) || (input.StatementTitle != nil && utf8.RuneCountInString(*input.StatementTitle) > 200) {
 		return nil, ErrFinanceBillInvalidArgument
 	}
 	existing, err := uc.repo.Get(ctx, organizationIDs, input.ID)
@@ -281,6 +331,11 @@ func (uc *FinanceBillUsecase) Update(ctx context.Context, organizationIDs []uuid
 		}
 		if current.Version != input.ExpectedVersion {
 			return ErrFinanceBillVersionConflict
+		}
+		input.BillDate = current.BillDate
+		input.DueDate = normalizedFinanceBillDueDate(current.BillDate, input.DueDate, input.PaymentTermsDays)
+		if !validFinanceBillTerms(current.BillDate, input.DueDate, input.PaymentTermsDays) {
+			return ErrFinanceBillInvalidArgument
 		}
 		// 受保护判定在订单与账单行锁内读取；发票、核销、对冲写路径同样先锁订单再锁账单。
 		protected, transactionErr := uc.repo.HasProtectedFinanceFact(txCtx, current.ID)
@@ -383,7 +438,7 @@ func validateLockedFinanceBillSourceFees(bill *FinanceBill, fees []*FinanceBilla
 // 账单日期决定账单汇率；账户、账期与预计开票属于结算口径，均须撤销财务记录后才能调整。
 // 预计开票按与建账相同的默认规则归一后再与已存快照比对。
 func financeBillProtectedFieldsUnchanged(current *FinanceBill, input UpdateFinanceBillInput) bool {
-	if current.BillDate != input.BillDate || current.SettlementAccountID != input.SettlementAccountID || !intPointersEqual(current.PaymentTermsDays, input.PaymentTermsDays) {
+	if current.SettlementAccountID != input.SettlementAccountID || !intPointersEqual(current.PaymentTermsDays, input.PaymentTermsDays) {
 		return false
 	}
 	if current.EstimatedInvoiceCurrency == nil || current.EstimatedInvoiceRate == nil {
@@ -468,30 +523,6 @@ func buildFinanceBill(organizationID uuid.UUID, fees []*FinanceBillableFee, inpu
 	}
 	bill.FeeCount = len(bill.Lines)
 	return bill, nil
-}
-
-func sameFinanceBillCreateIntent(existing *FinanceBill, requested CreateFinanceBillInput) bool {
-	if existing == nil {
-		return false
-	}
-	requestedTitle := requested.StatementTitle
-	if requestedTitle == nil {
-		requestedTitle = &existing.SettlementPartyName
-	}
-	if existing.SettlementAccountID != requested.SettlementAccountID || existing.BillDate != requested.BillDate || !stringPointersEqual(existing.DueDate, requested.DueDate) || !stringPointersEqual(existing.Note, requested.Note) || !stringPointersEqual(existing.StatementTitle, requestedTitle) || !intPointersEqual(existing.PaymentTermsDays, requested.PaymentTermsDays) || len(existing.Lines) != len(requested.FeeIDs) {
-		return false
-	}
-	ids := make([]string, 0, len(existing.Lines))
-	for _, line := range existing.Lines {
-		ids = append(ids, line.OrderFeeID.String())
-	}
-	sort.Strings(ids)
-	for index, id := range requested.FeeIDs {
-		if ids[index] != id.String() {
-			return false
-		}
-	}
-	return true
 }
 
 func normalizeFinanceBillFeeIDs(ids []uuid.UUID) ([]uuid.UUID, error) {

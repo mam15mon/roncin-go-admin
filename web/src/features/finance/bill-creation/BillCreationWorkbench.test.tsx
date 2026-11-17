@@ -7,7 +7,6 @@ import { BillGroupingMode } from '@/enums.generated';
 import {
   BillCreationWorkbench,
   mocks,
-  pickBillDate,
   resetWorkbenchMocks,
   singlePreviewGroup,
   sleepInAct,
@@ -305,7 +304,7 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
     fireEvent.click(screen.getByRole('button', { name: /生成 1 张账单/ }));
     await waitFor(() =>
       expect(
-        screen.getByText('请先补齐首个标记叶子的日期和结算账户'),
+        screen.getByText('请先补齐首个标记叶子的对账抬头和结算账户'),
       ).toBeInTheDocument(),
     );
     expect(mocks.create).not.toHaveBeenCalled();
@@ -320,7 +319,7 @@ describe('BillCreationWorkbench 预览触发边界', () => {
     });
   });
 
-  it('修改对账抬头或备注不触发预览，修改日期、账户、预计开票配置触发预览', async () => {
+  it('修改对账抬头或备注不触发预览，修改账户、预计开票配置触发预览', async () => {
     renderWithClient(
       <App>
         <BillCreationWorkbench
@@ -352,23 +351,19 @@ describe('BillCreationWorkbench 预览触发边界', () => {
     fireEvent.click(await screen.findByText('第二账户｜测试银行 · 6223｜CNY'));
     await waitFor(() => expect(mocks.preview).toHaveBeenCalledTimes(3));
 
-    // 账单日期变化触发预览。
-    pickBillDate('2026-09-05');
-    await waitFor(() => expect(mocks.preview).toHaveBeenCalledTimes(4));
-
     // 预计开票币种变化触发预览。
     fireEvent.mouseDown(screen.getByLabelText('预计开票币种'));
     fireEvent.click(await screen.findByText('USD - 美元'));
-    await waitFor(() => expect(mocks.preview).toHaveBeenCalledTimes(5));
+    await waitFor(() => expect(mocks.preview).toHaveBeenCalledTimes(4));
 
     // 预计开票汇率变化触发预览。
     fireEvent.change(
       screen.getByPlaceholderText('服务端按预计口径计算，可调整'),
       { target: { value: '6.5' } },
     );
-    await waitFor(() => expect(mocks.preview).toHaveBeenCalledTimes(6));
+    await waitFor(() => expect(mocks.preview).toHaveBeenCalledTimes(5));
     await sleepInAct(500);
-    expect(mocks.preview).toHaveBeenCalledTimes(6);
+    expect(mocks.preview).toHaveBeenCalledTimes(5);
   });
 
   it('预览种子的预计开票汇率预填时收敛服务端尾零（1.00000000 → 1）', async () => {

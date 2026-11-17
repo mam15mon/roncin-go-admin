@@ -1,7 +1,6 @@
 import { renderWithClient } from '@root/tests/queryClientTestUtils';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { Button, ConfigProvider, Form, Input } from 'antd';
-import dayjs from 'dayjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import BillVerificationFields from './BillVerificationFields';
 import {
@@ -49,7 +48,6 @@ function renderFields(onFinish = vi.fn(), onEdit = vi.fn()) {
           groups: {
             group: {
               statementTitle: '保留的账单抬头',
-              billDate: dayjs('2026-11-14'),
               verifications: [],
             },
           },

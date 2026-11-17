@@ -35,7 +35,7 @@ vi.mock('@/features/finance/bill-creation', async (orig) => ({
 vi.mock('@/services/roncin/settlementService', () => ({}));
 
 describe('账单筛选设置接入', () => {
-  it('偏好隐藏的账单日期不在可见字段中，其余默认可见', async () => {
+  it('偏好隐藏的创建日期不在可见字段中，其余默认可见', async () => {
     window.localStorage.setItem(
       'roncin:filter-settings:v1:finance:bills:u1:o1',
       JSON.stringify({ visible: [], hidden: ['billDateRange'] }),

@@ -356,7 +356,7 @@ const initialPreview = await request('/api/v1/finance/bill-batches/preview', {
 assert(initialPreview.data?.length === 1, '初次预览分组数不为 1');
 assert(
   initialPreview.data[0].configurationComplete !== true,
-  '初次预览未配置日期与账户时应为待补齐状态',
+  '初次预览未配置账户时应为待补齐状态',
 );
 
 const preview = await request('/api/v1/finance/bill-batches/preview', {
@@ -368,7 +368,6 @@ const preview = await request('/api/v1/finance/bill-batches/preview', {
     groupConfigs: [
       {
         groupKey: initialPreview.data[0].groupKey,
-        billDate: today,
         settlementAccountId: settlementAccount.id,
       },
     ],
@@ -389,7 +388,6 @@ const batchResponse = await request('/api/v1/finance/bill-batches', {
         groupToken: preview.data[0].groupToken,
         feeIds: preview.data[0].fees.map((item) => item.id),
         statementTitle: customer.legalName,
-        billDate: today,
         paymentTermsDays: 30,
         settlementAccountId: settlementAccount.id,
         note: '外币账单全链路自动验收',
@@ -706,7 +704,7 @@ assert(
   '持久化提成详情快照重读不一致',
 );
 
-const compositeWorkflow = await verifyCompositeFinanceWorkflow(request, { organizationId: me.data.currentOrganization.id, orderId: order.id, orderNo: order.orderNo, settlementPartyId: customer.id, feeSettingId: feeSetting.id, billingUnitId: billingUnit.id, currency: 'EUR', settlementAccountId: settlementAccount.id, invoiceProfileId: profile.id, billDate: today, stamp });
+const compositeWorkflow = await verifyCompositeFinanceWorkflow(request, { organizationId: me.data.currentOrganization.id, orderId: order.id, orderNo: order.orderNo, settlementPartyId: customer.id, feeSettingId: feeSetting.id, billingUnitId: billingUnit.id, currency: 'EUR', settlementAccountId: settlementAccount.id, invoiceProfileId: profile.id, activityDate: today, stamp });
 console.log('USD 本位币 EUR 业务币外币财务全链路 API 连续验收通过。');
 console.log(
   JSON.stringify(

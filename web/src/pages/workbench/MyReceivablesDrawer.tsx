@@ -92,7 +92,7 @@ export default function MyReceivablesDrawer({ open, onClose }: Props) {
         amountWithCurrency(record.unverifiedAmount, record.currency),
     },
     {
-      title: '账单日期',
+      title: '创建日期',
       dataIndex: 'billDate',
       width: 110,
       render: (_, record) => formatDate(record.billDate, 'date'),

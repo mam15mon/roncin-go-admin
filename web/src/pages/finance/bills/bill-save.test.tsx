@@ -68,9 +68,6 @@ vi.mock('./components/BillEditModal', () => ({
   }) =>
     p.open ? (
       <Form form={p.form}>
-        <Form.Item name="billDate" hidden getValueProps={() => ({})}>
-          <Input />
-        </Form.Item>
         <Form.Item name="statementTitle" label="抬头">
           <Input />
         </Form.Item>
@@ -115,14 +112,15 @@ describe('账单编辑失败判定', () => {
         );
       expect(screen.getByLabelText('抬头')).toHaveValue('编辑值');
       expect(state.reload).not.toHaveBeenCalled();
-      expect(
-        screen.queryByText('账单已成功更新并自动刷新汇率快照'),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText('账单已成功更新')).not.toBeInTheDocument();
     }
     fireEvent.click(screen.getByText('提交账单'));
     await waitFor(() =>
       expect(screen.queryByLabelText('抬头')).not.toBeInTheDocument(),
     );
     expect(state.reload).toHaveBeenCalledTimes(1);
+    expect(
+      vi.mocked(settlementServiceUpdateBill).mock.calls.at(-1)?.[1],
+    ).not.toHaveProperty('billDate');
   });
 });

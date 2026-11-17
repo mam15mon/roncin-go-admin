@@ -45,7 +45,7 @@ ResolveRate(ctx context.Context, companyID uuid.UUID, direction OrderFeeDirectio
   - 共享航程/主单改期同步写回成员订单 `etd/eta` 列并令订单 `version+1`，再逐票判定是否联动（各票按自身方向取 ETD 或 ETA）。改配与拆票把目标 TE 的日期写入订单列，同样按 `orderRateDayChanged` 判定；拆票中新票费用先整行克隆（沿用来源汇率），再按新票目标日期联动。退关恢复不写订单日期（要求运输执行与订单一致），无需联动。
   - 锁范围：联动沿用调用方已按主键升序持有的订单锁，只再锁费用行（订单 → 费用行升序），不锁账单、发票、核销、对冲，不得补锁订单。提成经济重算会写入关联父单涉及的全部订单：若提成关联闭包超出调用方已锁订单集合，联动 fail-closed 返回 `ErrOrderStatusConflict`（409），不中途补锁、不放宽该检查；拆票/改配后订单集合变化较大时该情形可能更常见，需用户刷新后重试。
 - 订单费用中的手工汇率覆盖使用独立权限 `system.finance.order_fee.exchange_rate.override`（「调整订单费用汇率」），与维护公司周汇率的 `update` 权限分离；且仅当订单内应收费用币种集合与应付费用币种集合一致且均非空时允许（`orderFeeCurrencySetsMatch`），否则返回 `ORDER_FEE_EXCHANGE_RATE_OVERRIDE_MISMATCH`。
-- 账单、资金流水等其他折本币调用的权限与日期口径不变（账单按账单日期、资金流水仍用 `update` 权限）。流水页面复用 `access.canUpdateExchangeRates`，不得误用费用专属 `canOverrideFeeExchangeRate`；服务端继续独立校验权限。
+- 账单、资金流水等其他折本币调用的权限与日期口径不变（账单按服务端维护的业务创建日期、资金流水仍用 `update` 权限）。流水页面复用 `access.canUpdateExchangeRates`，不得误用费用专属 `canOverrideFeeExchangeRate`；服务端继续独立校验权限。
 - 发票确认按单据方向解析周汇率：应收开票取 `ar_rate`，应付收票取 `ap_rate`；不能把全部发票视为应收。
 
 ## 4. 校验与错误矩阵

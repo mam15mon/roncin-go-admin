@@ -148,7 +148,7 @@ func TestFinanceBillUpdateUsesTargetOrganizationForExchangeRateAndAudit(t *testi
 	billRepo := &financeBillTargetOrganizationRepoStub{bill: &FinanceBill{
 		ID: billID, OrganizationID: targetOrganizationID, Direction: OrderFeeReceivable,
 		Status: FinanceBillConfirmed, SettlementPartyID: partyID, SettlementPartyName: "测试客户",
-		Currency: "USD", BaseCurrency: "CNY", TotalAmount: decimal.NewFromInt(100), NetAmount: decimal.NewFromInt(100), Version: 2,
+		Currency: "USD", BaseCurrency: "CNY", BillDate: "2026-09-09", TotalAmount: decimal.NewFromInt(100), NetAmount: decimal.NewFromInt(100), Version: 2,
 		Lines: []*FinanceBillLine{{ID: uuid.New(), OrderFeeID: feeID, OrderID: orderID, OrderNo: "SE001", FeeCode: "FEE", FeeName: "运费", Quantity: decimal.NewFromInt(1), UnitPrice: decimal.NewFromInt(100), TaxRate: &taxRate, Currency: "USD", TotalAmount: decimal.NewFromInt(100), NetAmount: decimal.NewFromInt(100), TaxAmount: decimal.Zero, Active: true}},
 	}}
 	billRepo.fees = []*FinanceBillableFee{{OrderNo: "SE001", Fee: &OrderFee{ID: feeID, OrderID: orderID, Direction: OrderFeeReceivable, HasActiveBill: true, SettlementPartyID: partyID, SettlementPartyName: "测试客户", FeeCode: "FEE", FeeName: "运费", Quantity: decimal.NewFromInt(1), UnitPrice: decimal.NewFromInt(100), TotalAmount: decimal.NewFromInt(100), NetAmount: decimal.NewFromInt(100), TaxAmount: decimal.Zero, TaxRate: &taxRate, Currency: "USD", ExchangeRate: decimal.RequireFromString("7.10"), BaseCurrency: "CNY", BaseCurrencyAmount: decimal.NewFromInt(710)}}}
@@ -165,7 +165,7 @@ func TestFinanceBillUpdateUsesTargetOrganizationForExchangeRateAndAudit(t *testi
 		t.Fatalf("汇率必须按目标账单组织解析，context=%s rate=%s target=%s", exchangeRepo.resolvedContextOrganizationID, exchangeRepo.resolvedRateOrganizationID, targetOrganizationID)
 	}
 	if len(exchangeRepo.resolveDates) != 1 || exchangeRepo.resolveDates[0] != "2026-09-09" {
-		t.Fatalf("账单汇率必须按更新后的账单日解析: %v", exchangeRepo.resolveDates)
+		t.Fatalf("账单汇率必须按已存创建日期解析: %v", exchangeRepo.resolveDates)
 	}
 	if billRepo.updateAudit == nil || billRepo.updateAudit.OrganizationID == nil || *billRepo.updateAudit.OrganizationID != targetOrganizationID {
 		t.Fatalf("更新审计必须记录目标账单组织，audit=%#v target=%s", billRepo.updateAudit, targetOrganizationID)
@@ -202,7 +202,6 @@ func TestFinanceBillUpdateProtectedOnlyAllowsNonFinancialFields(t *testing.T) {
 		name  string
 		input UpdateFinanceBillInput
 	}{
-		{"改账单日期", UpdateFinanceBillInput{BillDate: "2026-09-02", PaymentTermsDays: &terms, SettlementAccountID: accountID}},
 		{"改结算账户", UpdateFinanceBillInput{BillDate: "2026-09-01", PaymentTermsDays: &terms, SettlementAccountID: uuid.New()}},
 		{"改账期", UpdateFinanceBillInput{BillDate: "2026-09-01", SettlementAccountID: accountID}},
 		{"改预计开票币种", UpdateFinanceBillInput{BillDate: "2026-09-01", PaymentTermsDays: &terms, SettlementAccountID: accountID, EstimatedInvoiceCurrency: stringPointer("CNY"), EstimatedInvoiceRate: decimalPointer(decimal.RequireFromString("7.1"))}},
@@ -221,7 +220,7 @@ func TestFinanceBillUpdateProtectedOnlyAllowsNonFinancialFields(t *testing.T) {
 	repo := newRepo()
 	usecase := NewFinanceBillUsecase(repo, NewExchangeRateUsecase(exchangeRepo, nil), &financeBillTransactorStub{}, nil)
 	exchangeRepo.resolveDates = nil
-	if _, err := usecase.Update(t.Context(), []uuid.UUID{organizationID}, actorID, UpdateFinanceBillInput{ID: billID, ExpectedVersion: 3, BillDate: "2026-09-01", PaymentTermsDays: &terms, SettlementAccountID: accountID, Note: &note, EstimatedInvoiceCurrency: &currency}); err != nil {
+	if _, err := usecase.Update(t.Context(), []uuid.UUID{organizationID}, actorID, UpdateFinanceBillInput{ID: billID, ExpectedVersion: 3, BillDate: "2099-01-01", PaymentTermsDays: &terms, SettlementAccountID: accountID, Note: &note, EstimatedInvoiceCurrency: &currency}); err != nil {
 		t.Fatalf("受保护账单改备注应允许: %v", err)
 	}
 	if !repo.updateInput.Protected || len(exchangeRepo.resolveDates) != 0 || !repo.updateInput.ExchangeRate.Equal(decimal.RequireFromString("7.1")) || !repo.updateInput.BaseCurrencyAmount.Equal(decimal.NewFromInt(710)) {

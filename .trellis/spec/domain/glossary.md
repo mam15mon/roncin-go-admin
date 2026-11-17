@@ -38,7 +38,7 @@
 | 费用 | `OrderFee` | 订单应收/应付费用；财务状态由活动账单行及未取消账单推导（含 DRAFT）。普通修改/删除要求订单未审核锁定、ACTIVE（OPEN/CLOSED 均可）、费用当前有效且未建账；已建账先按权限回退。行能力分别返回 can_edit/can_delete/can_bill/can_correct | `data/order_fee.go`、`data/fee_bill_association.go` |
 | 费用审核 | `OrderLockRecord` / `OrderFeeReviewEvent` | 与订单资料合为一次人工审核锁，固化费用版本、指纹与利润快照；旧独立审核状态/写接口退役，历史事件只读；建账无需先审核 | `biz/order_lock.go`、`data/order_lock_apply.go` |
 | 费用补录补审 | `OrderFeeCorrectionRequest` | 锁后 ADD/REPLACE/VOID，覆盖新增、修改、调减、作废，批准才影响正式费用；有账单先回退；待审只占用源费建账，单票至多一份待审；具备同公司品类真实 lock grant 者补审 | `data/order_fee_correction*.go` |
-| 账单 | `FinanceBill` / `...Batch` / `...Line` | 费用汇成账单；新建即CONFIRMED，无人工确认；普通批量逐组独立、NETTING整批原子；结算/开票进度与完成状态按事实推导，版本乐观锁 | `biz/finance_bill*.go` |
+| 账单 | `FinanceBill` / `...Batch` / `...Line` | 费用汇成账单；新建即CONFIRMED，无人工确认；普通批量逐组独立、NETTING整批原子；结算/开票进度与完成状态按事实推导；创建日期由服务端按北京时间维护，未开票增减费用刷新、财务事实锁定后冻结，首次创建时间另留；版本乐观锁 | `biz/finance_bill*.go` |
 | 对冲 | Netting, `FinanceNetting` / `...Allocation` | 同结算单位应收应付互抵；对冲配对在建账预览中生成 | `finance_netting*.go` |
 | 核销 | Verification, `FinanceVerification` / `...Allocation` | 收付款登记后按明确金额分配到账单/费用；不足时可补差额流水并共事务提交，反核销只解除分配、不冲减真实收付 | `finance_verification*.go` |
 | 资金流水 | `FinanceCashflow` | 收付款流水记录 | `finance_cashflow.go` |

@@ -86,6 +86,25 @@ function EditHarness({ editing }: { editing?: API.FinanceBill }) {
 }
 
 describe('BillEditModal 结算账户候选', () => {
+  it('创建日期只读展示服务端日期，不成为编辑表单项', async () => {
+    mocks.accounts.mockResolvedValue({ data: [] });
+    render(
+      <EditHarness
+        editing={{
+          id: 'bill-date',
+          billNo: 'BILL-DATE',
+          billDate: '2026-11-17',
+          createdAt: '2026-11-01T08:00:00Z',
+        }}
+      />,
+    );
+    expect(screen.getByText('创建日期')).toBeInTheDocument();
+    expect(screen.getByText('2026-11-17')).toBeInTheDocument();
+    expect(screen.queryByLabelText('创建日期')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('账单日期')).not.toBeInTheDocument();
+    await waitFor(() => expect(mocks.accounts).toHaveBeenCalled());
+  });
+
   beforeEach(() => {
     window.history.replaceState({}, '', '/finance/bills');
     mocks.accounts.mockReset();
@@ -281,7 +300,7 @@ describe('BillEditModal 受保护字段', () => {
     mocks.accounts.mockReset();
   });
 
-  it('已有核销时置灰日期、账期、账户与预计开票，且不改写原账户', async () => {
+  it('已有核销时置灰账期、账户与预计开票，且不改写原账户', async () => {
     mocks.accounts.mockResolvedValue({
       data: [
         {

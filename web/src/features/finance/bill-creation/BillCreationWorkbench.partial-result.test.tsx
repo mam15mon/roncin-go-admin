@@ -73,7 +73,7 @@ describe('批量建账部分结果与原请求重试', () => {
       await screen.findByText('批次 BATCH-1：成功 1 组，失败 1 组'),
     ).toBeInTheDocument();
     expect(
-      screen.getByText('费用已发生变化，请返回调整失败组后重新预览'),
+      screen.getByText('费用或创建日期已发生变化，请返回调整失败组后重新预览'),
     ).toBeInTheDocument();
     expect(onCreated).toHaveBeenCalledTimes(1);
     fireEvent.click(screen.getByRole('button', { name: '重试失败组' }));

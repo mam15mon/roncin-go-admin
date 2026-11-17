@@ -16,7 +16,6 @@ const group: API.BillBatchPreviewGroup = {
 function values(): GroupFormValue {
   return {
     statementTitle: '客户',
-    billDate: dayjs('2026-11-14'),
     invoices: [40, 60].map((amount, index) => ({
       invoiceProfileId: 'profile',
       invoiceType: 'DIGITAL_NORMAL',

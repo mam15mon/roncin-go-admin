@@ -81,6 +81,8 @@ type FinanceBill struct {
 	Lines                                                         []*FinanceBillLine
 	CreatedAt                                                     time.Time
 	UpdatedAt                                                     time.Time
+	// CreateRequestHash 仅单张建账幂等读取使用，从不可变创建审计注入，不对外返回。
+	CreateRequestHash string
 	// 以下为列表与详情读取时推导的投影（见 ResolveFinanceBillProgress），不落库；
 	// 未经投影的账单（如建账响应）保持零值。
 	SettlementProgress FinanceBillSettlementProgress
@@ -183,6 +185,7 @@ type FinanceBaseCurrencyAmount struct {
 	OverdueReceivableBaseAmount decimal.Decimal
 }
 
+// CreateFinanceBillInput 的 BillDate 仅在用例内部承载自动业务创建日，外部传值一律被覆盖。
 type CreateFinanceBillInput struct {
 	FeeIDs              []uuid.UUID
 	BillDate            string
@@ -194,6 +197,7 @@ type CreateFinanceBillInput struct {
 	SettlementAccountID uuid.UUID
 }
 
+// UpdateFinanceBillInput 的 BillDate 由锁内原账单填充，普通编辑不接受人工改日。
 type UpdateFinanceBillInput struct {
 	ID                       uuid.UUID
 	BillDate                 string
@@ -237,7 +241,6 @@ type FinanceBillBatchPreviewGroup struct {
 	Fees                                                  []*FinanceBillableFee
 	TotalAmount, NetAmount, TaxAmount, BaseCurrencyAmount decimal.Decimal
 	ConfigurationComplete                                 bool
-	TemporaryBillDate                                     bool
 	BillDate                                              string
 	SettlementAccountID                                   uuid.UUID
 	EstimatedInvoiceCurrency                              string
@@ -275,6 +278,7 @@ type FinanceBillBatchNettingPair struct {
 	NetPayableAmount      decimal.Decimal
 }
 
+// CreateFinanceBillBatchGroupInput 的 BillDate 不参与请求意图；由自动预览结果决定。
 type CreateFinanceBillBatchGroupInput struct {
 	GroupKey                 string
 	StatementTitle           string
@@ -382,8 +386,8 @@ type FinanceBillRepo interface {
 	// ListBillFeeCandidates 返回可加入账单的未建账费用（同公司、同方向、同结算单位、同币种与本币），服务端关键字过滤分页。
 	ListBillFeeCandidates(ctx context.Context, bill *FinanceBill, filter FinanceBillFeeCandidateFilter) (*FinanceBillCreationCandidateResult, error)
 	// UpdateFees 须在共享事务内调用：按「订单闭包升序 → 账单 → 费用升序 → 账单行」加锁，锁内复核费用锁定事实、
-	// 逐项校验并按账单汇率重算金额，写入后执行提成经济重算与审计。
-	UpdateFees(ctx context.Context, organizationIDs []uuid.UUID, input UpdateFinanceBillFeesInput, audit *AuditEvent) error
+	// 逐项校验后调用 refresh 在锁内更新自动日期与汇率，再重算金额、写入提成经济重算与审计。
+	UpdateFees(ctx context.Context, organizationIDs []uuid.UUID, input UpdateFinanceBillFeesInput, refresh func(context.Context, *FinanceBill) error, audit *AuditEvent) error
 	// GetPartnerUnsettledReceivableBaseAmount 返回指定往来户在组织内已确认应收账单的折本币未核销总额
 	// （总额 - 有效核销 - 有效对冲，负值钳零），口径与列表汇总的 unverified_base_amount 一致。
 	GetPartnerUnsettledReceivableBaseAmount(ctx context.Context, organizationID, partnerID uuid.UUID) (decimal.Decimal, error)

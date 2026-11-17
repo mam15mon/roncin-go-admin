@@ -93,7 +93,6 @@ export default function BillGroupConfigurationStep({
           (groupValue: Partial<GroupFormValue>) => {
             if (!groupValue || typeof groupValue !== 'object') return false;
             return (
-              'billDate' in groupValue ||
               'settlementAccountId' in groupValue ||
               'estimatedInvoiceCurrency' in groupValue ||
               'estimatedInvoiceRate' in groupValue

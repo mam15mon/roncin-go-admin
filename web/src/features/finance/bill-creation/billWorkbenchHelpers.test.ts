@@ -28,7 +28,7 @@ describe('批量建账逐组响应映射', () => {
       expect(result.groups[1]).toEqual({
         groupKey: 'ap',
         errorReason: 'FINANCE_BILL_PREVIEW_STALE',
-        errorMessage: '费用已发生变化，请返回调整失败组后重新预览',
+        errorMessage: '费用或创建日期已发生变化，请返回调整失败组后重新预览',
       });
     },
   );

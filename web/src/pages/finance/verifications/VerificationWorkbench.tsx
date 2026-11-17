@@ -525,7 +525,7 @@ export default function VerificationWorkbench({
   ];
   const billColumns: ProColumns<API.FinanceBill>[] = [
     { title: '账单号', dataIndex: 'billNo', width: 150 },
-    { title: '账单日', dataIndex: 'billDate', width: 105 },
+    { title: '创建日期', dataIndex: 'billDate', width: 105 },
     {
       title: '未核销余额',
       dataIndex: 'unverifiedAmount',

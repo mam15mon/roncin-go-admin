@@ -232,7 +232,7 @@ func (s *SettlementService) CreateBill(ctx context.Context, request *v1.CreateBi
 	if err != nil {
 		return nil, biz.ErrFinanceBillSettlementAccountInvalid
 	}
-	input := biz.CreateFinanceBillInput{FeeIDs: feeIDs, BillDate: request.GetBillDate(), DueDate: request.DueDate, Note: request.Note, StatementTitle: request.StatementTitle, PaymentTermsDays: financeInt32Pointer(request.PaymentTermsDays), IdempotencyKey: request.GetIdempotencyKey(), SettlementAccountID: accountID}
+	input := biz.CreateFinanceBillInput{FeeIDs: feeIDs, DueDate: request.DueDate, Note: request.Note, StatementTitle: request.StatementTitle, PaymentTermsDays: financeInt32Pointer(request.PaymentTermsDays), IdempotencyKey: request.GetIdempotencyKey(), SettlementAccountID: accountID}
 	item, err := s.billUsecase.Create(ctx, organizationID, principal.UserID, input)
 	if err != nil {
 		return nil, err
@@ -281,7 +281,7 @@ func (s *SettlementService) PreviewBillBatch(ctx context.Context, request *v1.Pr
 			v := int32(*group.DefaultPaymentTermsDays)
 			defaultPaymentTermsDays = &v
 		}
-		groups = append(groups, &v1.BillBatchPreviewGroup{GroupKey: group.GroupKey, Direction: string(group.Direction), SettlementPartyId: group.SettlementPartyID.String(), SettlementPartyName: group.SettlementPartyName, Currency: group.Currency, BaseCurrency: group.BaseCurrency, OrderId: uuidStringPtr(group.OrderID), OrderNo: group.OrderNo, TaxRate: financeDecimalPointer(group.TaxRate, 4), Fees: fees, TotalAmount: group.TotalAmount.StringFixed(8), NetAmount: group.NetAmount.StringFixed(8), TaxAmount: group.TaxAmount.StringFixed(8), BaseCurrencyAmount: group.BaseCurrencyAmount.StringFixed(8), IsTemporaryBillDate: group.TemporaryBillDate, ConfigurationComplete: group.ConfigurationComplete, EstimatedInvoiceCurrency: group.EstimatedInvoiceCurrency, EstimatedInvoiceRate: group.EstimatedInvoiceRate.StringFixed(8), EstimatedInvoiceAmount: group.EstimatedInvoiceAmount.StringFixed(8), IsCasual: group.IsCasual, DefaultPaymentTermsDays: defaultPaymentTermsDays, CreditLimitAmount: financeDecimalPointer(group.CreditLimitAmount, 2), CreditCurrency: group.CreditCurrency, CurrentUnsettledAmount: financeDecimalPointer(group.CurrentUnsettledAmount, 2), IsCreditExceeded: group.IsCreditExceeded, GroupToken: group.GroupToken})
+		groups = append(groups, &v1.BillBatchPreviewGroup{GroupKey: group.GroupKey, Direction: string(group.Direction), SettlementPartyId: group.SettlementPartyID.String(), SettlementPartyName: group.SettlementPartyName, Currency: group.Currency, BaseCurrency: group.BaseCurrency, OrderId: uuidStringPtr(group.OrderID), OrderNo: group.OrderNo, TaxRate: financeDecimalPointer(group.TaxRate, 4), Fees: fees, TotalAmount: group.TotalAmount.StringFixed(8), NetAmount: group.NetAmount.StringFixed(8), TaxAmount: group.TaxAmount.StringFixed(8), BaseCurrencyAmount: group.BaseCurrencyAmount.StringFixed(8), BillDate: group.BillDate, ConfigurationComplete: group.ConfigurationComplete, EstimatedInvoiceCurrency: group.EstimatedInvoiceCurrency, EstimatedInvoiceRate: group.EstimatedInvoiceRate.StringFixed(8), EstimatedInvoiceAmount: group.EstimatedInvoiceAmount.StringFixed(8), IsCasual: group.IsCasual, DefaultPaymentTermsDays: defaultPaymentTermsDays, CreditLimitAmount: financeDecimalPointer(group.CreditLimitAmount, 2), CreditCurrency: group.CreditCurrency, CurrentUnsettledAmount: financeDecimalPointer(group.CurrentUnsettledAmount, 2), IsCreditExceeded: group.IsCreditExceeded, GroupToken: group.GroupToken})
 	}
 	return ok(ctx, &v1.PreviewBillBatchResponse{Data: groups, NettingPairs: billBatchNettingPairsToAPI(preview.NettingPairs)}), nil
 }
@@ -332,7 +332,7 @@ func (s *SettlementService) CreateBillBatch(ctx context.Context, request *v1.Cre
 			inputError = operationErr.(*biz.FinanceBillBatchOperationInputError)
 			inputFingerprint = boundaryOperationFingerprint(group)
 		}
-		groups = append(groups, biz.CreateFinanceBillBatchGroupInput{GroupKey: group.GetGroupKey(), StatementTitle: group.GetStatementTitle(), BillDate: group.GetBillDate(), DueDate: group.DueDate, PaymentTermsDays: financeInt32Pointer(group.PaymentTermsDays), Note: group.Note, SettlementAccountID: accountID, EstimatedInvoiceCurrency: estimatedCurrency, EstimatedInvoiceRate: estimatedRate, GroupToken: group.GetGroupToken(), FeeIDs: groupFeeIDs, Invoices: invoices, Verifications: verifications, OperationInputError: inputError, OperationInputFingerprint: inputFingerprint})
+		groups = append(groups, biz.CreateFinanceBillBatchGroupInput{GroupKey: group.GetGroupKey(), StatementTitle: group.GetStatementTitle(), DueDate: group.DueDate, PaymentTermsDays: financeInt32Pointer(group.PaymentTermsDays), Note: group.Note, SettlementAccountID: accountID, EstimatedInvoiceCurrency: estimatedCurrency, EstimatedInvoiceRate: estimatedRate, GroupToken: group.GetGroupToken(), FeeIDs: groupFeeIDs, Invoices: invoices, Verifications: verifications, OperationInputError: inputError, OperationInputFingerprint: inputFingerprint})
 	}
 	requestedOrganization := requestedOrganizationID.String()
 	organizationIDs, scopeErr := organizationIDsForRequestedOrganization(principal, access.FinanceBillCreate, true, &requestedOrganization)
@@ -435,7 +435,7 @@ func (s *SettlementService) UpdateBill(ctx context.Context, request *v1.UpdateBi
 	if estimatedRate != nil && estimatedCurrency == nil {
 		return nil, biz.ErrFinanceBillInvalidArgument
 	}
-	input := biz.UpdateFinanceBillInput{ID: id, BillDate: request.GetBillDate(), DueDate: request.DueDate, Note: request.Note, StatementTitle: request.StatementTitle, PaymentTermsDays: financeInt32Pointer(request.PaymentTermsDays), ExpectedVersion: request.GetExpectedVersion(), SettlementAccountID: accountID, EstimatedInvoiceCurrency: estimatedCurrency, EstimatedInvoiceRate: estimatedRate}
+	input := biz.UpdateFinanceBillInput{ID: id, DueDate: request.DueDate, Note: request.Note, StatementTitle: request.StatementTitle, PaymentTermsDays: financeInt32Pointer(request.PaymentTermsDays), ExpectedVersion: request.GetExpectedVersion(), SettlementAccountID: accountID, EstimatedInvoiceCurrency: estimatedCurrency, EstimatedInvoiceRate: estimatedRate}
 	item, err := s.billUsecase.Update(ctx, organizationIDs, principal.UserID, input)
 	if err != nil {
 		return nil, err
@@ -636,7 +636,7 @@ func previewBillBatchConfigsFromAPI(request *v1.PreviewBillBatchRequest) (previe
 		if item == nil {
 			return previewBillBatchConfigs{}, biz.ErrFinanceBillInvalidArgument
 		}
-		config := biz.FinanceBillBatchPreviewGroupConfig{GroupKey: strings.TrimSpace(item.GetGroupKey()), BillDate: strings.TrimSpace(item.GetBillDate())}
+		config := biz.FinanceBillBatchPreviewGroupConfig{GroupKey: strings.TrimSpace(item.GetGroupKey())}
 		if value := strings.TrimSpace(item.GetSettlementAccountId()); value != "" {
 			id, err := uuid.Parse(value)
 			if err != nil {

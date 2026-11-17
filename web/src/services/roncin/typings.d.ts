@@ -953,7 +953,6 @@ declare namespace API {
     netAmount?: string;
     taxAmount?: string;
     baseCurrencyAmount?: string;
-    isTemporaryBillDate?: boolean;
     configurationComplete?: boolean;
     estimatedInvoiceCurrency?: string;
     estimatedInvoiceRate?: string;
@@ -968,11 +967,12 @@ declare namespace API {
     /** group_token 是该组费用（ID、版本、金额）与叶子配置的摘要；配置完整时才签发，
  创建时每组携带自己的令牌，陈旧只影响该组。 */
     groupToken?: string;
+    /** 服务端自动维护的北京时间业务创建日期；费用增删成功时更新，开票后冻结。 */
+    billDate?: string;
   };
 
   type BillBatchPreviewGroupConfigInput = {
     groupKey: string;
-    billDate?: string;
     settlementAccountId?: string;
     estimatedInvoiceCurrency?: string;
     estimatedInvoiceRate?: string;
@@ -1500,7 +1500,6 @@ declare namespace API {
   type CreateBillBatchGroupInput = {
     groupKey: string;
     statementTitle: string;
-    billDate: string;
     dueDate?: string;
     paymentTermsDays?: number;
     note?: string;
@@ -1553,7 +1552,6 @@ declare namespace API {
 
   type CreateBillRequest = {
     feeIds: string[];
-    billDate: string;
     dueDate?: string;
     note?: string;
     idempotencyKey: string;
@@ -3002,6 +3000,7 @@ declare namespace API {
     taxAmount?: string;
     baseCurrencyAmount?: string;
     feeCount?: number;
+    /** 自动业务创建日期；初建取北京时间当天，未开票增删费用后更新，首次创建时刻另见 created_at。 */
     billDate?: string;
     dueDate?: string;
     note?: string;
@@ -9495,7 +9494,6 @@ declare namespace API {
 
   type UpdateBillRequest = {
     id: string;
-    billDate: string;
     dueDate?: string;
     note?: string;
     expectedVersion: string;

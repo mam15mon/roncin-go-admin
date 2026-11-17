@@ -10,6 +10,40 @@ vi.mock('@/services/roncin/partnerService', () => ({
 }));
 
 describe('BillDetailDrawer 账单详情', () => {
+  it('采纳费用变更响应后显示新的创建日期，首次创建时间不代替业务日期', async () => {
+    const detail: API.FinanceBill = {
+      id: 'bill-date',
+      billNo: 'BILL-DATE',
+      billDate: '2026-11-16',
+      createdAt: '2026-11-01T08:00:00Z',
+      exchangeRateDate: '2026-11-15',
+      lines: [],
+    };
+    const onClose = vi.fn();
+    const { rerender } = renderWithApp(
+      <BillDetailDrawer
+        open
+        loading={false}
+        onClose={onClose}
+        detail={detail}
+      />,
+    );
+    expect(screen.getByText('2026-11-16')).toBeInTheDocument();
+    rerender(
+      <BillDetailDrawer
+        open
+        loading={false}
+        onClose={onClose}
+        detail={{ ...detail, billDate: '2026-11-17' }}
+      />,
+    );
+    expect(screen.getByText('创建日期')).toBeInTheDocument();
+    expect(screen.getByText('2026-11-17')).toBeInTheDocument();
+    expect(screen.queryByText('2026-11-16')).not.toBeInTheDocument();
+    expect(screen.queryByText('2026-11-01')).not.toBeInTheDocument();
+    await act(async () => {});
+  });
+
   it('只读明细只展示有效费用，不显示已释放行及关联状态列', async () => {
     renderWithApp(
       <BillDetailDrawer

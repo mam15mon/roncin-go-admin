@@ -60,7 +60,7 @@ func TestConfiguredFinanceBillPreviewSplitsByFeeCurrencyAndUsesBillBaseRate(t *t
 			t.Fatalf("完整配置的组必须签发组令牌: %#v", group)
 		}
 		tokens[group.Currency] = group.GroupToken
-		if !group.ConfigurationComplete || group.preparedBill == nil || group.Currency != group.Fees[0].Fee.Currency || group.preparedBill.ExchangeRateDate != "2026-09-10" {
+		if !group.ConfigurationComplete || group.preparedBill == nil || group.Currency != group.Fees[0].Fee.Currency || group.preparedBill.ExchangeRateDate != uc.businessDate() {
 			t.Fatalf("费用币种或账单日汇率未固化: %#v", group)
 		}
 		if err := validateFinanceBillAmountInvariants(group.preparedBill); err != nil {
@@ -105,8 +105,8 @@ func TestConfiguredFinanceBillPreviewSplitsMixedDirectionIntoGroups(t *testing.T
 	}
 }
 
-func TestConfiguredFinanceBillInitialPreviewDoesNotRequireTemporaryDateRate(t *testing.T) {
-	organizationID, partyID, accountID := uuid.New(), uuid.New(), uuid.New()
+func TestConfiguredFinanceBillInitialPreviewUsesServerDateAndRequiresRate(t *testing.T) {
+	organizationID, partyID := uuid.New(), uuid.New()
 	fee := financeBillableFeeForTest(partyID, "100", "94", "6", "100")
 	fee.Fee.Currency = "USD"
 	fee.Fee.ExchangeRate = decimal.RequireFromString("7.2")
@@ -117,13 +117,11 @@ func TestConfiguredFinanceBillInitialPreviewDoesNotRequireTemporaryDateRate(t *t
 	}
 	uc := NewFinanceBillUsecase(&configuredFinanceBillRepoStub{fees: []*FinanceBillableFee{fee}}, NewExchangeRateUsecase(rateRepo, nil), nil, nil)
 	input := PreviewFinanceBillBatchInput{FeeIDs: []uuid.UUID{fee.Fee.ID}, GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NORMAL"}}
-	initial, err := uc.PreviewBatch(t.Context(), organizationID, input)
-	if err != nil || len(initial.Groups) != 1 || initial.Groups[0].GroupToken != "" || !initial.Groups[0].TemporaryBillDate || len(rateRepo.resolveDates) != 0 {
-		t.Fatalf("初次预览不应依赖临时日期汇率: preview=%#v resolveDates=%v err=%v", initial, rateRepo.resolveDates, err)
+	if _, err := uc.PreviewBatch(t.Context(), organizationID, input); err != ErrExchangeRateMissing {
+		t.Fatalf("自动创建日缺汇率必须拒绝，错误=%v", err)
 	}
-	input.GroupConfigs = []FinanceBillBatchPreviewGroupConfig{{GroupKey: initial.Groups[0].GroupKey, BillDate: "2026-09-10", SettlementAccountID: accountID}}
-	if _, err = uc.PreviewBatch(t.Context(), organizationID, input); err != ErrExchangeRateMissing {
-		t.Fatalf("选定账单日期后缺汇率必须拒绝，错误=%v", err)
+	if len(rateRepo.resolveDates) != 1 || rateRepo.resolveDates[0] != uc.businessDate() {
+		t.Fatalf("初次预览必须按服务端当天解析汇率: %v", rateRepo.resolveDates)
 	}
 }
 

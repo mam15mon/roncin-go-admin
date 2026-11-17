@@ -771,7 +771,6 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
     expect(initial.data).toHaveLength(1);
     const group = {
       groupKey: initial.data[0].groupKey,
-      billDate: today,
       settlementAccountId: settlementAccount.id,
     };
     const preview = await api('/api/v1/finance/bill-batches/preview', {

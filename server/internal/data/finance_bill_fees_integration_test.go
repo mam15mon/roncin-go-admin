@@ -203,7 +203,7 @@ func (f *billFeeUpdateFixture) holdBillFeeUpdate(billID uuid.UUID, version uint6
 		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 		defer cancel()
 		h.done <- f.data.WithinTransaction(ctx, func(txCtx context.Context) error {
-			err := f.repo.UpdateFees(txCtx, f.scope, biz.UpdateFinanceBillFeesInput{ID: billID, ExpectedVersion: version, AddFeeIDs: add, RemoveFeeIDs: remove}, audit)
+			err := f.repo.UpdateFees(txCtx, f.scope, biz.UpdateFinanceBillFeesInput{ID: billID, ExpectedVersion: version, AddFeeIDs: add, RemoveFeeIDs: remove}, func(context.Context, *biz.FinanceBill) error { return nil }, audit)
 			h.locked <- err
 			if err != nil {
 				return err
@@ -713,11 +713,15 @@ func TestFinanceBillFeeUpdatePostgres(t *testing.T) {
 	t.Run("增删与费用汇率联动并发以账单汇率重算", func(t *testing.T) {
 		f := newBillFeeUpdateFixture(t, data)
 		f.createExchangeRateSetting("7.12350000")
+		currentMonday, _ := biz.ExchangeRateWeekWindow(time.Now())
+		nextMonday := currentMonday.AddDate(0, 0, 7)
+		oldETD := currentMonday.AddDate(0, 0, 2).Format(time.RFC3339)
+		newETD := nextMonday.AddDate(0, 0, 2).Format(time.RFC3339)
 		if _, err := data.db.ExchangeRateSetting.Create().SetOrganizationID(f.organizationID).SetFromCurrency("USD").SetToCurrency("CNY").
-			SetEffectiveFrom(time.Date(2026, 8, 31, 0, 0, 0, 0, biz.ExchangeRateBusinessLocation())).SetRate("7.30000000").SetIsActive(true).Save(f.ctx); err != nil {
+			SetEffectiveFrom(nextMonday).SetRate("7.30000000").SetIsActive(true).Save(f.ctx); err != nil {
 			t.Fatal(err)
 		}
-		data.db.Order.UpdateOneID(f.orderID).SetEtd("2026-08-26T10:00:00+08:00").ExecX(f.ctx)
+		data.db.Order.UpdateOneID(f.orderID).SetEtd(oldETD).ExecX(f.ctx)
 		base := f.fee(billFeeSpec{key: "base", currency: "USD", rate: "7.1235", total: "100"})
 		extra := f.fee(billFeeSpec{key: "extra", currency: "USD", rate: "7.1235", total: "10.01"})
 		bill := f.bill("rate", f.usdAccountID, base)
@@ -733,7 +737,7 @@ func TestFinanceBillFeeUpdatePostgres(t *testing.T) {
 
 		// 汇率联动先获锁：增删等待后成功，新行采用账单汇率而非费用新汇率。
 		hold := holdTransaction(data, func(ctx context.Context, tx *ent.Tx) error {
-			return refresh(ctx, tx, "2026-09-02T10:00:00+08:00")
+			return refresh(ctx, tx, newETD)
 		})
 		hold.waitLocked(t)
 		done := f.updateAsync(bill.ID, 1, []uuid.UUID{extra}, nil)
@@ -758,7 +762,7 @@ func TestFinanceBillFeeUpdatePostgres(t *testing.T) {
 		refreshDone := make(chan error, 1)
 		go func() {
 			refreshDone <- data.WithTx(context.Background(), func(tx *ent.Tx) error {
-				return refresh(context.Background(), tx, "2026-08-26T10:00:00+08:00")
+				return refresh(context.Background(), tx, oldETD)
 			})
 		}()
 		requireBlocked(t, refreshDone)

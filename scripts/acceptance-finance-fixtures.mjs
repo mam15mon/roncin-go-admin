@@ -82,7 +82,6 @@ export async function verifyDraftFeeBillLifecycle(
     orderInput,
     feeInput,
     settlementAccountId,
-    billDate,
     stamp,
   },
 ) {
@@ -113,7 +112,6 @@ export async function verifyDraftFeeBillLifecycle(
       ...common,
       groupConfigs: initial.data.map((group) => ({
         groupKey: group.groupKey,
-        billDate,
         settlementAccountId,
       })),
     });
@@ -126,7 +124,6 @@ export async function verifyDraftFeeBillLifecycle(
       groupKey: group.groupKey,
       groupToken: group.groupToken,
       feeIds: (group.fees || []).map((item) => item.id),
-      billDate,
       settlementAccountId,
       statementTitle: '取消重建验收',
       paymentTermsDays: 30,
@@ -250,17 +247,17 @@ export function invoiceRegistrationForBills(bills, { invoiceProfileId, taxInvoic
 }
 
 // 同一隔离运行中串起新费用、两张已有发票、两笔差额核销与三个报表API。
-export async function verifyCompositeFinanceWorkflow(request, { organizationId, orderId, orderNo, settlementPartyId, feeSettingId, billingUnitId, currency, settlementAccountId, invoiceProfileId, billDate, stamp }) {
+export async function verifyCompositeFinanceWorkflow(request, { organizationId, orderId, orderNo, settlementPartyId, feeSettingId, billingUnitId, currency, settlementAccountId, invoiceProfileId, activityDate, stamp }) {
   const assert = (condition, message) => { if (!condition) throw new Error(message); };
   const post = (path, payload) => request(path, { method: 'POST', body: JSON.stringify(payload) });
   const fee = (await post(`/api/v1/orders/${orderId}/fees`, { orderId, direction: 1, settlementPartyId, quantity: '1', unitPrice: '100', currency, feeSettingId, billingUnitId, taxInclusive: true, idempotencyKey: `combo-fee-${stamp}` })).data;
   const common = { organizationId, feeIds: [fee.id], groupingPolicy: { mode: 1 } };
   const initial = await post('/api/v1/finance/bill-batches/preview', common);
-  const preview = await post('/api/v1/finance/bill-batches/preview', { ...common, groupConfigs: initial.data.map((group) => ({ groupKey: group.groupKey, billDate, settlementAccountId })) });
+  const preview = await post('/api/v1/finance/bill-batches/preview', { ...common, groupConfigs: initial.data.map((group) => ({ groupKey: group.groupKey, settlementAccountId })) });
   const group = preview.data[0];
-  const invoice = (amount, index) => ({ invoiceProfileId, invoiceType: 'DIGITAL_NORMAL', taxInvoiceNo: `COMBO-TAX-${stamp}-${index}`, invoiceDate: billDate, totalAmount: String(amount), fees: [{ orderFeeId: fee.id, amount: String(amount), taxAmount: index === 1 ? '1.23' : '4.56' }] });
-  const verification = (amount) => ({ verificationDate: billDate, allocations: [{ cashflowId: '', amount: String(amount) }], shortfallCashflow: { amount: String(amount), transactionDate: billDate, ourAccount: `组合验收账户-${stamp}`, paymentMethod: 'BANK_TRANSFER' } });
-  const baseGroup = { groupKey: group.groupKey, groupToken: group.groupToken, feeIds: [fee.id], billDate, settlementAccountId, statementTitle: '组合登记核销验收', invoices: [invoice(40, 1), invoice(60, 2)] };
+  const invoice = (amount, index) => ({ invoiceProfileId, invoiceType: 'DIGITAL_NORMAL', taxInvoiceNo: `COMBO-TAX-${stamp}-${index}`, invoiceDate: activityDate, totalAmount: String(amount), fees: [{ orderFeeId: fee.id, amount: String(amount), taxAmount: index === 1 ? '1.23' : '4.56' }] });
+  const verification = (amount) => ({ verificationDate: activityDate, allocations: [{ cashflowId: '', amount: String(amount) }], shortfallCashflow: { amount: String(amount), transactionDate: activityDate, ourAccount: `组合验收账户-${stamp}`, paymentMethod: 'BANK_TRANSFER' } });
+  const baseGroup = { groupKey: group.groupKey, groupToken: group.groupToken, feeIds: [fee.id], settlementAccountId, statementTitle: '组合登记核销验收', invoices: [invoice(40, 1), invoice(60, 2)] };
   const failed = await post('/api/v1/finance/bill-batches', { organizationId, groupingPolicy: common.groupingPolicy, idempotencyKey: `combo-fail-${stamp}`, groups: [{ ...baseGroup, verifications: [verification(40), verification(61)] }] });
   assert(failed.results?.[0].success !== true && failed.results?.[0].error?.items?.[0].step === 'VERIFICATION', '组合超额应定位核销失败');
   const afterFailure = (await request(`/api/v1/orders/${orderId}/fees`)).data.find((item) => item.id === fee.id);
@@ -284,7 +281,7 @@ export async function verifyCompositeFinanceWorkflow(request, { organizationId, 
   assert(profit && profit.orderNo === orderNo && /^-?\d+\.\d{8}$/.test(profit.profitAmount) && /^-?\d+\.\d{8}$/.test(profit.netProfitAmount), '利润报表应包含组合来源订单及含税/未税金额');
   const cashflows = await request(`/api/v1/finance/reports/cashflows?${query}&ourAccount=${encodeURIComponent(`组合验收账户-${stamp}`)}`);
   assert(cashflows.data?.length === 2, '实际收付款报表应恰有两笔组合差额流水');
-  assert(cashflows.data.every((row) => row.transactionDate === billDate && row.direction === 'RECEIVABLE' && row.currency === currency), '实际收付款报表的方向、币种及交易日期须保留来源快照');
+  assert(cashflows.data.every((row) => row.transactionDate === activityDate && row.direction === 'RECEIVABLE' && row.currency === currency), '实际收付款报表的方向、币种及交易日期须保留来源快照');
   assert(cashflows.nativeTotals?.find((row) => row.currency === currency)?.receivableAmount === '100.00000000', '实际收付款报表原币收款合计须为100');
   const cashflowFacts = await Promise.all(cashflows.data.map(async (row) => {
     const source = await request(`/api/v1/finance/cashflows?${query}&keyword=${encodeURIComponent(row.flowNo)}`);

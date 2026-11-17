@@ -6,7 +6,6 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import {
   BillCreationWorkbench,
   mocks,
-  pickBillDate,
   resetWorkbenchMocks,
   singlePreviewGroup,
   sleepInAct,
@@ -17,7 +16,7 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
     resetWorkbenchMocks();
   });
 
-  it('账单日期快速从 D1 改到 D2，迟到的 D1 预览不得覆盖 D2 结果', async () => {
+  it('快速切换结算账户时，迟到预览不得覆盖新的金额、系统日期和创建令牌', async () => {
     const pending: Array<(value: unknown) => void> = [];
     mocks.preview.mockImplementation(
       () =>
@@ -51,25 +50,30 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
     await sleepInAct(700);
     const baseline = mocks.preview.mock.calls.length;
 
-    // 请求 1：日期改为 D1，保持挂起。
-    pickBillDate('2026-09-05');
+    // 请求 1：切换至第二账户，保持挂起。
+    fireEvent.mouseDown(screen.getByLabelText('结算账户'));
+    fireEvent.click(await screen.findByText('第二账户｜测试银行 · 6223｜CNY'));
     await waitFor(() =>
       expect(mocks.preview).toHaveBeenCalledTimes(baseline + 1),
     );
-    // 请求 2：立即改为 D2，同样挂起。
-    pickBillDate('2026-09-18');
+    // 请求 2：切回默认账户，同样挂起。
+    fireEvent.mouseDown(screen.getByLabelText('结算账户'));
+    fireEvent.click(
+      await screen.findByText('默认结算账户｜测试银行 · 6222｜CNY'),
+    );
     await waitFor(() =>
       expect(mocks.preview).toHaveBeenCalledTimes(baseline + 2),
     );
     expect(pending).toHaveLength(2);
 
-    // 请求 2（D2）先完成并生效；resolve 的后续状态更新包进 act。
+    // 新账户的预览先完成并生效。
     await act(async () => {
       pending[1]?.({
         data: [
           {
             ...singlePreviewGroup,
             groupToken: 'token-d2',
+            billDate: '2026-11-18',
             baseCurrencyAmount: '200.00',
             estimatedInvoiceAmount: '200.00',
           },
@@ -78,13 +82,14 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
     });
     expect(await screen.findByText('200.00 CNY')).toBeInTheDocument();
 
-    // 请求 1（D1）后完成，不得覆盖金额、完成状态或创建令牌。
+    // 旧账户预览后完成，不得覆盖金额、系统日期或创建令牌。
     await act(async () => {
       pending[0]?.({
         data: [
           {
             ...singlePreviewGroup,
             groupToken: 'token-d1',
+            billDate: '2026-11-16',
             baseCurrencyAmount: '999.00',
             estimatedInvoiceAmount: '999.00',
           },
@@ -94,6 +99,8 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
     await sleepInAct(300);
     expect(screen.queryByText('999.00 CNY')).not.toBeInTheDocument();
     expect(screen.getByText('200.00 CNY')).toBeInTheDocument();
+    expect(screen.getByText('2026-11-18')).toBeInTheDocument();
+    expect(screen.queryByText('2026-11-16')).not.toBeInTheDocument();
 
     const createBtn = await screen.findByRole('button', {
       name: /生成 1 张账单/,
@@ -104,7 +111,10 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
     expect(mocks.create).toHaveBeenCalledWith(
       expect.objectContaining({
         groups: [
-          expect.objectContaining({ groupToken: 'token-d2', feeIds: ['fee-A'] }),
+          expect.objectContaining({
+            groupToken: 'token-d2',
+            feeIds: ['fee-A'],
+          }),
         ],
       }),
       expect.anything(),
@@ -202,7 +212,10 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
     expect(mocks.create).toHaveBeenCalledWith(
       expect.objectContaining({
         groups: [
-          expect.objectContaining({ groupToken: 'token-rate', feeIds: ['fee-A'] }),
+          expect.objectContaining({
+            groupToken: 'token-rate',
+            feeIds: ['fee-A'],
+          }),
         ],
       }),
       expect.anything(),

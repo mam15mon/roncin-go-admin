@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
@@ -149,23 +150,16 @@ func TestNormalizeFinanceBillTermsDerivesDueDate(t *testing.T) {
 	}
 }
 
-func TestSameFinanceBillCreateIntentRejectsChangedSettlementAccount(t *testing.T) {
-	feeID := uuid.New()
-	statementTitle := "测试结算单位"
-	existing := &FinanceBill{
-		SettlementPartyName: "测试结算单位", SettlementAccountID: uuid.New(), BillDate: "2026-08-26",
-		StatementTitle: &statementTitle,
-		Lines:          []*FinanceBillLine{{OrderFeeID: feeID}},
+func TestFinanceBillCreateIntentHashRejectsChangedSettlementAccount(t *testing.T) {
+	input := CreateFinanceBillInput{FeeIDs: []uuid.UUID{uuid.New()}, SettlementAccountID: uuid.New()}
+	original := financeBillCreateRequestHash(input)
+	input.BillDate = "2099-01-01"
+	if financeBillCreateRequestHash(input) != original {
+		t.Fatal("服务端自动日期不得参与客户端原始意图")
 	}
-	requested := CreateFinanceBillInput{
-		FeeIDs: []uuid.UUID{feeID}, BillDate: "2026-08-26", SettlementAccountID: uuid.New(),
-	}
-	if sameFinanceBillCreateIntent(existing, requested) {
-		t.Fatal("同一幂等键更换结算账户必须判定为不同创建意图")
-	}
-	requested.SettlementAccountID = existing.SettlementAccountID
-	if !sameFinanceBillCreateIntent(existing, requested) {
-		t.Fatal("相同结算账户和费用应保留幂等重试语义")
+	input.SettlementAccountID = uuid.New()
+	if financeBillCreateRequestHash(input) == original {
+		t.Fatal("更换账户必须判定为不同创建意图")
 	}
 }
 
@@ -381,7 +375,7 @@ func TestPreviewBatchEnrichesFormalTermsAndCreditWarning(t *testing.T) {
 		exceededClientID: {PartnerID: exceededClientID, CreditLimitBase: &exceededLimit, UnsettledReceivableBase: decimal.NewFromInt(150)},
 		casualClientID:   {PartnerID: casualClientID, CreditLimitBase: &casualLimit, UnsettledReceivableBase: decimal.Zero},
 	}}
-	uc := NewFinanceBillUsecase(repo, NewExchangeRateUsecase(nil, nil), nil, nil)
+	uc := NewFinanceBillUsecase(repo, NewExchangeRateUsecase(&exchangeRateRepoStub{rateContext: &ExchangeRateContext{OwnerOrganizationID: orgID, BaseCurrency: "CNY"}}, nil), nil, nil)
 
 	input := PreviewFinanceBillBatchInput{GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NORMAL"}}
 	// 普通模式一次建账只允许单一方向；应收与应付分别预览。
@@ -522,10 +516,12 @@ func (s *defaultTermsWriteRepoStub) Get(context.Context, []uuid.UUID, uuid.UUID)
 }
 
 func newDefaultTermsWriteUsecase(repo *defaultTermsWriteRepoStub) *FinanceBillUsecase {
-	return NewFinanceBillUsecase(repo, NewExchangeRateUsecase(&exchangeRateRepoStub{
+	uc := NewFinanceBillUsecase(repo, NewExchangeRateUsecase(&exchangeRateRepoStub{
 		rateContext:    repo.rateContext,
 		rateByCurrency: repo.rateByCurrency,
 	}, nil), &financeBillTransactorStub{}, nil)
+	uc.now = func() time.Time { return time.Date(2026, 9, 10, 8, 0, 0, 0, time.UTC) }
+	return uc
 }
 
 func defaultTermsWriteFees(partyID uuid.UUID, isCasual bool) []*FinanceBillableFee {
@@ -737,8 +733,10 @@ func TestCreateInjectsDefaultPaymentTermsForDirectAPICalls(t *testing.T) {
 			t.Fatalf("首次建账失败: %v", err)
 		}
 		// 首次创建已注入 30 天并落库；重放同一原始请求应按注入后的生效值比对并返回原账单。
+		requestHash := repo.createdBill.CreateRequestHash
 		repo.createdBill = nil
 		repo.existingBill = &FinanceBill{
+			CreateRequestHash: requestHash,
 			SettlementPartyID: partyID, SettlementPartyName: "验收客户", SettlementAccountID: accountID, BillDate: billDate,
 			PaymentTermsDays: &terms, DueDate: func() *string { value := "2026-10-10"; return &value }(),
 			Lines: []*FinanceBillLine{{OrderFeeID: repo.fees[0].Fee.ID}},

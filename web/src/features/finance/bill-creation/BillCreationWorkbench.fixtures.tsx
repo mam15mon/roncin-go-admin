@@ -1,4 +1,4 @@
-import { act, fireEvent, screen } from '@testing-library/react';
+import { act } from '@testing-library/react';
 import React, { useEffect, useState } from 'react';
 import { vi } from 'vitest';
 import Workbench from './BillCreationWorkbench';
@@ -155,6 +155,7 @@ export function resetWorkbenchMocks() {
 
 export const singlePreviewGroup = {
   groupKey: 'g1',
+  billDate: '2026-11-17',
   settlementPartyId: 'partner-a',
   settlementPartyName: '结算单位甲',
   direction: 'RECEIVABLE',
@@ -168,13 +169,6 @@ export const singlePreviewGroup = {
   configurationComplete: true,
   fees: [{ id: 'fee-A', feeName: '海运费' }],
 };
-
-export function pickBillDate(isoDate: string) {
-  const input = screen.getByLabelText('账单日期');
-  fireEvent.focus(input);
-  fireEvent.change(input, { target: { value: isoDate } });
-  fireEvent.keyDown(input, { key: 'Enter', code: 'Enter', keyCode: 13 });
-}
 
 export const BillCreationWorkbench = Workbench;
 export { mocks };

@@ -50,7 +50,7 @@ func TestBillBatchMalformedInvoiceKeepsOtherGroup(t *testing.T) {
 			}
 			configs := []*v1.BillBatchPreviewGroupConfigInput{}
 			for _, group := range initial.Data {
-				configs = append(configs, &v1.BillBatchPreviewGroupConfigInput{GroupKey: group.GroupKey, BillDate: "2026-09-10", SettlementAccountId: account.String()})
+				configs = append(configs, &v1.BillBatchPreviewGroupConfigInput{GroupKey: group.GroupKey, SettlementAccountId: account.String()})
 			}
 			preview, err := service.PreviewBillBatch(ctx, &v1.PreviewBillBatchRequest{OrganizationId: org.String(), GroupingPolicy: policy, FeeIds: feeIDs, GroupConfigs: configs})
 			if err != nil {
@@ -58,7 +58,7 @@ func TestBillBatchMalformedInvoiceKeepsOtherGroup(t *testing.T) {
 			}
 			request := &v1.CreateBillBatchRequest{OrganizationId: org.String(), GroupingPolicy: policy, IdempotencyKey: "malformed-" + malformedField}
 			for _, group := range preview.Data {
-				input := &v1.CreateBillBatchGroupInput{GroupKey: group.GroupKey, GroupToken: group.GroupToken, BillDate: "2026-09-10", StatementTitle: "测试客商", SettlementAccountId: account.String(), FeeIds: []string{group.Fees[0].Id}}
+				input := &v1.CreateBillBatchGroupInput{GroupKey: group.GroupKey, GroupToken: group.GroupToken, StatementTitle: "测试客商", SettlementAccountId: account.String(), FeeIds: []string{group.Fees[0].Id}}
 				if group.Direction == "RECEIVABLE" {
 					fee := &v1.InvoiceRegistrationFeeInput{OrderFeeId: group.Fees[0].Id, Amount: "100", TaxAmount: "0"}
 					switch malformedField {

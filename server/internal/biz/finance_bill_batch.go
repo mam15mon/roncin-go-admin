@@ -161,6 +161,10 @@ func validateFinanceNettingGroupPairs(groups []*FinanceBillBatchPreviewGroup) er
 }
 
 func (uc *FinanceBillUsecase) buildConfiguredFinanceBillBatchPreview(ctx context.Context, organizationID uuid.UUID, fees []*FinanceBillableFee, input PreviewFinanceBillBatchInput) (*FinanceBillBatchPreview, error) {
+	return uc.buildConfiguredFinanceBillBatchPreviewForDate(ctx, organizationID, fees, input, uc.businessDate())
+}
+
+func (uc *FinanceBillUsecase) buildConfiguredFinanceBillBatchPreviewForDate(ctx context.Context, organizationID uuid.UUID, fees []*FinanceBillableFee, input PreviewFinanceBillBatchInput, billDate string) (*FinanceBillBatchPreview, error) {
 	preview, err := BuildConfiguredFinanceBillBatchPreview(organizationID, fees, input)
 	if err != nil {
 		return nil, err
@@ -211,25 +215,7 @@ func (uc *FinanceBillUsecase) buildConfiguredFinanceBillBatchPreview(ctx context
 	}
 
 	for _, group := range preview.Groups {
-		if strings.TrimSpace(group.BillDate) == "" {
-			group.TemporaryBillDate = true
-			for _, item := range group.Fees {
-				group.TotalAmount = group.TotalAmount.Add(item.Fee.TotalAmount)
-				group.NetAmount = group.NetAmount.Add(item.Fee.NetAmount)
-			}
-			group.TotalAmount = group.TotalAmount.RoundBank(8)
-			group.NetAmount = group.NetAmount.RoundBank(8)
-			group.TaxAmount = group.TotalAmount.Sub(group.NetAmount)
-			estimatedCurrency, estimatedRate, estimatedAmount, estimatedErr := financeBillEstimatedInvoiceSnapshot(group.Currency, group.TotalAmount, group.config)
-			if estimatedErr != nil {
-				return nil, estimatedErr
-			}
-			group.EstimatedInvoiceCurrency = estimatedCurrency
-			group.EstimatedInvoiceRate = estimatedRate
-			group.EstimatedInvoiceAmount = estimatedAmount
-			group.ConfigurationComplete = false
-			continue
-		}
+		group.BillDate = billDate
 		bill, buildErr := uc.buildFixedCurrencyFinanceBill(ctx, organizationID, group, group.BillDate)
 		if buildErr != nil {
 			return nil, buildErr
@@ -483,7 +469,8 @@ func financeBillGroupToken(organizationID uuid.UUID, policy FinanceBillGroupingP
 		}
 		writeFinanceHashParts(&builder, line.OrderFeeID.String(), line.OrderID.String(), line.OrderNo, line.BusinessType, line.FeeCode, line.FeeName, lineTaxRate, line.Currency, line.TotalAmount.StringFixed(8), line.NetAmount.StringFixed(8), line.TaxAmount.StringFixed(8), line.ExchangeRate.StringFixed(8), line.BaseCurrencyAmount.StringFixed(8), strconv.FormatUint(financeBillFeeVersion(group.Fees, line.OrderFeeID), 10))
 	}
-	return financeSHA256(builder.String())
+	// 令牌仍为不透明的64字符；日期前缀用于跨日先拒绝，后56位保留224位摘要。
+	return strings.ReplaceAll(group.BillDate, "-", "") + financeSHA256(builder.String())[:56]
 }
 
 func financeBillFeeVersion(items []*FinanceBillableFee, id uuid.UUID) uint64 {
@@ -751,6 +738,15 @@ func (uc *FinanceBillUsecase) prepareFinanceBillBatchBills(txCtx context.Context
 	if len(fees) != len(feeIDs) {
 		return nil, ErrFinanceBillFeeInvalid
 	}
+	// 订单和费用锁取得之后固定一次业务日期，防止等待锁期间跨午夜。
+	billDate := uc.businessDate()
+	// 成功组在调用本方法前已按原键回放；剩余新建组的旧日令牌先拒绝，不能被今日缺汇率掩盖。
+	datePrefix := strings.ReplaceAll(billDate, "-", "")
+	for _, group := range groups {
+		if len(group.GroupToken) != 64 || group.GroupToken[:8] != datePrefix {
+			return nil, ErrFinanceBillPreviewStale
+		}
+	}
 	configs := make([]FinanceBillBatchPreviewGroupConfig, 0, len(groups))
 	for _, group := range groups {
 		configs = append(configs, FinanceBillBatchPreviewGroupConfig{
@@ -758,7 +754,7 @@ func (uc *FinanceBillUsecase) prepareFinanceBillBatchBills(txCtx context.Context
 			EstimatedInvoiceCurrency: group.EstimatedInvoiceCurrency, EstimatedInvoiceRate: group.EstimatedInvoiceRate,
 		})
 	}
-	preview, err := uc.buildConfiguredFinanceBillBatchPreview(txCtx, organizationID, fees, PreviewFinanceBillBatchInput{FeeIDs: feeIDs, GroupingPolicy: input.GroupingPolicy, GroupConfigs: configs})
+	preview, err := uc.buildConfiguredFinanceBillBatchPreviewForDate(txCtx, organizationID, fees, PreviewFinanceBillBatchInput{FeeIDs: feeIDs, GroupingPolicy: input.GroupingPolicy, GroupConfigs: configs}, billDate)
 	if err != nil {
 		return nil, err
 	}
@@ -791,7 +787,7 @@ func (uc *FinanceBillUsecase) prepareFinanceBillBatchBills(txCtx context.Context
 			paymentTermsDays = previewGroup.DefaultPaymentTermsDays
 		}
 		bill.PaymentTermsDays = paymentTermsDays
-		bill.DueDate = normalizedFinanceBillDueDate(group.BillDate, group.DueDate, paymentTermsDays)
+		bill.DueDate = normalizedFinanceBillDueDate(bill.BillDate, group.DueDate, paymentTermsDays)
 		bill.Note = normalizedOptionalFinanceString(group.Note)
 		for _, line := range bill.Lines {
 			line.ID = uuid.Must(uuid.NewV7())
@@ -851,15 +847,14 @@ func normalizeFinanceBillBatchGroups(groups []CreateFinanceBillBatchGroupInput) 
 		item.GroupKey = strings.TrimSpace(item.GroupKey)
 		item.GroupToken = strings.TrimSpace(item.GroupToken)
 		item.StatementTitle = strings.TrimSpace(item.StatementTitle)
-		item.BillDate = strings.TrimSpace(item.BillDate)
+		item.BillDate = ""
 		if item.EstimatedInvoiceCurrency != nil {
 			value := strings.ToUpper(strings.TrimSpace(*item.EstimatedInvoiceCurrency))
 			item.EstimatedInvoiceCurrency = &value
 		}
 		item.DueDate = normalizedOptionalFinanceString(item.DueDate)
 		item.Note = normalizedOptionalFinanceString(item.Note)
-		item.DueDate = normalizedFinanceBillDueDate(item.BillDate, item.DueDate, item.PaymentTermsDays)
-		if item.GroupKey == "" || len(item.GroupKey) != 64 || len(item.GroupToken) != 64 || item.SettlementAccountID == uuid.Nil || item.StatementTitle == "" || utf8.RuneCountInString(item.StatementTitle) > 200 || !validFinanceDate(item.BillDate) || !validFinanceBillTerms(item.BillDate, item.DueDate, item.PaymentTermsDays) || (item.Note != nil && utf8.RuneCountInString(*item.Note) > 500) || (item.EstimatedInvoiceCurrency != nil && !financeBillCurrencyPattern.MatchString(*item.EstimatedInvoiceCurrency)) || (item.EstimatedInvoiceRate != nil && (!item.EstimatedInvoiceRate.IsPositive() || item.EstimatedInvoiceRate.Exponent() < -8)) || (item.EstimatedInvoiceRate != nil && item.EstimatedInvoiceCurrency == nil) {
+		if item.GroupKey == "" || len(item.GroupKey) != 64 || len(item.GroupToken) != 64 || item.SettlementAccountID == uuid.Nil || item.StatementTitle == "" || utf8.RuneCountInString(item.StatementTitle) > 200 || (item.PaymentTermsDays != nil && (*item.PaymentTermsDays < 0 || *item.PaymentTermsDays > 3650)) || (item.DueDate != nil && !validFinanceDate(*item.DueDate)) || (item.Note != nil && utf8.RuneCountInString(*item.Note) > 500) || (item.EstimatedInvoiceCurrency != nil && !financeBillCurrencyPattern.MatchString(*item.EstimatedInvoiceCurrency)) || (item.EstimatedInvoiceRate != nil && (!item.EstimatedInvoiceRate.IsPositive() || item.EstimatedInvoiceRate.Exponent() < -8)) || (item.EstimatedInvoiceRate != nil && item.EstimatedInvoiceCurrency == nil) {
 			return nil, ErrFinanceBillInvalidArgument
 		}
 		feeIDs, err := normalizeFinanceBillFeeIDs(item.FeeIDs)
@@ -913,7 +908,7 @@ func financeBillBatchRequestHash(input CreateFinanceBillBatchInput) string {
 		if group.EstimatedInvoiceRate != nil {
 			estimatedRate = group.EstimatedInvoiceRate.StringFixed(8)
 		}
-		writeFinanceHashParts(&builder, group.GroupKey, group.GroupToken, group.StatementTitle, group.BillDate, dueDate, paymentTermsDays, note, group.SettlementAccountID.String(), estimatedCurrency, estimatedRate, strconv.Itoa(len(group.FeeIDs)))
+		writeFinanceHashParts(&builder, group.GroupKey, group.GroupToken, group.StatementTitle, dueDate, paymentTermsDays, note, group.SettlementAccountID.String(), estimatedCurrency, estimatedRate, strconv.Itoa(len(group.FeeIDs)))
 		for _, id := range group.FeeIDs {
 			writeFinanceHashParts(&builder, id.String())
 		}

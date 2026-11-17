@@ -19,7 +19,7 @@ func TestFinanceBillCorrectionScopeAfterReloadPostgres(t *testing.T) {
 	ctx := context.Background()
 	scope := []uuid.UUID{f.organizationID}
 	repo := NewFinanceBillRepo(data)
-	uc := biz.NewFinanceBillUsecase(repo, nil, data, nil)
+	uc := biz.NewFinanceBillUsecase(repo, biz.NewExchangeRateUsecase(NewExchangeRateRepo(data), nil), data, nil)
 
 	original := correctionFinanceFee(t, f, "scope-original", "100", nil, nil, orderfee.EconomicEffectINCREASE)
 	request := correctionFinanceApprove(t, f, original)

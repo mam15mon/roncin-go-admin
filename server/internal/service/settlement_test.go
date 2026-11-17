@@ -472,14 +472,14 @@ func TestBillBatchPreviewAndCreateRequireDeclaredSourceOrganization(t *testing.T
 	}
 	preview, err = service.PreviewBillBatch(ctx, &v1.PreviewBillBatchRequest{
 		FeeIds: []string{feeID.String()}, GroupingPolicy: policy, OrganizationId: organizationID.String(),
-		GroupConfigs: []*v1.BillBatchPreviewGroupConfigInput{{GroupKey: preview.Data[0].GetGroupKey(), BillDate: "2026-09-10", SettlementAccountId: accountID.String()}},
+		GroupConfigs: []*v1.BillBatchPreviewGroupConfigInput{{GroupKey: preview.Data[0].GetGroupKey(), SettlementAccountId: accountID.String()}},
 	})
 	if err != nil || preview.Data[0].GetGroupToken() == "" {
 		t.Fatalf("完整配置预览失败: response=%#v err=%v", preview, err)
 	}
 	created, err := service.CreateBillBatch(ctx, &v1.CreateBillBatchRequest{
 		GroupingPolicy: policy, OrganizationId: organizationID.String(), IdempotencyKey: "bill-batch-org-assertion",
-		Groups: []*v1.CreateBillBatchGroupInput{{GroupKey: preview.Data[0].GetGroupKey(), GroupToken: preview.Data[0].GetGroupToken(), FeeIds: []string{feeID.String()}, StatementTitle: "测试客户", BillDate: "2026-09-10", SettlementAccountId: accountID.String()}},
+		Groups: []*v1.CreateBillBatchGroupInput{{GroupKey: preview.Data[0].GetGroupKey(), GroupToken: preview.Data[0].GetGroupToken(), FeeIds: []string{feeID.String()}, StatementTitle: "测试客户", SettlementAccountId: accountID.String()}},
 	})
 	if err != nil || created.GetData() == nil || repo.createdOrganizationID != organizationID || created.GetSucceededCount() != 1 || created.GetFailedCount() != 0 || len(created.GetResults()) != 1 || !created.Results[0].GetSuccess() || created.Results[0].GetBill() == nil || created.Results[0].GetError() != nil {
 		t.Fatalf("同组织创建失败: response=%#v err=%v", created, err)
@@ -488,7 +488,7 @@ func TestBillBatchPreviewAndCreateRequireDeclaredSourceOrganization(t *testing.T
 	// 组令牌陈旧：HTTP 层仍成功返回，该组以结构化错误失败。
 	stale, err := service.CreateBillBatch(ctx, &v1.CreateBillBatchRequest{
 		GroupingPolicy: policy, OrganizationId: organizationID.String(), IdempotencyKey: "bill-batch-stale-group",
-		Groups: []*v1.CreateBillBatchGroupInput{{GroupKey: preview.Data[0].GetGroupKey(), GroupToken: strings.Repeat("0", 64), FeeIds: []string{feeID.String()}, StatementTitle: "测试客户", BillDate: "2026-09-10", SettlementAccountId: accountID.String()}},
+		Groups: []*v1.CreateBillBatchGroupInput{{GroupKey: preview.Data[0].GetGroupKey(), GroupToken: strings.Repeat("0", 64), FeeIds: []string{feeID.String()}, StatementTitle: "测试客户", SettlementAccountId: accountID.String()}},
 	})
 	if err != nil || stale.GetSucceededCount() != 0 || stale.GetFailedCount() != 1 || stale.Results[0].GetSuccess() || stale.Results[0].GetBill() != nil || stale.Results[0].GetError().GetReason() != "FINANCE_BILL_PREVIEW_STALE" {
 		t.Fatalf("陈旧组令牌应以组错误返回: response=%#v err=%v", stale, err)
@@ -502,7 +502,7 @@ func TestBillBatchPreviewAndCreateRequireDeclaredSourceOrganization(t *testing.T
 	}
 	if _, err := service.CreateBillBatch(ctx, &v1.CreateBillBatchRequest{
 		GroupingPolicy: policy, OrganizationId: organizationID.String(), IdempotencyKey: "bill-batch-other-org",
-		Groups: []*v1.CreateBillBatchGroupInput{{GroupKey: preview.Data[0].GetGroupKey(), GroupToken: preview.Data[0].GetGroupToken(), FeeIds: []string{feeID.String()}, StatementTitle: "测试客户", BillDate: "2026-09-10", SettlementAccountId: accountID.String()}},
+		Groups: []*v1.CreateBillBatchGroupInput{{GroupKey: preview.Data[0].GetGroupKey(), GroupToken: preview.Data[0].GetGroupToken(), FeeIds: []string{feeID.String()}, StatementTitle: "测试客户", SettlementAccountId: accountID.String()}},
 	}); !errors.Is(err, biz.ErrFinanceBillInvalidArgument) {
 		t.Fatalf("来源声明为 A、费用解析为 B 时创建错误 = %v", err)
 	}

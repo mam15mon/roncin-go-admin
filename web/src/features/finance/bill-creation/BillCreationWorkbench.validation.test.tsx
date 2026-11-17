@@ -13,9 +13,10 @@ import {
 describe('批量建账配置阻断与定位', () => {
   beforeEach(resetWorkbenchMocks);
   it('任一叶子缺少结算账户时阻断整批创建并自动跳到该叶子', async () => {
-    const groups: any[] = [
+    const groups: API.BillBatchPreviewGroup[] = [
       {
         groupKey: 'g-ok',
+        billDate: '2026-11-17',
         settlementPartyId: 'partner-ok',
         settlementPartyName: '配置完整单位',
         direction: 'RECEIVABLE',
@@ -31,6 +32,7 @@ describe('批量建账配置阻断与定位', () => {
       },
       {
         groupKey: 'g-missing',
+        billDate: '2026-11-17',
         settlementPartyId: 'partner-missing',
         settlementPartyName: '缺账户单位',
         direction: 'RECEIVABLE',
@@ -87,7 +89,7 @@ describe('批量建账配置阻断与定位', () => {
     fireEvent.click(screen.getByRole('button', { name: /生成 2 张账单/ }));
     await waitFor(() =>
       expect(
-        screen.getByText('请先补齐首个标记叶子的日期和结算账户'),
+        screen.getByText('请先补齐首个标记叶子的对账抬头和结算账户'),
       ).toBeInTheDocument(),
     );
     // 整批被阻断时自动跳到缺配置叶子，其他叶子不再置前展示。
