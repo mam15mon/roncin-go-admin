@@ -114,7 +114,6 @@ export function SeaActualContainers({
         <Button
           // 只打开查看入口；箱写入能力由 Drawer 权限独立约束。
           disabled={false}
-          type="primary"
           onClick={() => drawerRef.current?.open(order)}
         >
           普通实际箱
