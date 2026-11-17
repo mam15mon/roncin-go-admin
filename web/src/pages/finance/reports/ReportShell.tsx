@@ -58,11 +58,18 @@ type Props<T extends FinanceLedgerSummaryItem, S extends ReportEnvelope<T>> = {
   renderSummary: (summary: S) => React.ReactNode;
 };
 
+// 标签栏宽 80px 只容 5 个汉字，关键字统一叫「综合搜索」（与财务列表一致），检索范围写在占位里。
+const KEYWORD_PLACEHOLDERS: Record<ReportKind, string> = {
+  profit: '订单号或客户',
+  cashflow: '流水号或参考号',
+  aging: '账单号或结算单位',
+};
+
 function filterFields(kind: ReportKind): FilterSettingsField[] {
   if (kind === 'profit')
     return [
       { name: 'dateRange', label: '业务日期', defaultVisible: true },
-      { name: 'keyword', label: '订单或客户', defaultVisible: true },
+      { name: 'keyword', label: '综合搜索', defaultVisible: true },
       { name: 'businessType', label: '业务类型', defaultVisible: true },
       { name: 'customerId', label: '订单客户', defaultVisible: true },
       { name: 'salesId', label: '销售', defaultVisible: true },
@@ -70,11 +77,7 @@ function filterFields(kind: ReportKind): FilterSettingsField[] {
       { name: 'customerServiceId', label: '客服', defaultVisible: false },
     ];
   const fields: FilterSettingsField[] = [
-    {
-      name: 'keyword',
-      label: kind === 'aging' ? '账单或单位' : '流水或参考号',
-      defaultVisible: true,
-    },
+    { name: 'keyword', label: '综合搜索', defaultVisible: true },
     { name: 'direction', label: '收付方向', defaultVisible: true },
     { name: 'settlementPartyId', label: '结算单位', defaultVisible: true },
     { name: 'currency', label: '原币币种', defaultVisible: true },
@@ -246,7 +249,12 @@ export default function ReportShell<
     }
     return {
       ...base,
-      placeholder: field.name === 'currency' ? '例如 CNY、USD' : undefined,
+      placeholder:
+        field.name === 'currency'
+          ? '例如 CNY、USD'
+          : field.name === 'keyword'
+            ? KEYWORD_PLACEHOLDERS[kind]
+            : undefined,
     };
   });
   const exporting = useMutation({

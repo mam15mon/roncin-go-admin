@@ -7,16 +7,21 @@
 - 未覆盖：海运进口、空运进口无种子订单，只审查了列表与新建页；各详情页的抽屉/弹窗、
   校验报错态、空运分单 AWB 制作页未逐一打开；利润分析图仅看了默认月份。
 
-## A. 显示错误（P1，建议必修）
+## A. 显示错误（P1）
 
-| # | 页面 | 现象 | 定位 |
-|---|------|------|------|
-| A1 | 航空共享主单 | 「成员订单申报件数合计」显示 `30 undefined`：件数单位为空时直接拼接 | `web/src/pages/orders/air-master.tsx:452` |
-| A2 | 航空共享主单 | 「主单及关联历史」操作列显示原始枚举 `LINK`/`CREATE` | `web/src/pages/orders/air-master.tsx:595` 起的历史表 `dataIndex: 'action'` |
-| A3 | 海运/空运订单详情 | 「委托单位代码」已选委托单位仍显示占位“选委托单位后自动带出”：代码只在下拉变更时写入，详情加载不回填 | `SeaBasicInfoSection.tsx:526,661`；`detail.tsx:642` |
-| A4 | 核销管理列表 | 「核销金额」列金额与币种被截断为 `50.00 US`、`100.00 CN`，币种不可读 | `web/src/pages/finance/verifications/index.tsx:249`（列宽 140，被固定列挤压） |
-| A5 | 实际收付款报表 | 筛选标签「流水或参考号」被截成「水或参考号」 | 财务报表筛选区标签宽度 |
-| A6 | 费用设置·费用科目 | 操作列只露「编辑 ..」，停用入口被省略号截断（违反规范“不用省略号截断操作入口”） | `MasterDataTemplate.tsx:400` 操作列 `width: 130` |
+第一批（2026-11-17）已修复 A1、A2、A3、A5；A4、A6 经 DOM 复核不是显示错误，改记如下。
+
+| # | 页面 | 现象 | 定位 | 结论 |
+|---|------|------|------|------|
+| A1 | 航空共享主单 | 「成员订单申报件数合计」显示 `30 undefined` | `air-master.tsx` `formatPackagesByUnit` | 已修：缺单位只显示件数，缺件数按 0 |
+| A2 | 航空共享主单 | 历史操作列显示原始枚举 | `air-master.tsx` `formatAirMasterHistoryAction` | 已修：映射服务端写入的 CREATE_LINK/END_LINK/RESTORE_LINK/UPDATE，未知值原样显示 |
+| A3 | 海运/空运订单详情 | 委托单位代码不回填 | `PartnerQuickAddSelect` 新增 `onSelectedOptionResolved`，`SeaCustomerField` 用于带出代码 | 已修：程序回填不触发 `onValuesChange`，不污染未保存判定 |
+| A4 | 核销管理列表 | 核销金额看似截断 | DOM 列宽实为 140px，表格横向滚动边缘被固定操作列遮挡 | 非错误，并入 D10（关键金额列靠右、需横向滚动才看全） |
+| A5 | 财务报表 | 「流水或参考号」超出 80px 标签栏被截 | `ReportShell.tsx` | 已修：三张报表关键字统一为「综合搜索」，检索范围写入占位 |
+| A6 | 费用设置·费用科目 | 「编辑 ..」 | DOM 仅一个「编辑」按钮，「..」为固定列阴影残影 | 非错误，撤销 |
+
+遗留：开发种子 `server/cmd/sync-dev/air_export.go:57,148` 写入的历史动作 `CREATE`/`LINK`
+不是服务端正式取值，页面会原样显示英文；需单独决定是否修正种子与已有开发数据。
 
 ## B. 同语义控件形态不统一（P2，需定口径）
 

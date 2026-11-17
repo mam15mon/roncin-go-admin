@@ -56,6 +56,30 @@ import { AirWaybillFields } from './templates/components/air/AirWaybillFields';
 type MasterEditValues = { input: API.AirMasterWaybillInput; reason: string };
 
 /** 摘要沿用货量表单的三位精度，消除 double 汇总与差值的二进制尾数，仅用于展示。 */
+/** 主单历史动作与服务端 `writeAirMasterHistory` 写入值一一对应；未知值原样展示，便于发现契约漂移。 */
+const AIR_MASTER_HISTORY_ACTION_LABELS: Record<string, string> = {
+  CREATE_LINK: '建票关联',
+  END_LINK: '终止关联',
+  RESTORE_LINK: '恢复关联',
+  UPDATE: '修改共同资料',
+};
+
+export function formatAirMasterHistoryAction(action?: string): string {
+  if (!action) return '-';
+  return AIR_MASTER_HISTORY_ACTION_LABELS[action] ?? action;
+}
+
+/** 单位为空串、件数为 0 时 ProtoJSON 会省略字段：缺单位只显示件数，缺件数按 0。 */
+export function formatPackagesByUnit(items?: API.AirPackageTotal[]): string {
+  return (
+    items
+      ?.map(
+        (item) => `${item.packages ?? 0}${item.unit ? ` ${item.unit}` : ''}`,
+      )
+      .join(' / ') || '-'
+  );
+}
+
 function formatCargoSummary(value?: number): string {
   return value === undefined ? '-' : trimDecimal(Number(value.toFixed(3)));
 }
@@ -448,10 +472,7 @@ function AirMasterContent({
                 {
                   key: 'packages',
                   label: '成员订单申报件数合计',
-                  children:
-                    totals.packagesByUnit
-                      ?.map((item) => `${item.packages} ${item.unit}`)
-                      .join(' / ') || '-',
+                  children: formatPackagesByUnit(totals.packagesByUnit),
                 },
                 {
                   key: 'gross',
@@ -622,7 +643,11 @@ function AirMasterContent({
             params={{ version: master?.version }}
             columns={[
               { title: '版本', dataIndex: 'version', width: 70 },
-              { title: '操作', dataIndex: 'action' },
+              {
+                title: '操作',
+                dataIndex: 'action',
+                render: (_, item) => formatAirMasterHistoryAction(item.action),
+              },
               { title: '原因', dataIndex: 'reason', ellipsis: true },
               {
                 title: '时间',

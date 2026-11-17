@@ -77,7 +77,7 @@ describe('报表导出迟到响应', () => {
       pageSize: 1,
     });
     fireEvent.click(screen.getByRole('button', { name: /导出全部筛选结果/ }));
-    fireEvent.change(screen.getByLabelText('订单或客户'), {
+    fireEvent.change(screen.getByLabelText('综合搜索'), {
       target: { value: '新客户' },
     });
     fireEvent.click(screen.getByRole('button', { name: /查 询|查询/ }));

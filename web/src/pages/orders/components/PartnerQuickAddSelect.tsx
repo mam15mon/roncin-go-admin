@@ -48,6 +48,11 @@ type PartnerQuickAddSelectProps = {
   /** 有效只读（无编辑动作权限或业务写入关闭）时隐藏快捷新增入口并禁用字段。 */
   disabled?: boolean;
   onPartnerChange?: (option: PartnerSelectOption | undefined) => void;
+  /**
+   * 当前值对应的候选项解析完成（含详情回显）时回调，只用于带出展示投影
+   * （如委托单位代码）；不代表用户改选，不得在此重置人员等业务字段。
+   */
+  onSelectedOptionResolved?: (option: PartnerSelectOption) => void;
 };
 
 /**
@@ -69,6 +74,7 @@ export default function PartnerQuickAddSelect({
   required = false,
   disabled = false,
   onPartnerChange,
+  onSelectedOptionResolved,
 }: PartnerQuickAddSelectProps) {
   const access = useAccess();
   const { initialState } = useInitialState();
@@ -147,6 +153,15 @@ export default function PartnerQuickAddSelect({
     () => new Map(options.map((option) => [option.value, option])),
     [options],
   );
+  const resolvedRef = useRef(onSelectedOptionResolved);
+  resolvedRef.current = onSelectedOptionResolved;
+  const selectedOption =
+    selectedValue === undefined || selectedValue === null
+      ? undefined
+      : availableOptions.get(selectedValue);
+  useEffect(() => {
+    if (selectedOption) resolvedRef.current?.(selectedOption);
+  }, [selectedOption]);
   const canQuickAdd = Boolean(access.canCreatePartners) && !disabled;
   // 客户快建展示提成责任岗位（业务/操作/客服）供录入开单带入默认值；
   // 提成归属以订单人员为唯一真相，三岗选填。其他角色保持仅录抬头。

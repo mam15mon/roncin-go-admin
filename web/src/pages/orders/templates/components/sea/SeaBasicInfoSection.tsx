@@ -564,6 +564,7 @@ export function SeaCustomerField({
         required
         disabled={readonly}
         onPartnerChange={handlePartnerChange}
+        onSelectedOptionResolved={(option) => setCustomerCode(option.code)}
       />
       {!selection.id &&
         restoredCustomerId &&
