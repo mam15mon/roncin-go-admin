@@ -14,6 +14,7 @@ import Decimal from 'decimal.js';
 import type { Dispatch, SetStateAction } from 'react';
 import { SectionCard, ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
+import { trimDecimal } from '@/utils/format';
 import type { ResultConfig } from '../../splitUtils';
 
 const { Text } = Typography;
@@ -66,8 +67,8 @@ export default function SplitAllocationSection({
       key: 'cargoSummary',
       render: (_, c) => (
         <span>
-          {c.packageCount ?? 0} 件 / {c.grossWeightKg ?? 0} KG /{' '}
-          {c.volumeCbm ?? 0} CBM
+          {c.packageCount ?? 0} 件 / {trimDecimal(c.grossWeightKg ?? 0)} KG /{' '}
+          {trimDecimal(c.volumeCbm ?? 0)} CBM
         </span>
       ),
     },
@@ -235,8 +236,9 @@ export default function SplitAllocationSection({
                   <Space>
                     <Text strong>{ci.cargoName || '货物项'}</Text>
                     <Text type="secondary">
-                      （基准总量：{baselinePkg} 件 / {ci.grossWeightKg} KG /{' '}
-                      {ci.volumeCbm} CBM）
+                      （基准总量：{baselinePkg} 件 /{' '}
+                      {trimDecimal(ci.grossWeightKg)} KG /{' '}
+                      {trimDecimal(ci.volumeCbm)} CBM）
                     </Text>
                   </Space>
                 }
@@ -248,8 +250,9 @@ export default function SplitAllocationSection({
                   ) : (
                     <Tag color="error">
                       差额: {baselinePkg - totalAllocPkg} 件 /{' '}
-                      {baselineWt.sub(totalAllocWt).toFixed(3)} KG /{' '}
-                      {baselineVol.sub(totalAllocVol).toFixed(6)} CBM
+                      {trimDecimal(baselineWt.sub(totalAllocWt).toFixed())} KG /{' '}
+                      {trimDecimal(baselineVol.sub(totalAllocVol).toFixed())}{' '}
+                      CBM
                     </Tag>
                   )
                 }
@@ -397,8 +400,9 @@ export default function SplitAllocationSection({
                           {sa.containerSpecName || '-'})
                         </Text>
                         <Text type="secondary">
-                          （分配基准：{baselinePkg} 件 / {sa.grossWeightKg} KG
-                          / {sa.volumeCbm} CBM）
+                          （分配基准：{baselinePkg} 件 /{' '}
+                          {trimDecimal(sa.grossWeightKg)} KG /{' '}
+                          {trimDecimal(sa.volumeCbm)} CBM）
                         </Text>
                       </Space>
                     }
@@ -410,8 +414,12 @@ export default function SplitAllocationSection({
                       ) : (
                         <Tag color="error">
                           差额: {baselinePkg - totalAllocPkg} 件 /{' '}
-                          {baselineWt.sub(totalAllocWt).toFixed(3)} KG /{' '}
-                          {baselineVol.sub(totalAllocVol).toFixed(6)} CBM
+                          {trimDecimal(baselineWt.sub(totalAllocWt).toFixed())}{' '}
+                          KG /{' '}
+                          {trimDecimal(
+                            baselineVol.sub(totalAllocVol).toFixed(),
+                          )}{' '}
+                          CBM
                         </Tag>
                       )
                     }

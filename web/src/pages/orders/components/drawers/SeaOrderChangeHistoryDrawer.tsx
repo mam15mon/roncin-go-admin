@@ -24,7 +24,7 @@ import {
   seaOrderChangeServiceListSeaOrderChangeEvents,
 } from '@/services/roncin/seaOrderChangeService';
 import { ensureListResponse, unwrapList } from '@/utils/api';
-import { formatDate } from '@/utils/format';
+import { formatDate, trimDecimal } from '@/utils/format';
 
 const { Text, Paragraph } = Typography;
 
@@ -63,8 +63,8 @@ function renderEventSummary(record: API.SeaOrderChangeEventSummary) {
               ) : (
                 result.orderNo
               )}{' '}
-              ({result.packageCount} 件 / {result.grossWeightKg} KG /{' '}
-              {result.volumeCbm} CBM)
+              ({result.packageCount} 件 / {trimDecimal(result.grossWeightKg)} KG
+              / {trimDecimal(result.volumeCbm)} CBM)
               {result.finalMasterNo ? ` · MBL ${result.finalMasterNo}` : ''}
             </Tag>
           ))}

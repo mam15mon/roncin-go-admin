@@ -5,6 +5,7 @@ import {
 import { Alert, Card, Col, Row, Spin, Tag, Typography } from 'antd';
 import Decimal from 'decimal.js';
 import { SectionCard } from '@/components/ui';
+import { trimDecimal } from '@/utils/format';
 
 const { Text } = Typography;
 
@@ -59,15 +60,21 @@ export default function SplitConservationSection({
         <Col span={8}>
           <Card size="small" title="原始基线总量" type="inner">
             <div>件数：{previewData?.baseline?.packageCount ?? '-'} 件</div>
-            <div>毛重：{previewData?.baseline?.grossWeightKg ?? '-'} KG</div>
-            <div>体积：{previewData?.baseline?.volumeCbm ?? '-'} CBM</div>
+            <div>
+              毛重：{trimDecimal(previewData?.baseline?.grossWeightKg)} KG
+            </div>
+            <div>体积：{trimDecimal(previewData?.baseline?.volumeCbm)} CBM</div>
           </Card>
         </Col>
         <Col span={8}>
           <Card size="small" title="各票分配累计" type="inner">
             <div>件数：{previewData?.allocated?.packageCount ?? '-'} 件</div>
-            <div>毛重：{previewData?.allocated?.grossWeightKg ?? '-'} KG</div>
-            <div>体积：{previewData?.allocated?.volumeCbm ?? '-'} CBM</div>
+            <div>
+              毛重：{trimDecimal(previewData?.allocated?.grossWeightKg)} KG
+            </div>
+            <div>
+              体积：{trimDecimal(previewData?.allocated?.volumeCbm)} CBM
+            </div>
           </Card>
         </Col>
         <Col span={8}>
@@ -108,7 +115,7 @@ export default function SplitConservationSection({
                 wtStatusText = `进行中 (待分配 ${remainingWeightValue} KG)`;
               } else {
                 wtColor = '#f5222d';
-                wtStatusText = `超出分配 (超出 ${remWt.abs().toFixed(3)} KG)`;
+                wtStatusText = `超出分配 (超出 ${trimDecimal(remWt.abs().toFixed())} KG)`;
               }
             }
 
@@ -128,7 +135,7 @@ export default function SplitConservationSection({
                 volStatusText = `进行中 (待分配 ${remainingVolumeValue} CBM)`;
               } else {
                 volColor = '#f5222d';
-                volStatusText = `超出分配 (超出 ${remVol.abs().toFixed(6)} CBM)`;
+                volStatusText = `超出分配 (超出 ${trimDecimal(remVol.abs().toFixed())} CBM)`;
               }
             }
 
@@ -160,7 +167,7 @@ export default function SplitConservationSection({
                 <div style={{ marginBottom: 4 }}>
                   毛重差额：
                   <Text strong style={{ color: wtColor }}>
-                    {previewData?.remaining?.grossWeightKg ?? '-'} KG
+                    {trimDecimal(previewData?.remaining?.grossWeightKg)} KG
                   </Text>
                   <Tag
                     color={
@@ -178,7 +185,7 @@ export default function SplitConservationSection({
                 <div>
                   体积差额：
                   <Text strong style={{ color: volColor }}>
-                    {previewData?.remaining?.volumeCbm ?? '-'} CBM
+                    {trimDecimal(previewData?.remaining?.volumeCbm)} CBM
                   </Text>
                   <Tag
                     color={
@@ -220,8 +227,9 @@ export default function SplitConservationSection({
                   title={`${pr.resultRole === 'ORIGINAL' ? '原票' : '新票'}: ${pr.clientResultKey}`}
                 >
                   <div>
-                    分配货物：{pr.packageCount} 件 / {pr.grossWeightKg} KG /{' '}
-                    {pr.volumeCbm} CBM
+                    分配货物：{pr.packageCount} 件 /{' '}
+                    {trimDecimal(pr.grossWeightKg)} KG /{' '}
+                    {trimDecimal(pr.volumeCbm)} CBM
                   </div>
                   <div>
                     分单号：{pr.houseNo || '无'} | 归属费用：{pr.feeCount} 笔

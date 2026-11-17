@@ -1,5 +1,6 @@
 import { Col, Row, Statistic } from 'antd';
 import { SectionCard } from '@/components/ui';
+import { trimDecimal } from '@/utils/format';
 
 interface SplitBaselineSectionProps {
   previewData: API.SeaOrderSplitPreviewData | null;
@@ -24,14 +25,14 @@ export default function SplitBaselineSection({
         <Col span={4}>
           <Statistic
             title="总毛重 (Gross Weight)"
-            value={previewData?.baseline?.grossWeightKg ?? '-'}
+            value={trimDecimal(previewData?.baseline?.grossWeightKg)}
             suffix="KG"
           />
         </Col>
         <Col span={4}>
           <Statistic
             title="总体积 (Volume)"
-            value={previewData?.baseline?.volumeCbm ?? '-'}
+            value={trimDecimal(previewData?.baseline?.volumeCbm)}
             suffix="CBM"
           />
         </Col>
