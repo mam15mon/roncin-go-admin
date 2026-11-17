@@ -114,8 +114,10 @@ func TestBusinessTagRetirementUpgradePostgres(t *testing.T) {
 	}
 	preserved := []string{"organizations", "users", "partners", "orders", "order_fees", "finance_bills", "finance_bill_lines", "audit_logs", "roles", "enterprise_resources", "enterprise_resource_partners", "enterprise_resource_addresses", "enterprise_resource_remarks", "enterprise_resource_images", "enterprise_resource_parties", "enterprise_resource_shipping_texts", "enterprise_resource_assignees", "enterprise_resource_address_types"}
 	before := tagRetirementSnapshots(t, data.sqlDB, preserved, true)
+	// 全行快照只断言标签退役时点，后续独立列变更不归为该迁移副作用。
+	dir := retirementMigrationDir(t, businessTagRetirementVersion)
 	for attempt := 0; attempt < 2; attempt++ {
-		err := migration.ApplyWithOptions(ctx, data.sqlDB, filepath.Join("..", "..", "migrations"), migration.Options{PostStep: func(conn *sql.Conn) error { _, err := SyncPermissionManifest(ctx, conn); return err }})
+		err := migration.ApplyWithOptions(ctx, data.sqlDB, dir, migration.Options{PostStep: func(conn *sql.Conn) error { _, err := SyncPermissionManifest(ctx, conn); return err }})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -138,6 +140,13 @@ func TestBusinessTagRetirementUpgradePostgres(t *testing.T) {
 			t.Fatalf("授权计数错误 count=%d err=%v", count, err)
 		}
 	}
+	// 历史快照验收后再升级完整链，单独验证退役结果在最新态继续成立。
+	if err := migration.ApplyWithOptions(ctx, data.sqlDB, filepath.Join("..", "..", "migrations"), migration.Options{
+		PostStep: func(conn *sql.Conn) error { _, err := SyncPermissionManifest(ctx, conn); return err },
+	}); err != nil {
+		t.Fatal(err)
+	}
+	assertBusinessTagsRetired(t, data)
 }
 
 func TestBusinessTagRetirementRejectsInvalidReferencesPostgres(t *testing.T) {

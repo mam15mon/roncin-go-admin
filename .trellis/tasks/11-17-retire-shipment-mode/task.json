@@ -15,7 +15,7 @@
   "branch": "codex/retire-shipment-mode",
   "base_branch": "main",
   "worktree_path": null,
-  "commit": null,
+  "commit": "34216cbd",
   "pr_url": null,
   "subtasks": [],
   "children": [],
@@ -27,6 +27,6 @@
     "web/src/pages/orders/list.tsx",
     "web/config/routes.ts"
   ],
-  "notes": "用户已批准最新范围并要求开始；2026-11-17进入实施，前后端子代理分别负责，主会话维护规范与集成验证。",
+  "notes": "已批准范围实现完成；默认前后端标准门禁通过，定向PG迁移/历史升级/生命周期/幂等均通过。扩展PG整包22项失败中本次相关2项已修复，余20项全部在4c05c13a基线复现，见research/baseline-failures.md。未执行真实HTTP脚本或浏览器验收，未改开发库。",
   "meta": {}
 }

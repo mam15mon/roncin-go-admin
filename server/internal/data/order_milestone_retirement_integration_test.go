@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"database/sql"
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -117,15 +118,11 @@ func TestOrderMilestoneRetirementUpgradePostgres(t *testing.T) {
 	for table, id := range preserved {
 		snapshots[table] = retirementRowSnapshot(t, data.sqlDB, table, id)
 	}
-	dir := filepath.Join("..", "..", "migrations")
+	// 全行快照只核对被测迁移时点，后续合法删列由对应迁移用例验证。
+	dir := retirementMigrationDir(t, orderMilestoneRetirementVersion)
 	apply := func() {
 		t.Helper()
-		if err := migration.ApplyWithOptions(ctx, data.sqlDB, dir, migration.Options{
-			PostStep: func(conn *sql.Conn) error {
-				_, err := SyncPermissionManifest(ctx, conn)
-				return err
-			},
-		}); err != nil {
+		if err := migration.Apply(ctx, data.sqlDB, dir); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -136,6 +133,25 @@ func TestOrderMilestoneRetirementUpgradePostgres(t *testing.T) {
 			t.Fatalf("里程碑退役改写了 %s 的非目标数据", table)
 		}
 	}
+	// 再执行相同正式迁移前缀，不得重放删表或改写保留行。
+	apply()
+	for table, id := range preserved {
+		if got := retirementRowSnapshot(t, data.sqlDB, table, id); got != snapshots[table] {
+			t.Fatalf("重复迁移改写了 %s", table)
+		}
+	}
+	var revisions int
+	if err := data.sqlDB.QueryRowContext(ctx, `SELECT count(*) FROM schema_migrations WHERE version=$1 AND length(checksum)=64`, orderMilestoneRetirementVersion).Scan(&revisions); err != nil || revisions != 1 {
+		t.Fatalf("迁移版本记录不正确: count=%d err=%v", revisions, err)
+	}
+	// 快照验收完成后再升级完整链，验证后续结构演进不恢复已退役资源。
+	if err := migration.ApplyWithOptions(ctx, data.sqlDB, filepath.Join("..", "..", "migrations"), migration.Options{
+		PostStep: func(conn *sql.Conn) error { _, err := SyncPermissionManifest(ctx, conn); return err },
+	}); err != nil {
+		t.Fatal(err)
+	}
+	assertMilestoneRetiredSchema(t, data)
+	// 当前权限同步读取最新组织投影，须在完整升级后核对授权清理与保留。
 	if count, err := client.Permission.Query().Where(permissionent.IDIn(retiredIDs...)).Count(ctx); err != nil || count != 0 {
 		t.Fatalf("退役权限未完全删除: count=%d err=%v", count, err)
 	}
@@ -146,17 +162,6 @@ func TestOrderMilestoneRetirementUpgradePostgres(t *testing.T) {
 		if exists, err := role.QueryPermissions().Where(permissionent.KeyEQ(key)).Exist(ctx); err != nil || !exists {
 			t.Fatalf("相邻权限 %s 未保留: exists=%v err=%v", key, exists, err)
 		}
-	}
-	// 再执行完整迁移与权限同步，不得重放删表或改写保留行。
-	apply()
-	for table, id := range preserved {
-		if got := retirementRowSnapshot(t, data.sqlDB, table, id); got != snapshots[table] {
-			t.Fatalf("重复迁移改写了 %s", table)
-		}
-	}
-	var revisions int
-	if err := data.sqlDB.QueryRowContext(ctx, `SELECT count(*) FROM schema_migrations WHERE version=$1 AND length(checksum)=64`, orderMilestoneRetirementVersion).Scan(&revisions); err != nil || revisions != 1 {
-		t.Fatalf("迁移版本记录不正确: count=%d err=%v", revisions, err)
 	}
 }
 
@@ -181,4 +186,34 @@ func assertMilestoneRetiredSchema(t *testing.T, data *Data) {
 	if err := data.sqlDB.QueryRowContext(context.Background(), `SELECT count(*) FROM pg_class WHERE relnamespace=current_schema()::regnamespace AND relname IN ('order_milestones','ordermilestone_updated_at','ordermilestone_order_id_type','ordermilestone_order_id_occurred_at')`).Scan(&count); err != nil || count != 0 {
 		t.Fatalf("退役表或索引仍存在: count=%d err=%v", count, err)
 	}
+}
+
+// retirementMigrationDir 保留截至被测版本的完整正式 SQL 前缀，避免把后续
+// 合法新增／删列混入历史迁移的全行快照断言；不改写任何迁移内容。
+func retirementMigrationDir(t *testing.T, throughVersion string) string {
+	t.Helper()
+	dir := t.TempDir()
+	files, err := filepath.Glob(filepath.Join("..", "..", "migrations", "*.sql"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	found := false
+	for _, file := range files {
+		name := filepath.Base(file)
+		if name > throughVersion+".sql" {
+			continue
+		}
+		body, err := os.ReadFile(file)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(dir, name), body, 0600); err != nil {
+			t.Fatal(err)
+		}
+		found = found || name == throughVersion+".sql"
+	}
+	if !found {
+		t.Fatalf("未找到被测正式迁移 %s", throughVersion)
+	}
+	return dir
 }
