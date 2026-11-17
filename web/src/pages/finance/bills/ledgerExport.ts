@@ -1,11 +1,10 @@
-import { FinanceBillStatus } from '@/enums.generated';
 import {
   billInvoiceProgressMeta,
   billSettlementProgressMeta,
-  billStatusMeta,
 } from '@/features/finance/bill-status';
 import { type CsvColumn, csvAmount, csvDecimal } from '@/utils/csv';
 import { formatDate } from '@/utils/format';
+import { getBillProgressStatus } from './components/billProgressStatus';
 
 export const billExportColumns: CsvColumn<API.FinanceBill>[] = [
   {
@@ -24,10 +23,7 @@ export const billExportColumns: CsvColumn<API.FinanceBill>[] = [
   },
   {
     header: '状态',
-    value: (row) =>
-      billStatusMeta[
-        row.status ?? FinanceBillStatus.FINANCE_BILL_STATUS_UNSPECIFIED
-      ]?.text ?? '',
+    value: (row) => getBillProgressStatus(row)?.text ?? '',
   },
   { header: '账单编号', value: (row) => row.billNo },
   { header: '所属公司', value: (row) => row.organizationName },

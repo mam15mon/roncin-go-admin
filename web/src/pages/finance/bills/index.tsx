@@ -20,11 +20,11 @@ import {
   useFilterSettings,
 } from '@/components/ui/filter-settings';
 import { useListQueryState } from '@/components/ui/list-query-state';
+import { FinanceBillStatus } from '@/enums.generated';
 import { BillCreationWorkbench } from '@/features/finance/bill-creation';
 import {
   billInvoiceProgressMeta,
   billSettlementProgressMeta,
-  billStatusMeta,
 } from '@/features/finance/bill-status';
 import {
   billLedgerSummaryConfig,
@@ -59,7 +59,6 @@ import { billExportColumns } from './ledgerExport';
 type BillSearchParams = {
   keyword?: string;
   direction?: string;
-  status?: number;
   settlementPartyId?: string;
   currency?: string;
   billDateRange?: [Dayjs, Dayjs];
@@ -71,11 +70,10 @@ type BillSearchParams = {
   completed?: string;
 };
 
-/** 筛选设置可选字段：默认全部可见，与改造前显示集合一致。 */
+/** 筛选设置可选字段：默认全部可见。 */
 const billFilterFields: FilterSettingsField[] = [
   { name: 'keyword', label: '综合搜索' },
   { name: 'direction', label: '账单属性' },
-  { name: 'status', label: '账单状态' },
   { name: 'billDateRange', label: '创建日期' },
   { name: 'dueDateRange', label: '到期日期' },
   { name: 'onlyUnsettled', label: '结清状态' },
@@ -195,17 +193,6 @@ export default function FinanceBillsPage() {
       ],
     },
     {
-      name: 'status',
-      label: '账单状态',
-      type: 'select',
-      placeholder: '全部状态',
-      // 选项直接派生自财务账单状态公开映射，与列表/详情展示保持单一真相。
-      options: Object.entries(billStatusMeta).map(([value, meta]) => ({
-        label: meta.text,
-        value: Number(value),
-      })),
-    },
-    {
       name: 'billDateRange',
       label: '创建日期',
       type: 'date-range',
@@ -222,7 +209,7 @@ export default function FinanceBillsPage() {
       label: '结清状态',
       type: 'select',
       placeholder: '全部',
-      options: [{ label: '仅看未结清（不含已取消）', value: 'true' }],
+      options: [{ label: '仅看未结清', value: 'true' }],
     },
     {
       name: 'onlyOverdue',
@@ -603,7 +590,8 @@ export default function FinanceBillsPage() {
               pageSize: params.pageSize,
               keyword: searchParams.keyword || undefined,
               direction: searchParams.direction || undefined,
-              status: searchParams.status,
+              // 日常列表只查询有效账单，分页、汇总与导出沿用同一范围。
+              status: FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED,
               settlementPartyId: searchParams.settlementPartyId || undefined,
               currency: searchParams.currency || undefined,
               billDateFrom,

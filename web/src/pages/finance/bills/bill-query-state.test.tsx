@@ -9,6 +9,7 @@ import {
   ListQueryStateProvider,
   useListQueryState,
 } from '@/components/ui/list-query-state';
+import { FinanceBillStatus } from '@/enums.generated';
 import { settlementServiceListBills } from '@/services/roncin/settlementService';
 import FinanceBillsPage from './index';
 
@@ -31,6 +32,7 @@ type LedgerProps = {
   request: (params: { current: number; pageSize: number }) => Promise<unknown>;
 };
 type FilterProps = {
+  items: { name: string }[];
   initialLabels: Record<string, string>;
   onSearch: (v: Record<string, unknown>) => void;
   onReset: () => void;
@@ -91,6 +93,7 @@ function Seed() {
     {
       search: {
         keyword: '账单条件',
+        status: FinanceBillStatus.FINANCE_BILL_STATUS_CANCELLED,
         settlementPartyId: 'party',
         billDateRange: [dayjs('2026-10-01'), dayjs('2026-10-12')],
         dueDateRange: [dayjs('2026-11-01'), dayjs('2026-11-12')],
@@ -109,7 +112,7 @@ beforeEach(() => {
   state.company = true;
 });
 describe('账单查询恢复消费', () => {
-  it('恢复已提交日期、候选名称和分页，旧公司筛选不能覆盖当前工作区，提交同步生效并回第一页，重置清查询', async () => {
+  it('恢复日期、候选和分页时仍只查询有效账单，提交与重置不改变有效范围和当前公司', async () => {
     const { rerender } = render(
       <ListQueryStateProvider enabled>
         <Seed />
@@ -125,6 +128,9 @@ describe('账单查询恢复消费', () => {
     expect(
       state.ledger?.columns.map((column) => column.dataIndex),
     ).not.toContain('tags');
+    expect(state.search?.items.map((field) => field.name)).not.toContain(
+      'status',
+    );
     expect(state.ledger?.topBar).toBeUndefined();
     expect(state.ledger?.batchActions).toBeUndefined();
     expect(state.ledger?.pagination).toMatchObject({
@@ -142,6 +148,7 @@ describe('账单查询恢复消费', () => {
         page: 3,
         pageSize: 20,
         keyword: '账单条件',
+        status: FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED,
         organizationId: 'workspace-org',
         billDateFrom: '2026-10-01',
         dueDateTo: '2026-11-12',
@@ -157,6 +164,7 @@ describe('账单查询恢复消费', () => {
     expect(settlementServiceListBills).toHaveBeenLastCalledWith(
       expect.objectContaining({
         keyword: '新的条件',
+        status: FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED,
         page: 1,
         organizationId: 'workspace-org',
       }),
@@ -173,6 +181,7 @@ describe('账单查询恢复消费', () => {
     expect(settlementServiceListBills).toHaveBeenLastCalledWith(
       expect.objectContaining({
         keyword: undefined,
+        status: FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED,
         organizationId: 'workspace-org',
       }),
       { skipErrorHandler: true },

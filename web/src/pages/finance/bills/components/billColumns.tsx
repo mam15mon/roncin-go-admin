@@ -6,15 +6,15 @@ import {
 import type { ProColumns } from '@ant-design/pro-components';
 import { Space, Tag } from 'antd';
 import dayjs from 'dayjs';
-import { makeValueEnum, statusTag } from '@/constants/statusMeta';
+import { statusTag } from '@/constants/statusMeta';
 import { FinanceBillStatus } from '@/enums.generated';
 import {
   billFeeLockFactLabels,
   billInvoiceProgressMeta,
   billSettlementProgressMeta,
-  billStatusMeta,
 } from '@/features/finance/bill-status';
 import { formatAmount, trimDecimal } from '@/utils/format';
+import { getBillProgressStatus } from './billProgressStatus';
 
 interface GetFinanceBillColumnsParams {
   access: {
@@ -71,14 +71,18 @@ export function getFinanceBillColumns({
     {
       title: '状态',
       dataIndex: 'status',
-      width: 85,
-      valueType: 'select',
-      valueEnum: makeValueEnum(billStatusMeta),
-      render: (_, row) =>
-        statusTag(
-          billStatusMeta,
-          row.status ?? FinanceBillStatus.FINANCE_BILL_STATUS_UNSPECIFIED,
-        ),
+      width: 100,
+      search: false,
+      render: (_, row) => {
+        const status = getBillProgressStatus(row);
+        return status ? (
+          <Tag color={status.color} style={{ margin: 0 }}>
+            {status.text}
+          </Tag>
+        ) : (
+          '-'
+        );
+      },
     },
     {
       title: '账单编号',
