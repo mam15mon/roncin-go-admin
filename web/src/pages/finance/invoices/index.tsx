@@ -495,9 +495,9 @@ export default function FinanceInvoicesPage() {
         InvoiceLedgerFilterParams,
         API.FinanceInvoiceSummary
       >
-        pageTitle="发票管理"
+        pageTitle="开票记录"
         pageSubTitle="进项与销项发票开具、收票核验与发票状态跟踪"
-        headerTitle="发票明细列表"
+        headerTitle="开票记录列表"
         actionRef={actionRef}
         exportColumns={invoiceExportColumns}
         columns={columns}

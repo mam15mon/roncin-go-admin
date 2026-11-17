@@ -233,9 +233,9 @@ export default function FinanceFeeLedgerPage() {
         API.FeeLedgerSummary
       >
         pagination={queryState.pagination}
-        pageTitle="费用明细台账"
+        pageTitle="费用明细"
         pageSubTitle="全维度多币种费用台账，支持按单据、财务进度、结算单位快速对账与生成账单"
-        headerTitle="费用明细台账"
+        headerTitle="费用明细列表"
         actionRef={actionRef}
         exportColumns={feeExportColumns}
         columns={baseColumns}

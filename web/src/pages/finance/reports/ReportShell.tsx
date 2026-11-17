@@ -59,6 +59,13 @@ type Props<T extends FinanceLedgerSummaryItem, S extends ReportEnvelope<T>> = {
 };
 
 // 标签栏宽 80px 只容 5 个汉字，关键字统一叫「综合搜索」（与财务列表一致），检索范围写在占位里。
+// 表格标题描述明细内容，不重复页面标题（利润报表与利润分析图共用 profit 明细）。
+const TABLE_TITLES: Record<ReportKind, string> = {
+  profit: '订单利润明细',
+  cashflow: '收付款流水明细',
+  aging: '账单账龄明细',
+};
+
 const KEYWORD_PLACEHOLDERS: Record<ReportKind, string> = {
   profit: '订单号或客户',
   cashflow: '流水号或参考号',
@@ -285,7 +292,7 @@ export default function ReportShell<
     <FinanceLedgerTemplate<T, Record<string, never>, Accepted<T, S>>
       pageTitle={title}
       pageSubTitle={`${org?.name ?? ''} · ${subtitle}`}
-      headerTitle={title}
+      headerTitle={TABLE_TITLES[kind]}
       columns={columns}
       exportColumns={exportColumns}
       actionRef={actionRef}

@@ -96,7 +96,7 @@ export default function SplitResultsSection({
               <Row gutter={16}>
                 <Col span={6}>
                   <div style={{ marginBottom: 4 }}>
-                    <Text type="secondary">母单配载策略：</Text>
+                    <Text type="secondary">母单配载策略</Text>
                   </div>
                   <Radio.Group
                     value={res.targetType}
@@ -135,7 +135,7 @@ export default function SplitResultsSection({
                 </Col>
                 <Col span={6}>
                   <div style={{ marginBottom: 4 }}>
-                    <Text type="secondary">内部单号：</Text>
+                    <Text type="secondary">内部单号</Text>
                   </div>
                   <Input
                     placeholder="内部单号（可留空）"
@@ -152,7 +152,7 @@ export default function SplitResultsSection({
                 </Col>
                 <Col span={6}>
                   <div style={{ marginBottom: 4 }}>
-                    <Text type="secondary">订舱 / 排载备注：</Text>
+                    <Text type="secondary">订舱 / 排载备注</Text>
                   </div>
                   <Input
                     placeholder="订舱备注"
@@ -169,7 +169,7 @@ export default function SplitResultsSection({
                 </Col>
                 <Col span={6}>
                   <div style={{ marginBottom: 4 }}>
-                    <Text type="secondary">配载 / 分配备注：</Text>
+                    <Text type="secondary">配载 / 分配备注</Text>
                   </div>
                   <Input
                     placeholder="配载备注"
@@ -189,7 +189,7 @@ export default function SplitResultsSection({
               <Row gutter={16} style={{ marginTop: 12 }}>
                 <Col span={24}>
                   <div style={{ marginBottom: 4 }}>
-                    <Text type="secondary">操作备注：</Text>
+                    <Text type="secondary">操作备注</Text>
                   </div>
                   <Input
                     placeholder="操作备注（可修改或清空）"
