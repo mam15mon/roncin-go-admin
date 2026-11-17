@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, App, Drawer, Form, Steps } from 'antd';
+import { Alert, App, Form, Modal, Steps } from 'antd';
 import React, {
   useCallback,
   useEffect,
@@ -10,7 +10,7 @@ import React, {
 import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
-import { DRAWER_SIZE } from '@/components/ui';
+import { MODAL_SIZE } from '@/components/ui';
 import { BillGroupingMode } from '@/enums.generated';
 import {
   settlementServiceCreateBillBatch,
@@ -711,14 +711,15 @@ export default function BillCreationWorkbench({
   );
 
   return (
-    <Drawer
+    <Modal
       title={mode === 'NETTING' ? '费用批量对冲建账' : '费用批量转账单'}
       open={open}
-      size={DRAWER_SIZE.XL}
+      width={MODAL_SIZE.XL}
       destroyOnHidden
       mask={{ closable: false }}
+      styles={{ body: { maxHeight: '70vh', overflowY: 'auto' } }}
       footer={footer}
-      onClose={onClose}
+      onCancel={onClose}
     >
       <Steps
         current={current}
@@ -818,6 +819,6 @@ export default function BillCreationWorkbench({
           directionText={directionText}
         />
       )}
-    </Drawer>
+    </Modal>
   );
 }

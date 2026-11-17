@@ -10,6 +10,12 @@ import {
   sleepInAct,
 } from './BillCreationWorkbench.fixtures';
 
+/** Modal 进场动画在 jsdom 中停在 opacity:0，toBeVisible 不可用；这里只判定 display:none 的叶子隐藏。 */
+function expectShown(element: HTMLElement, shown = true) {
+  const hidden = Boolean(element.closest('[style*="display: none"]'));
+  expect(hidden).toBe(!shown);
+}
+
 describe('批量建账配置阻断与定位', () => {
   beforeEach(resetWorkbenchMocks);
   it('任一叶子缺少结算账户时阻断整批创建并自动跳到该叶子', async () => {
@@ -93,10 +99,8 @@ describe('批量建账配置阻断与定位', () => {
       ).toBeInTheDocument(),
     );
     // 整批被阻断时自动跳到缺配置叶子，其他叶子不再置前展示。
-    await waitFor(() =>
-      expect(screen.getByDisplayValue('缺账户单位')).toBeVisible(),
-    );
-    expect(screen.getByDisplayValue('配置完整单位')).not.toBeVisible();
+    await waitFor(() => expectShown(screen.getByDisplayValue('缺账户单位')));
+    expectShown(screen.getByDisplayValue('配置完整单位'), false);
     expect(mocks.create).not.toHaveBeenCalled();
   });
 });

@@ -88,6 +88,12 @@ vi.mock('@/features/master-data/currencies', () => ({
 
 import BillCreationWorkbench from './BillCreationWorkbench';
 
+/** Modal 进场动画在 jsdom 中停在 opacity:0，toBeVisible 不可用；这里只判定 display:none 的叶子隐藏。 */
+function expectShown(element: HTMLElement, shown = true) {
+  const hidden = Boolean(element.closest('[style*="display: none"]'));
+  expect(hidden).toBe(!shown);
+}
+
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /** 防抖窗口断言仍用真实定时器；包进 act 让窗口期落地的预览/账户回调在 act 内更新状态。 */
@@ -275,7 +281,7 @@ describe('BillCreationWorkbench 规模压测与异常阻断', () => {
       .find((node) => !node.closest('.ant-tree'))
       ?.closest('.ant-card') as HTMLElement;
     await waitFor(() =>
-      expect(within(usdCard).getByDisplayValue('第十一单位')).toBeVisible(),
+      expectShown(within(usdCard).getByDisplayValue('第十一单位')),
     );
     fireEvent.change(within(usdCard).getByDisplayValue('第十一单位'), {
       target: { value: '抬头十一USD' },
@@ -283,20 +289,16 @@ describe('BillCreationWorkbench 规模压测与异常阻断', () => {
 
     // 切换到其他叶子再切回，groupKey 草稿不丢失（不按数组下标串状态）。
     fireEvent.click(screen.getByTitle('第一单位 · 200.00 CNY'));
-    await waitFor(() =>
-      expect(screen.getByDisplayValue('第一单位')).toBeVisible(),
-    );
-    expect(screen.getByDisplayValue('抬头十一USD')).not.toBeVisible();
+    await waitFor(() => expectShown(screen.getByDisplayValue('第一单位')));
+    expectShown(screen.getByDisplayValue('抬头十一USD'), false);
     fireEvent.click(screen.getByTitle('第十一单位 · 200.00 USD'));
-    await waitFor(() =>
-      expect(screen.getByDisplayValue('抬头十一USD')).toBeVisible(),
-    );
+    await waitFor(() => expectShown(screen.getByDisplayValue('抬头十一USD')));
 
     // 提交的 groups 数量与服务端预览叶子数一致。
     const createBtn = screen
       .getByText(/生成 17 张账单/)
       .closest('button') as HTMLButtonElement;
-    expect(createBtn).toBeVisible();
+    expectShown(createBtn);
     await waitFor(() => expect(createBtn).not.toHaveClass('ant-btn-loading'));
     fireEvent.click(createBtn);
     await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1));
