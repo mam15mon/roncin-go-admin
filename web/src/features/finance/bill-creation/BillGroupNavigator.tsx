@@ -1,7 +1,7 @@
 import { WarningOutlined } from '@ant-design/icons';
 import { Card, Flex, Tag, Tooltip, Tree, Typography } from 'antd';
 import type { DataNode } from 'antd/es/tree';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { formatAmount, trimDecimal } from '@/utils/format';
 
 const { Text } = Typography;
@@ -66,7 +66,9 @@ export default function BillGroupNavigator({
   invalidGroupKeys,
   onSelect,
 }: BillGroupNavigatorProps) {
-  const { treeData, expandedKeys } = useMemo(() => {
+  // 记录用户主动收起的节点；新出现的节点默认展开。
+  const [collapsedKeys, setCollapsedKeys] = useState<Set<React.Key>>(new Set());
+  const { treeData, allKeys } = useMemo(() => {
     const root: NavigatorBranch[] = [];
     const expanded = new Set<React.Key>();
     for (const group of groups) {
@@ -106,7 +108,7 @@ export default function BillGroupNavigator({
         isLeaf: true,
       });
     }
-    return { treeData: root, expandedKeys: [...expanded] };
+    return { treeData: root, allKeys: [...expanded] };
   }, [groups, invalidGroupKeys, splitByOrder, splitByTaxRate]);
 
   return (
@@ -128,7 +130,11 @@ export default function BillGroupNavigator({
     >
       <Tree
         blockNode
-        expandedKeys={expandedKeys}
+        expandedKeys={allKeys.filter((key) => !collapsedKeys.has(key))}
+        onExpand={(keys) => {
+          const open = new Set(keys);
+          setCollapsedKeys(new Set(allKeys.filter((key) => !open.has(key))));
+        }}
         selectedKeys={activeGroupKey ? [activeGroupKey] : []}
         treeData={treeData}
         onSelect={(keys, info) => {
