@@ -123,7 +123,7 @@ export default function FinanceCashflowsPage() {
   const queryState = useListQueryState<CashflowLedgerFilterParams>({
     tabKey: '/finance/cashflows',
     listId: 'finance:cashflows',
-    defaultPageSize: 40,
+    defaultPageSize: 20,
     defaultFilters: {},
     sanitizeRestored: (filters) =>
       omitHiddenFilterValues(
@@ -244,7 +244,7 @@ export default function FinanceCashflowsPage() {
       key: 'unverified-cashflows',
       title: '已确认流水未核销资金',
       value: formatBaseCurrencyAmounts('unverifiedBaseAmount'),
-      valueColor: '#52c41a',
+      valueColor: '#fa8c16',
     },
   ];
 
@@ -276,13 +276,6 @@ export default function FinanceCashflowsPage() {
 
   const columns: ProColumns<API.FinanceCashflow>[] = [
     {
-      title: '所属公司',
-      dataIndex: 'organizationName',
-      width: 150,
-      search: false,
-      renderText: (value) => value || '-',
-    },
-    {
       title: '序号',
       dataIndex: 'index',
       valueType: 'index',
@@ -306,6 +299,13 @@ export default function FinanceCashflowsPage() {
       ),
     },
     {
+    {
+      title: '所属公司',
+      dataIndex: 'organizationName',
+      width: 150,
+      search: false,
+      renderText: (value) => value || '-',
+    },
       title: '状态',
       dataIndex: 'status',
       width: 85,

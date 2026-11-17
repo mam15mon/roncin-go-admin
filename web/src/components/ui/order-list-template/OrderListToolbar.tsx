@@ -7,7 +7,7 @@ import {
   ReloadOutlined,
 } from '@ant-design/icons';
 import { Button, Space, Switch, Tooltip, Typography } from 'antd';
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import type { OrderListItem } from './types';
 
 const { Text } = Typography;
@@ -27,6 +27,8 @@ export interface OrderListToolbarProps {
   readonly?: boolean;
   autoRefresh?: boolean;
   onAutoRefreshChange?: (enabled: boolean) => void;
+  /** 列设置等表格工具入口，与筛选、导出同处右侧，避免表格再起一行工具栏。 */
+  extra?: ReactNode;
 }
 
 export function OrderListToolbar({
@@ -44,6 +46,7 @@ export function OrderListToolbar({
   readonly = false,
   autoRefresh = false,
   onAutoRefreshChange,
+  extra,
 }: OrderListToolbarProps) {
   const hasSelected = selectedRows.length > 0;
 
@@ -145,6 +148,7 @@ export function OrderListToolbar({
             导出完整筛选结果
           </Button>
         )}
+        {extra}
       </Space>
     </div>
   );

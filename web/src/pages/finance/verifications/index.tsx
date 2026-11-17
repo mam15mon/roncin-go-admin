@@ -74,7 +74,7 @@ export default function FinanceVerificationsPage() {
   const queryState = useListQueryState<VerificationLedgerFilterParams>({
     tabKey: '/finance/verifications',
     listId: 'finance:verifications',
-    defaultPageSize: 40,
+    defaultPageSize: 20,
     defaultFilters: {},
     sanitizeRestored: (filters) =>
       omitHiddenFilterValues(
@@ -184,18 +184,18 @@ export default function FinanceVerificationsPage() {
 
   const columns: ProColumns<API.FinanceVerification>[] = [
     {
-      title: '所属公司',
-      dataIndex: 'organizationName',
-      width: 150,
-      search: false,
-      renderText: (value) => value || '-',
-    },
-    {
       title: '序号',
       dataIndex: 'index',
       valueType: 'index',
       width: 55,
       fixed: 'left',
+    },
+    {
+      title: '所属公司',
+      dataIndex: 'organizationName',
+      width: 150,
+      search: false,
+      renderText: (value) => value || '-',
     },
     {
       title: '核销编号',

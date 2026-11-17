@@ -1,5 +1,5 @@
 import { PageContainer } from '@ant-design/pro-components';
-import { Alert, Space, Tabs, Tooltip, Typography } from 'antd';
+import { Alert, Tabs, Tooltip, Typography } from 'antd';
 import React, { useCallback, useMemo, useState } from 'react';
 import { useLocation } from 'react-router';
 import { history } from '@/router/history';
@@ -119,24 +119,10 @@ export const MultiTabCenterTemplate: React.FC<MultiTabCenterTemplateProps> = ({
 
   return (
     <PageContainer
+      // 页面标题与列表页同一口径：纯文字标题、无面包屑；蓝色竖标只用于分节卡片。
+      breadcrumbRender={false}
       header={{
-        title: title ? (
-          <Space size={8} align="center">
-            <span
-              style={{
-                width: 3,
-                height: 18,
-                borderRadius: 2,
-                backgroundColor: '#1677ff',
-                display: 'inline-block',
-                flexShrink: 0,
-              }}
-            />
-            <Text strong style={{ fontSize: 18, color: 'rgba(0, 0, 0, 0.88)' }}>
-              {title}
-            </Text>
-          </Space>
-        ) : undefined,
+        title: title || undefined,
         subTitle: subTitle ? (
           <Text type="secondary" style={{ fontSize: 13 }}>
             {subTitle}

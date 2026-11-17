@@ -107,7 +107,7 @@ export default function FinanceBillsPage() {
   }>({
     tabKey: '/finance/bills',
     listId: 'finance:bills',
-    defaultPageSize: 40,
+    defaultPageSize: 20,
     defaultFilters: { search: {} },
     // 页签恢复时剔除已隐藏筛选项的值，避免隐藏条件继续生效。
     sanitizeRestored: (filters) => ({

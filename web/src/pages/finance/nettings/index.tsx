@@ -99,7 +99,7 @@ export default function FinanceNettingsPage() {
   const queryState = useListQueryState<NettingLedgerFilterParams>({
     tabKey: '/finance/nettings',
     listId: 'finance:nettings',
-    defaultPageSize: 40,
+    defaultPageSize: 20,
     defaultFilters: {},
     sanitizeRestored: (filters) =>
       omitHiddenFilterValues(
@@ -206,7 +206,7 @@ export default function FinanceNettingsPage() {
       key: 'confirmed-base-amount',
       title: '已确认抵销本币金额',
       value: formatNettingBaseAmounts(),
-      valueColor: '#52c41a',
+      valueColor: '#1677ff',
     },
   ];
 
@@ -238,13 +238,6 @@ export default function FinanceNettingsPage() {
 
   const columns: ProColumns<API.FinanceNetting>[] = [
     {
-      title: '所属公司',
-      dataIndex: 'organizationName',
-      width: 150,
-      search: false,
-      renderText: (value) => value || '-',
-    },
-    {
       title: '关键词',
       dataIndex: 'keyword',
       hideInTable: true,
@@ -258,6 +251,13 @@ export default function FinanceNettingsPage() {
       valueType: 'index',
       width: 55,
       fixed: 'left',
+    },
+    {
+      title: '所属公司',
+      dataIndex: 'organizationName',
+      width: 150,
+      search: false,
+      renderText: (value) => value || '-',
     },
     {
       title: '对冲单号',

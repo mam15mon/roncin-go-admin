@@ -541,12 +541,11 @@ export function OrderListTemplate({
         renderText: (val) => formatDate(val, 'minute'),
       },
 
-      // 13. 右侧固定状态与异常
+      // 13. 状态与异常（窄屏让出横向空间：状态随表格滚动，只固定异常与操作列）
       {
         title: progressColumnTitle,
         dataIndex: 'statusName',
         width: 100,
-        fixed: 'right',
         render: (_, record) => {
           const name = record.statusName || record.status || '待处理';
           return <Tag color="blue">{name}</Tag>;
@@ -758,6 +757,7 @@ export function OrderListTemplate({
           filterVisible={filterVisible}
           onToggleFilter={() => setFilterVisible((prev) => !prev)}
           readonly={readonly}
+          extra={columnSettings.entry}
         />
 
         <ResponsiveProTable<OrderListItem>
@@ -765,12 +765,9 @@ export function OrderListTemplate({
           rowKey="id"
           columns={columnSettings.columns}
           search={false}
-          toolBarRender={() => [columnSettings.entry]}
-          options={{
-            reload: true,
-            density: true,
-            setting: false,
-          }}
+          // 工具入口并入上方操作栏：刷新用操作栏按钮，列设置用 extra，不再单起一行。
+          toolBarRender={false}
+          options={false}
           onLoadingChange={(loading) => {
             busyRef.current = Boolean(loading);
           }}

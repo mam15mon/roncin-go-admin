@@ -127,13 +127,16 @@ export function getAirCommercialFields(props: TemplateProps) {
         </Form.Item>
       </FormCell>
     ),
+    // 与海运同宽，货值、保费、工厂恰好排满六列。
     factory: (
-      <ProFormText
-        name="factoryName"
-        label="工厂"
-        fieldProps={{ maxLength: 200 }}
-        disabled={props.readonly}
-      />
+      <FormCell span={2}>
+        <ProFormText
+          name="factoryName"
+          label="工厂"
+          fieldProps={{ maxLength: 200 }}
+          disabled={props.readonly}
+        />
+      </FormCell>
     ),
   };
 }

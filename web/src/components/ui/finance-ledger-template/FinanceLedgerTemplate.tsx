@@ -250,7 +250,7 @@ export function FinanceLedgerTemplate<
             pagination === false
               ? false
               : {
-                  defaultPageSize: 40,
+                  defaultPageSize: 20,
                   showSizeChanger: paginationSizeChanger,
                   ...pagination,
                 }

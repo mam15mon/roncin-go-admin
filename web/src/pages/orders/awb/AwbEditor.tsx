@@ -379,7 +379,7 @@ export default function AwbEditor({
         onBack={() => history.push(listPath)}
         breadcrumbs={[{ label: definition.navigationTitle, href: listPath }]}
         tags={<Tag color="blue">{target}</Tag>}
-        actions={
+        extra={
           <Button
             icon={<ReloadOutlined />}
             onClick={requestRefresh}

@@ -505,7 +505,7 @@ export default function FinanceCommissionsPage() {
     {
       title: '提成员工',
       dataIndex: 'employeeName',
-      width: 120,
+      width: 160,
       search: false,
     },
     {
@@ -678,6 +678,7 @@ export default function FinanceCommissionsPage() {
 
   return (
     <PageContainer
+      breadcrumbRender={false}
       title="提成管理"
       subTitle="业务人员业绩提成核算、规则配置与发放台账"
       extra={[
@@ -769,44 +770,12 @@ export default function FinanceCommissionsPage() {
               actionRef.current?.reload();
             }}
             extraRight={
-              <Space size={8} wrap style={{ maxWidth: '100%' }}>
-                <FilterSettingsEntry
-                  fields={commissionFilterFields}
-                  visibleNames={filterSettings.visibleNames}
-                  onChange={filterSettings.setVisible}
-                  onReset={filterSettings.reset}
-                />
-                {hasCompanyScope && access.canExportFinanceCommissions && (
-                  <Button
-                    key="export"
-                    icon={<DownloadOutlined />}
-                    loading={exporting}
-                    onClick={exportCommissions}
-                  >
-                    导出提成
-                  </Button>
-                )}
-                {hasCompanyScope && access.canManageFinanceCommissions && (
-                  <Button
-                    key="create"
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={() => setCreateModalOpen(true)}
-                  >
-                    生成提成
-                  </Button>
-                )}
-                <Button
-                  key="rules"
-                  icon={<SettingOutlined />}
-                  disabled={!hasCompanyScope}
-                  onClick={() => setRulesDrawerOpen(true)}
-                >
-                  {access.canConfigureFinanceCommissions
-                    ? '考核规则'
-                    : '查看规则'}
-                </Button>
-              </Space>
+              <FilterSettingsEntry
+                fields={commissionFilterFields}
+                visibleNames={filterSettings.visibleNames}
+                onChange={filterSettings.setVisible}
+                onReset={filterSettings.reset}
+              />
             }
           />
           <ProTable<API.FinanceCommission>
@@ -822,7 +791,40 @@ export default function FinanceCommissionsPage() {
             }}
             size="small"
             search={false}
-            toolBarRender={() => [columnSettings.entry]}
+            // 主操作与其他财务页一致放在表格卡右上，筛选卡只保留筛选相关入口。
+            toolBarRender={() => [
+              hasCompanyScope && access.canManageFinanceCommissions ? (
+                <Button
+                  key="create"
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={() => setCreateModalOpen(true)}
+                >
+                  生成提成
+                </Button>
+              ) : null,
+              hasCompanyScope && access.canExportFinanceCommissions ? (
+                <Button
+                  key="export"
+                  icon={<DownloadOutlined />}
+                  loading={exporting}
+                  onClick={exportCommissions}
+                >
+                  导出提成
+                </Button>
+              ) : null,
+              <Button
+                key="rules"
+                icon={<SettingOutlined />}
+                disabled={!hasCompanyScope}
+                onClick={() => setRulesDrawerOpen(true)}
+              >
+                {access.canConfigureFinanceCommissions
+                  ? '考核规则'
+                  : '查看规则'}
+              </Button>,
+              columnSettings.entry,
+            ]}
             options={{ reload: true, density: true, setting: false }}
             request={async (params) => {
               if (!hasCompanyScope || !access.canReadFinanceCommissions)

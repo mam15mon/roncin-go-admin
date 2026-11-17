@@ -30,6 +30,9 @@ export function useRouteLeaveGuard(
   const confirmationRef = useRef<ReturnType<typeof modal.confirm> | undefined>(
     undefined,
   );
+  const abandonedRef = useRef(false);
+  const scopeRef = useRef(draftScope);
+  scopeRef.current = draftScope;
 
   useEffect(() => {
     if (blocker.state !== 'blocked' || confirmationRef.current) return;
@@ -41,6 +44,7 @@ export function useRouteLeaveGuard(
       centered: true,
       onOk: () => {
         confirmationRef.current = undefined;
+        abandonedRef.current = true;
         clearTabDrafts(tabKey, draftScope);
         blocker.proceed();
       },
@@ -50,6 +54,14 @@ export function useRouteLeaveGuard(
       },
     });
   }, [blocker, modal, tabKey, draftScope]);
+
+  // 路由过渡期间旧页面仍挂载，草稿快照可能在确认后再写入；卸载时以最终状态再清一次。
+  useEffect(
+    () => () => {
+      if (abandonedRef.current) clearTabDrafts(tabKey, scopeRef.current);
+    },
+    [tabKey],
+  );
 
   useEffect(() => () => confirmationRef.current?.destroy(), []);
 }

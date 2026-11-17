@@ -306,8 +306,8 @@ function AirMasterContent({
                 : ''}
           </Tag>
         }
-        actions={
-          <Space>
+        extra={
+          <Space wrap>
             <Button
               disabled={!query.isSuccess}
               onClick={() =>

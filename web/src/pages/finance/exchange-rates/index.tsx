@@ -14,6 +14,7 @@ export default function ExchangeRatesPage() {
   const organizationID = initialState?.currentUser?.currentOrganization?.id;
   return (
     <PageContainer
+      breadcrumbRender={false}
       header={{
         title: '汇率管理',
         subTitle: '周汇率 · 应收/应付双轨点差 · 中国银行一键同步',

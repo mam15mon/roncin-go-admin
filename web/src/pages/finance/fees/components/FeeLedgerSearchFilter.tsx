@@ -76,7 +76,6 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
       layout="grid"
       formLayout="horizontal"
       labelWidth={75}
-      colSpan={4}
       collapsible={true}
       defaultCollapsed={true}
       defaultVisibleCount={6}

@@ -126,7 +126,7 @@ export default function FinanceInvoicesPage() {
   const queryState = useListQueryState<InvoiceLedgerFilterParams>({
     tabKey: '/finance/invoices',
     listId: 'finance:invoices',
-    defaultPageSize: 40,
+    defaultPageSize: 20,
     defaultFilters: {},
     sanitizeRestored: (filters) =>
       omitHiddenFilterValues(
@@ -250,6 +250,13 @@ export default function FinanceInvoicesPage() {
   };
 
   const columns: ProColumns<API.FinanceInvoice>[] = [
+    {
+      title: '序号',
+      dataIndex: 'index',
+      valueType: 'index',
+      width: 55,
+      fixed: 'left',
+    },
     {
       title: '所属公司',
       dataIndex: 'organizationName',

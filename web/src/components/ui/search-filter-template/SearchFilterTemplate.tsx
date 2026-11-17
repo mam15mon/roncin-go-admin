@@ -114,7 +114,8 @@ export function SearchFilterTemplate<
   layout = 'grid',
   formLayout = 'horizontal',
   labelWidth = 80,
-  colSpan = 4,
+  // 1440 宽时 4/24 栅格扣除 80px 标签后输入框仅约 110px，占位与日期区间被截断；默认一行 4 项。
+  colSpan = 6,
   collapsible = true,
   defaultCollapsed = true,
   defaultVisibleCount = 5,
@@ -656,16 +657,15 @@ export function SearchFilterTemplate<
             span={actionSpan}
             style={{
               display: 'flex',
-              justifyContent:
-                actionSpan === 24 && extraRight ? 'space-between' : 'flex-end',
+              justifyContent: 'flex-end',
               alignItems: 'center',
               marginBottom: 10,
               minHeight: 32,
             }}
           >
-            {actionSpan === 24 && extraRight ? <div>{extraRight}</div> : null}
             <Space size={8}>
-              {actionSpan !== 24 && extraRight ? extraRight : null}
+              {/* 列设置等入口始终与查询/重置同组靠右，不在换行时单独停在左侧 */}
+              {extraRight}
               <Button
                 type="primary"
                 icon={<SearchOutlined />}

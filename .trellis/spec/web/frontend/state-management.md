@@ -336,7 +336,7 @@ getTabGuardMessage(tabKey: string, action?: 'leave' | 'close'): string;
 - 仍有效的路径为订单新建和独立 HBL 编辑；来源 query 是新建身份的一部分。`hasTabDraft` 不把退役的普通订单详情键算作 dirty，不读取或迁移其内容，不扫删其他用户/公司的数据。
 - 首次非 loading、非 readonly 且身份齐全时在 layout effect 恢复一次；后续锁态往返不覆盖内存编辑。新身份只恢复自己的草稿。
 - `applyValues` 合并用户主动带入、标脏；启用持久化的表单同步存完整快照，已修改后的程序回填/清空也入草稿。初始化及 `resetTo` 不生成脏草稿。
-- `resetTo(values)` 清当前草稿、重置旧 Form store、回填新值并清 dirty。保存成功才清草稿，失败保留；确认关闭只清当前身份、被关闭页签范围的有效草稿。
+- `resetTo(values)` 清当前草稿、重置旧 Form store、回填新值并清 dirty。保存成功才清草稿，失败保留；确认关闭页签或在路由离开确认中选择「放弃并离开」，都只清当前身份、该页签范围的有效草稿（`useRouteLeaveGuard` 传入 draftScope）。新建订单页必须挂路由离开守卫，建单成功跳转不拦截。
 - 显式清空序列化为 `null`，不得省略 `undefined` 而让默认值复活。日期按已知字段及 `*Date/*Cutoff/*At` 恢复 Dayjs，普通 ISO 文本不凭值猜测。
 
 #### 显式刷新与版本
