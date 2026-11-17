@@ -137,7 +137,10 @@ describe('SE 新建与详情五卡片合同', () => {
     expect(cargoSection).toHaveTextContent('委托毛重');
     expect(cargoSection).toHaveTextContent('委托体积');
     // 提单卡保留实际件重尺标题；委托摘要不重复注册编辑字段。
-    expect(screen.getByText('MBL 实际件重尺')).toBeVisible();
+    fireEvent.click(screen.getByRole('tab', { name: /主单 \(MBL\)/ }));
+    await waitFor(() =>
+      expect(screen.getByText('MBL 实际件重尺')).toBeVisible(),
+    );
     expect(screen.queryByText('委托 vs 实际件重尺对照')).toBeNull();
     expect(screen.queryByText('关联放货记录')).toBeNull();
     expect(screen.queryByText('暂无关联放货记录')).toBeNull();
@@ -182,8 +185,15 @@ describe('SE 提单卡 MBL/HBL 页签', () => {
       />,
     );
 
-    // 默认展示 MBL 正文，HBL 正文隐藏但页签存在（HBL 自身也有发货人字段，
-    // 以字段 id 断言正文归属）。
+    // HOUSE 默认展示 HBL 正文；先切到 MBL，再以字段 id 断言正文归属
+    // （HBL 自身也有发货人字段）。
+    expect(activeBillPane().querySelector('#seaHouseBill_note')).not.toBeNull();
+    fireEvent.click(screen.getByRole('tab', { name: /主单 \(MBL\)/ }));
+    await waitFor(() =>
+      expect(
+        activeBillPane().querySelector('#seaMasterBillContent_shipperText'),
+      ).not.toBeNull(),
+    );
     expect(
       activeBillPane().querySelector('#seaMasterBillContent_shipperText'),
     ).not.toBeNull();

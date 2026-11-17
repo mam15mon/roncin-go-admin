@@ -38,7 +38,7 @@ describe('航空只读正文布局', () => {
     expect(
       screen.getByRole('textbox', { name: '发货人名称与地址' }),
     ).toHaveAttribute('readonly');
-    fireEvent.click(screen.getByText('第二通知人 · 已填写'));
+    fireEvent.click(screen.getByText('第二通知人 (Second Notify Party) · 已填写'));
     expect(screen.getByRole('textbox', { name: '第二通知人' })).toHaveValue(
       '第二通知人内容',
     );

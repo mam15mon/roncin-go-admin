@@ -64,7 +64,7 @@ describe('航空只读主单注册与通知人', () => {
     expect(shipper).toHaveValue('只读发货人');
     expect(shipper).toHaveAttribute('readonly');
     expect(shipper).toHaveAttribute('rows', '4');
-    fireEvent.click(screen.getByText('第二通知人 · 已填写'));
+    fireEvent.click(screen.getByText('第二通知人 (Second Notify Party) · 已填写'));
     expect(screen.getByRole('textbox', { name: '第二通知人' })).toHaveValue(
       '只读第二通知人',
     );

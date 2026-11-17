@@ -101,6 +101,7 @@ it('退关只读入口可查看v1、v2和改单事件，写操作仍禁用', asy
     total: '1',
   });
   renderWithApp(<Harness />);
+  fireEvent.click(await screen.findByRole('tab', { name: /主单 \(MBL\)/ }));
   const main = await screen.findByRole('tabpanel', { name: /主单/ });
   const mainHistory = within(main).getByRole('button', { name: /版本与事件/ });
   expect(mainHistory).toBeEnabled();

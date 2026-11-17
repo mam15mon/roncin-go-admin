@@ -245,6 +245,8 @@ describe('SeaDocumentSectionComponent', () => {
       />,
     );
 
+    // HOUSE 默认打开分单，先切到主单核对 MBL 侧。
+    fireEvent.click(screen.getByRole('tab', { name: /主单 \(MBL\)/ }));
     let panel = within(screen.getByRole('tabpanel'));
     expect(panel.getByLabelText('委托件数及单位')).toHaveTextContent(/^0$/);
     expect(panel.getByLabelText('委托毛重（KG）')).toHaveTextContent(/^-$/);

@@ -1,5 +1,5 @@
 import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
-import { act, screen } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { HOUSE, SectionCards } from './sea-create-layout.fixtures';
 import { revealSeaFormErrors } from './sea-form-error-reveal';
@@ -39,6 +39,8 @@ describe('分单错误按实际位置揭示', () => {
         initialValues={{ seaDocumentStructure: HOUSE }}
       />,
     );
+    // HOUSE 默认打开分单；先切到主单，验证号码错误不抢占当前页签。
+    fireEvent.click(screen.getByRole('tab', { name: /主单 \(MBL\)/ }));
     await act(async () => {
       revealSeaFormErrors([
         { name: ['seaHouseBill', 'houseNo'], errors: ['分单号不能为空'] },
@@ -72,6 +74,8 @@ describe('分单错误按实际位置揭示', () => {
         initialValues={{ seaDocumentStructure: HOUSE }}
       />,
     );
+    // HOUSE 默认打开分单；先切到主单，验证号码错误不抢占当前页签。
+    fireEvent.click(screen.getByRole('tab', { name: /主单 \(MBL\)/ }));
     await act(async () => {
       revealSeaFormErrors([
         { name: ['seaHouseBill', 'houseNo'], errors: ['分单号不能为空'] },

@@ -63,7 +63,7 @@ describe('航空正文带入与真实订单未保存保护', () => {
       </ConfigProvider>,
     );
     expect(isTabDirty(tabKey)).toBe(false);
-    fireEvent.click(screen.getByText('第二通知人 · 已填写'));
+    fireEvent.click(screen.getByText('第二通知人 (Second Notify Party) · 已填写'));
     expect(screen.getByRole('textbox', { name: '第二通知人' })).toHaveValue(
       '原第二通知人',
     );

@@ -70,14 +70,14 @@ describe('航空订单就近单证', () => {
       screen.getByRole('textbox', { name: '发货人名称与地址' }),
       { target: { value: '本票未保存修改' } },
     );
-    fireEvent.click(screen.getByRole('tab', { name: '主运单 MAWB' }));
-    const master = screen.getByRole('tabpanel', { name: '主运单 MAWB' });
+    fireEvent.click(screen.getByRole('tab', { name: /^主运单 \(MAWB\)/ }));
+    const master = screen.getByRole('tabpanel', { name: /^主运单 \(MAWB\)/ });
     const readonlyShipper = within(master).getByRole('textbox', {
       name: '发货人名称与地址',
     });
     expect(readonlyShipper).toHaveValue('共享主单发货人');
     expect(readonlyShipper).toHaveAttribute('readonly');
-    fireEvent.click(screen.getByRole('tab', { name: '分运单 HAWB' }));
+    fireEvent.click(screen.getByRole('tab', { name: /^分运单 \(HAWB\)/ }));
     expect(
       screen.getByRole('textbox', { name: '发货人名称与地址' }),
     ).toHaveValue('本票未保存修改');
@@ -94,15 +94,15 @@ describe('航空订单就近单证', () => {
 
   it('隐藏分单的低频错误会同时切页签并展开，运输字段错误不切单证', async () => {
     setup();
-    fireEvent.click(screen.getByRole('tab', { name: '主运单 MAWB' }));
+    fireEvent.click(screen.getByRole('tab', { name: /^主运单 \(MAWB\)/ }));
     act(() => revealSeaFormErrors([{ name: ['airMaster', 'flightNo'] }]));
-    expect(screen.getByRole('tab', { name: '主运单 MAWB' })).toHaveAttribute(
+    expect(screen.getByRole('tab', { name: /^主运单 \(MAWB\)/ })).toHaveAttribute(
       'aria-selected',
       'true',
     );
     act(() => revealSeaFormErrors([{ name: ['airHouseContent', 'currency'] }]));
     await waitFor(() =>
-      expect(screen.getByRole('tab', { name: '分运单 HAWB' })).toHaveAttribute(
+      expect(screen.getByRole('tab', { name: /^分运单 \(HAWB\)/ })).toHaveAttribute(
         'aria-selected',
         'true',
       ),

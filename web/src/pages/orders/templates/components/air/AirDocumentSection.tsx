@@ -65,6 +65,26 @@ function MasterWaybillSnapshot({ master }: { master?: API.AirMasterWaybill }) {
   );
 }
 
+/** 单证页签标题带单号，与海运 MBL/HBL 页签同格式。 */
+function DocumentTabLabel({
+  title,
+  number,
+}: {
+  title: string;
+  number?: string;
+}) {
+  return (
+    <span>
+      {title}{' '}
+      {number ? (
+        <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+          ({number})
+        </Typography.Text>
+      ) : null}
+    </span>
+  );
+}
+
 /** 主分单在同一业务卡内切换；隐藏页签常驻注册以保留输入和校验。 */
 export function AirDocumentSection({ props }: { props: TemplateProps }) {
   const form = Form.useFormInstance();
@@ -83,6 +103,14 @@ export function AirDocumentSection({ props }: { props: TemplateProps }) {
   const direct =
     (props.isDetail ? air?.documentMode : watchedMode) === 'DIRECT';
   const [activeTab, setActiveTab] = useState('HAWB');
+  const watchedMasterNo = Form.useWatch(['airMaster', 'masterNo'], {
+    form,
+    preserve: true,
+  }) as string | undefined;
+  const watchedHouseNo = Form.useWatch('airHouseNo', {
+    form,
+    preserve: true,
+  }) as string | undefined;
   const master = props.isDetail ? air?.master : selectedMaster;
   const masterEditable = !props.isDetail && masterMode !== 'EXISTING';
 
@@ -116,13 +144,19 @@ export function AirDocumentSection({ props }: { props: TemplateProps }) {
       )}
       <Tabs
         style={{ width: '100%' }}
+        type="card"
         key={direct ? 'DIRECT' : 'HOUSE'}
         activeKey={direct ? 'MAWB' : activeTab}
         onChange={setActiveTab}
         items={[
           {
             key: 'MAWB',
-            label: '主运单 MAWB',
+            label: (
+              <DocumentTabLabel
+                title="主运单 (MAWB)"
+                number={master?.content?.masterNo || watchedMasterNo}
+              />
+            ),
             forceRender: true,
             children: (
               <Space
@@ -156,7 +190,12 @@ export function AirDocumentSection({ props }: { props: TemplateProps }) {
             ? [
                 {
                   key: 'HAWB',
-                  label: '分运单 HAWB',
+                  label: (
+                    <DocumentTabLabel
+                      title="分运单 (HAWB)"
+                      number={watchedHouseNo || air?.house?.houseNo || '未编号'}
+                    />
+                  ),
                   forceRender: true,
                   children: (
                     <Space

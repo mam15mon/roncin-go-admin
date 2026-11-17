@@ -148,7 +148,8 @@ export function SeaFinalDestinationField({
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
-                  lineHeight: '30px',
+                  fontSize: 13,
+                  lineHeight: 1.5715,
                   color: destination ? undefined : '#5b6b82',
                 }}
               >

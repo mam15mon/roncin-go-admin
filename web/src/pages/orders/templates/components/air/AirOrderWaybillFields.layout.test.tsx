@@ -17,11 +17,11 @@ describe('航空订单正文常用布局', () => {
       '5',
     );
     expect(screen.queryByRole('textbox', { name: '第二通知人' })).toBeNull();
-    fireEvent.click(screen.getByText('第二通知人 · 已填写'));
+    fireEvent.click(screen.getByText('第二通知人 (Second Notify Party) · 已填写'));
     fireEvent.change(screen.getByRole('textbox', { name: '第二通知人' }), {
       target: { value: '' },
     });
-    fireEvent.click(screen.getByText('通知人', { exact: true }));
+    fireEvent.click(screen.getByText('通知人 (Notify Party)', { exact: true }));
     expect(screen.getByRole('textbox', { name: '通知人' })).toHaveValue(
       '通知人A',
     );

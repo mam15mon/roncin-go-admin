@@ -83,7 +83,7 @@ describe('航空直单与主分单表单', () => {
       expect(readForm().getFieldValue('airDocumentMode')).toBe('DIRECT'),
     );
     await waitFor(() =>
-      expect(screen.queryByRole('tab', { name: '分运单 HAWB' })).toBeNull(),
+      expect(screen.queryByRole('tab', { name: /^分运单 \(HAWB\)/ })).toBeNull(),
     );
     expect(
       screen.queryByRole('textbox', { name: /本票分运单号（HAWB）/ }),

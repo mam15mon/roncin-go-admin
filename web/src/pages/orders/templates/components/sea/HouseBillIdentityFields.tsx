@@ -2,12 +2,14 @@ import { CheckCircleFilled, LoadingOutlined } from '@ant-design/icons';
 import { ProFormText } from '@ant-design/pro-components';
 import { Col, Form, Radio, Row, Typography, theme } from 'antd';
 import React, { useEffect } from 'react';
-import { ProFormSearchableSelect } from '@/components/ui';
 import {
   SeaHouseBillIssuerSource,
   SeaHouseBillStatus,
 } from '@/enums.generated';
-import { searchPartnerOptions } from '@/features/partners';
+import {
+  PartnerQuickCreateSelect,
+  searchPartnerOptions,
+} from '@/features/partners';
 import { TemplateControlGroup } from '../FieldGroup';
 import { seaMasterBillIdentity } from './sea-shared-voyage';
 import type { SeaHouseNumberCheck } from './useSeaMasterBillCandidate';
@@ -262,18 +264,26 @@ export function HouseBillIdentityFields({
           }
           return (
             <Col xs={24} md={8}>
-              <ProFormSearchableSelect
+              <Form.Item
                 name={[fieldKey, 'issuerPartnerId']}
                 label="签发合作方"
-                placeholder="请选择签发主体合作伙伴"
-                disabled={disabled || undefined}
                 rules={[{ required: true, message: '请选择签发主体合作伙伴' }]}
-                request={async ({ keyWords }) => searchPartnerOptions(keyWords)}
-                fieldProps={{ filterOption: false }}
-                formItemProps={{
-                  style: { marginBottom: 24 },
-                }}
-              />
+                style={{ marginBottom: 24 }}
+              >
+                <PartnerQuickCreateSelect
+                  sessionIdentity={`${fieldKey}:${form.getFieldValue('id') ?? 'new'}`}
+                  createLabel="快捷新增签发合作方"
+                  placeholder="请选择签发主体合作伙伴"
+                  disabled={disabled || undefined}
+                  request={(keyword, signal) =>
+                    searchPartnerOptions(
+                      keyword,
+                      {},
+                      { signal, skipErrorHandler: true },
+                    )
+                  }
+                />
+              </Form.Item>
             </Col>
           );
         }}

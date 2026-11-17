@@ -110,7 +110,14 @@ export function SeaDocumentSectionComponent({
   const { message } = App.useApp();
   const access = useAccess();
   const [modeForm] = Form.useForm<ModeChangeFormValues>();
-  const [activeTabKey, setActiveTabKey] = useState('mbl');
+  // 主分单模式默认打开本票分单（component-guidelines「订单单证页签」）；
+  // 初值按当前模式同步计算，避免先渲染错误页签再切换的闪动。
+  const [activeTabKey, setActiveTabKey] = useState(() =>
+    form.getFieldValue('seaDocumentStructure') ===
+    SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
+      ? 'hbl'
+      : 'mbl',
+  );
   // 已采纳的单证是编辑基线，后台查询只更新缓存，不覆盖正文。
   const [documentBaseline, setDocumentBaseline] = useState<{
     orderId: string;
@@ -337,9 +344,19 @@ export function SeaDocumentSectionComponent({
     orderId,
   ]);
 
+  // 只在模式真正变化时切换（首个 undefined 读取不触发），HOUSE → 分单，其余 → 主单。
+  const appliedStructureRef = useRef(
+    form.getFieldValue('seaDocumentStructure'),
+  );
   useEffect(() => {
-    if (docStructure !== SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE)
-      setActiveTabKey('mbl');
+    if (docStructure === undefined) return;
+    if (appliedStructureRef.current === docStructure) return;
+    appliedStructureRef.current = docStructure;
+    setActiveTabKey(
+      docStructure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
+        ? 'hbl'
+        : 'mbl',
+    );
   }, [docStructure]);
 
   // 提交校验失败前置链路：按首个错误字段把对应提单页签切到前台，

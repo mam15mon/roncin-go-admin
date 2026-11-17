@@ -1,6 +1,6 @@
 import { DownloadOutlined } from '@ant-design/icons';
 import { useQueryClient } from '@tanstack/react-query';
-import { App, Button, Form, Input, Segmented } from 'antd';
+import { App, Button, Form, Input, Segmented, Tag } from 'antd';
 import { type ReactNode, useEffect, useId, useRef, useState } from 'react';
 import { useInitialState } from '@/app/AppProvider';
 import { FormRow } from '@/components/ui';
@@ -40,6 +40,16 @@ const labels: Record<CommonField, string> = {
   marks: '唛头',
   goodsDescription: '运单品名',
 };
+// 与海运提单录入同口径的占位提示；空运单不可转让，收货人须具名，不提供 TO ORDER 快捷。
+const placeholders: Record<CommonField, string> = {
+  shipperText: '请输入发货人英文名称与详细地址',
+  consigneeText: '请输入收货人名称、详细地址与联系方式',
+  notifyPartyText: '请输入通知人名称与详细地址 (例如：SAME AS CONSIGNEE)',
+  secondNotifyPartyText: '请输入第二通知人名称与详细地址 (选填)',
+  agentText: '请输入代理名称、地址与联系方式',
+  marks: '请输入唛头信息 (例如：N/M)',
+  goodsDescription: '请输入运单打印品名与货物描述',
+};
 const headingStyle = {
   display: 'flex',
   alignItems: 'center',
@@ -58,6 +68,7 @@ export function AirOrderWaybillLayout({
   prefix,
   renderField,
   actions,
+  onSameAsConsignee,
 }: {
   content?: API.AirWaybillContent;
   prefix?: Path;
@@ -65,6 +76,8 @@ export function AirOrderWaybillLayout({
   actions?: Partial<
     Record<'shipperText' | 'agentText' | 'goodsDescription', ReactNode>
   >;
+  /** 可编辑时提供，把通知人填为 SAME AS CONSIGNEE。 */
+  onSameAsConsignee?: () => void;
 }) {
   const uniqueId = useId();
   const [notify, setNotify] = useState<
@@ -125,15 +138,29 @@ export function AirOrderWaybillLayout({
               disabled={false}
               onChange={(value) => setNotify(value as typeof notify)}
               options={[
-                { value: 'notifyPartyText', label: '通知人' },
+                { value: 'notifyPartyText', label: '通知人 (Notify Party)' },
                 {
                   value: 'secondNotifyPartyText',
                   label: content?.secondNotifyPartyText
-                    ? '第二通知人 · 已填写'
-                    : '第二通知人',
+                    ? '第二通知人 (Second Notify Party) · 已填写'
+                    : '第二通知人 (Second Notify Party)',
                 },
               ]}
             />
+            {onSameAsConsignee && notify === 'notifyPartyText' ? (
+              <Tag
+                style={{
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                  margin: 0,
+                  fontSize: 11,
+                  padding: '0 4px',
+                }}
+                onClick={onSameAsConsignee}
+              >
+                + SAME AS CONSIGNEE
+              </Tag>
+            ) : null}
           </div>
           <div hidden={notify !== 'notifyPartyText'}>
             {field('notifyPartyText')}
@@ -335,6 +362,15 @@ export function AirOrderWaybillFields({
     );
   return (
     <AirOrderWaybillLayout
+      onSameAsConsignee={
+        disabled
+          ? undefined
+          : () =>
+              form.setFieldValue(
+                [...prefix, 'notifyPartyText'],
+                'SAME AS CONSIGNEE',
+              )
+      }
       content={content}
       prefix={prefix}
       actions={{
@@ -362,6 +398,7 @@ export function AirOrderWaybillFields({
           <Input.TextArea
             id={id}
             aria-label={labels[field]}
+            placeholder={placeholders[field]}
             disabled={disabled}
             rows={rows}
             style={{ height: 'auto' }}
