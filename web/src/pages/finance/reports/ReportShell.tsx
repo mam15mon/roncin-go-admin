@@ -1,6 +1,6 @@
 import { DownloadOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { App, Button, Space, Typography } from 'antd';
 import dayjs from 'dayjs';
 import React, { useRef, useState } from 'react';
@@ -17,6 +17,7 @@ import {
 } from '@/components/ui';
 import type { FinanceLedgerSummaryItem } from '@/components/ui/finance-ledger-template';
 import { useListQueryState } from '@/components/ui/list-query-state';
+import { currencyOptionsQueryOptions } from '@/features/master-data/currencies';
 import { useAsyncGuard } from '@/hooks/useAsyncGuard';
 import {
   financeReportServiceListFinanceReportPartyOptions,
@@ -194,6 +195,7 @@ export default function ReportShell<
       return { value: item.id, label: item.name };
     });
   };
+  const currencyOptions = useQuery(currencyOptionsQueryOptions()).data ?? [];
   const items: SearchFilterFieldItem[] = fields.map((field) => {
     const base: SearchFilterFieldItem = {
       name: field.name,
@@ -214,6 +216,8 @@ export default function ReportShell<
           label,
         })),
       };
+    if (field.name === 'currency')
+      return { ...base, type: 'select', options: currencyOptions };
     if (field.name === 'direction')
       return {
         ...base,
@@ -257,11 +261,7 @@ export default function ReportShell<
     return {
       ...base,
       placeholder:
-        field.name === 'currency'
-          ? '例如 CNY、USD'
-          : field.name === 'keyword'
-            ? KEYWORD_PLACEHOLDERS[kind]
-            : undefined,
+        field.name === 'keyword' ? KEYWORD_PLACEHOLDERS[kind] : undefined,
     };
   });
   const exporting = useMutation({

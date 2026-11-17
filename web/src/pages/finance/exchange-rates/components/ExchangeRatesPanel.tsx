@@ -171,7 +171,7 @@ export function ExchangeRatesPanel() {
       dataIndex: 'effectiveFrom',
       width: 200,
       render: (_, record) =>
-        `${formatDate(record.effectiveFrom)} ~ ${formatDate(record.effectiveTo)}`,
+        `${formatDate(record.effectiveFrom, 'date')} ~ ${formatDate(record.effectiveTo, 'date')}`,
     },
     {
       title: '状态',

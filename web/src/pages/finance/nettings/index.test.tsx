@@ -1,3 +1,4 @@
+import { renderWithClient } from '@root/tests/queryClientTestUtils';
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -55,6 +56,12 @@ vi.mock('@/components/ui', async () => {
   };
 });
 
+vi.mock('@/features/master-data/currencies', () => ({
+  currencyOptionsQueryOptions: () => ({
+    queryKey: ['currencies', 'options-test'],
+    queryFn: async () => [{ label: 'CNY - 人民币', value: 'CNY' }],
+  }),
+}));
 vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceCancelNetting: serviceMocks.cancelNetting,
   settlementServiceConfirmNetting: serviceMocks.confirmNetting,
@@ -144,7 +151,7 @@ describe('对冲结算单管理页', () => {
   });
 
   it('渲染列表列并请求已确认抵销汇总', async () => {
-    render(<FinanceNettingsPage />);
+    renderWithClient(<FinanceNettingsPage />);
     await waitFor(() => expect(serviceMocks.listNettings).toHaveBeenCalled());
     const titles = templateProps.columns?.map((column) => column.title);
     expect(titles).toContain('关键词');
@@ -156,7 +163,7 @@ describe('对冲结算单管理页', () => {
   });
 
   it('已确认对冲提供反转入口，反转请求携带 expectedVersion 与原因', async () => {
-    const page = render(<FinanceNettingsPage />);
+    const page = renderWithClient(<FinanceNettingsPage />);
     await waitFor(() => expect(serviceMocks.listNettings).toHaveBeenCalled());
 
     const cell = renderOperationCell(confirmedNetting);
@@ -181,7 +188,7 @@ describe('对冲结算单管理页', () => {
   });
 
   it('草稿对冲提供确认入口且确认请求携带 expectedVersion', async () => {
-    const page = render(<FinanceNettingsPage />);
+    const page = renderWithClient(<FinanceNettingsPage />);
     await waitFor(() => expect(serviceMocks.listNettings).toHaveBeenCalled());
 
     const cell = renderOperationCell(draftNetting);
@@ -205,7 +212,7 @@ describe('对冲结算单管理页', () => {
   it('无确认权限时不渲染确认与反转入口', async () => {
     accessState.canConfirmFinanceNettings = false;
     accessState.canReverseFinanceNettings = false;
-    const page = render(<FinanceNettingsPage />);
+    const page = renderWithClient(<FinanceNettingsPage />);
     await waitFor(() => expect(serviceMocks.listNettings).toHaveBeenCalled());
 
     const cell = renderOperationCell(draftNetting);

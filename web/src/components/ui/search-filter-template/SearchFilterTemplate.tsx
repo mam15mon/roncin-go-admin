@@ -417,7 +417,7 @@ export function SearchFilterTemplate<
           <SearchableSelect
             allowClear={allowClear}
             options={options}
-            placeholder={placeholder as string}
+            placeholder={(placeholder as string | undefined) ?? '全部'}
             style={{ width: '100%' }}
             {...fieldProps}
             onChange={mergedOnChange}

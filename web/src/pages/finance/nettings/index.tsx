@@ -1,5 +1,6 @@
 import { CheckOutlined, RollbackOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import { useQuery } from '@tanstack/react-query';
 import {
   App,
   Descriptions,
@@ -34,6 +35,7 @@ import {
   nettingLedgerSummaryConfig,
   useLedgerSelectionScope,
 } from '@/features/finance/ledger-summary';
+import { currencyOptionsQueryOptions } from '@/features/master-data/currencies';
 import {
   settlementServiceCancelNetting,
   settlementServiceConfirmNetting,
@@ -208,6 +210,7 @@ export default function FinanceNettingsPage() {
     },
   ];
 
+  const currencyOptionsQuery = useQuery(currencyOptionsQueryOptions());
   const filterItems: SearchFilterFieldItem[] = [
     { name: 'keyword', label: '综合搜索', placeholder: '对冲单号／结算单位' },
     {
@@ -224,7 +227,13 @@ export default function FinanceNettingsPage() {
         label: nettingStatusText(value),
       })),
     },
-    { name: 'currency', label: '币种', placeholder: '请输入币种代码' },
+    // 币种筛选统一用下拉（component-guidelines「筛选控件」）。
+    {
+      name: 'currency',
+      label: '币种',
+      type: 'select',
+      options: currencyOptionsQuery.data ?? [],
+    },
   ];
 
   const columns: ProColumns<API.FinanceNetting>[] = [
