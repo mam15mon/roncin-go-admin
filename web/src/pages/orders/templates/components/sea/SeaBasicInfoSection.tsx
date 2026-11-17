@@ -664,17 +664,15 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
       </>
     ),
     shipmentOptions: (
-      <>
-        <FormCell span={2}>
-          <TemplateControlGroup title="托运类型">
-            <ProFormRadio.Group
-              name="shipmentType"
-              fieldProps={{ 'aria-label': '托运类型' }}
-              options={shipmentTypeOptions}
-            />
-          </TemplateControlGroup>
-        </FormCell>
-      </>
+      <FormCell span={2}>
+        <TemplateControlGroup title="托运类型">
+          <ProFormRadio.Group
+            name="shipmentType"
+            fieldProps={{ 'aria-label': '托运类型' }}
+            options={shipmentTypeOptions}
+          />
+        </TemplateControlGroup>
+      </FormCell>
     ),
     categories: (
       <div style={{ width: '100%' }}>
