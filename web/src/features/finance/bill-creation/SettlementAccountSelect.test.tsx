@@ -97,7 +97,9 @@ async function fillAndSave(dialog: ReturnType<typeof within>) {
   ]) {
     fireEvent.change(dialog.getByLabelText(label), { target: { value } });
   }
-  fireEvent.click(dialog.getByText('保存并选用'));
+  await act(async () => {
+    fireEvent.click(dialog.getByRole('button', { name: '保存并选用' }));
+  });
 }
 
 beforeEach(() => {
@@ -179,7 +181,9 @@ describe('建账结算账户快建', () => {
     expect(
       form.getFieldValue(['groups', 'g1', 'settlementAccountId']),
     ).toBeUndefined();
-    fireEvent.click(dialog.getByText('保存并选用'));
+    await act(async () => {
+      fireEvent.click(dialog.getByRole('button', { name: '保存并选用' }));
+    });
     await waitFor(() =>
       expect(form.getFieldValue(['groups', 'g1', 'settlementAccountId'])).toBe(
         'created-account',

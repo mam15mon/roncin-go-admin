@@ -14,7 +14,6 @@ import {
   pickSelectOption,
   renderTabs,
   resetBulkActionMocks,
-  triggerBulkAction,
   unbilledFeeA,
   unbilledFeeB,
 } from './OrderFeeTableTabs.bulkActions.fixtures';

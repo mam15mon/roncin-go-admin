@@ -13,8 +13,10 @@ import {
   Space,
 } from 'antd';
 import Decimal from 'decimal.js';
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useAccess } from '@/app/access';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
+import { QuickCreateSelectFooter } from '@/components/ui';
 import { FinanceBillStatus, PartnerRoleType } from '@/enums.generated';
 import { BillTermsCreditWarnings } from '@/features/finance/bill-creation';
 import {
@@ -22,6 +24,10 @@ import {
   isBillFieldProtected,
 } from '@/features/finance/bill-status';
 import { currencyOptionsQueryOptions } from '@/features/master-data/currencies';
+import {
+  SettlementAccountQuickCreateModal,
+  settlementAccountLabel,
+} from '@/features/partners/settlement-account';
 import { partnerServiceGetPartner } from '@/services/roncin/partnerService';
 import {
   settlementServiceListBillSettlementAccountUpdateCandidates,
@@ -51,6 +57,13 @@ export default function BillEditModal({
   onRefresh,
 }: BillEditModalProps) {
   const { modal } = App.useApp();
+  const access = useAccess();
+  const [quickAccountFor, setQuickAccountFor] = useState<string>();
+  const [accountSelectOpen, setAccountSelectOpen] = useState(false);
+  const [createdAccount, setCreatedAccount] = useState<{
+    identity: string;
+    account: API.FinanceSettlementAccountOption;
+  }>();
   const { markDirty, resetDirty } = useUnsavedChangesGuard({
     enabled: open,
     identity: editing?.id,
@@ -179,7 +192,42 @@ export default function BillEditModal({
       return unwrapList(ensureListResponse(response, '结算账户加载失败'));
     },
   });
-  const accountOptions = accountsQuery.data ?? [];
+  const accountIdentity = [
+    requestIdentity,
+    editing?.version,
+    editing?.organizationId,
+    editing?.settlementPartyId,
+    editing?.direction,
+    editing?.currency,
+  ].join(':');
+  const accountOptions =
+    createdAccount?.identity === accountIdentity
+      ? [
+          createdAccount.account,
+          ...(accountsQuery.data ?? []).filter(
+            (account) => account.id !== createdAccount.account.id,
+          ),
+        ]
+      : (accountsQuery.data ?? []);
+  const canQuickCreateAccount = Boolean(
+    open &&
+      !fieldsProtected &&
+      !changed &&
+      !submitting &&
+      !refresh.isPending &&
+      access.canUpdateFinanceBills &&
+      access.canCreatePartnerAccounts &&
+      access.canOperateOrganization(editing?.organizationId) &&
+      editing?.settlementPartyId &&
+      editing?.currency &&
+      (editing.direction === 'RECEIVABLE' || editing.direction === 'PAYABLE'),
+  );
+  useEffect(() => {
+    if (!canQuickCreateAccount) {
+      setQuickAccountFor(undefined);
+      setAccountSelectOpen(false);
+    }
+  }, [canQuickCreateAccount]);
   const accountsLoading = accountsQuery.isFetching;
   useEffect(() => {
     initializedAccount.current = undefined;
@@ -307,14 +355,50 @@ export default function BillEditModal({
             <Select
               allowClear
               disabled={fieldsProtected}
+              open={accountSelectOpen}
+              onOpenChange={setAccountSelectOpen}
               loading={accountsLoading}
               placeholder="请选择可用于该账单的启用账户"
+              popupRender={
+                canQuickCreateAccount
+                  ? (menu) => (
+                      <QuickCreateSelectFooter
+                        label="新增结算账户"
+                        onCreate={() => {
+                          setAccountSelectOpen(false);
+                          setQuickAccountFor(accountIdentity);
+                        }}
+                      >
+                        {menu}
+                      </QuickCreateSelectFooter>
+                    )
+                  : undefined
+              }
               options={accountOptions.map((account) => ({
                 value: account.id,
-                label: `${account.name || account.accountHolder || '未命名账户'}｜${account.bankName || '-'}${account.accountNo ? ` · ${account.accountNo}` : ''}｜${account.currency || '-'}`,
+                label: settlementAccountLabel(account),
               }))}
             />
           </Form.Item>
+          <SettlementAccountQuickCreateModal
+            open={canQuickCreateAccount && quickAccountFor === accountIdentity}
+            organizationId={editing?.organizationId || ''}
+            partnerId={editing?.settlementPartyId || ''}
+            partnerName={editing?.settlementPartyName}
+            currency={editing?.currency || ''}
+            direction={editing?.direction || ''}
+            sessionIdentity={accountIdentity}
+            disabled={!canQuickCreateAccount}
+            onCancel={() => setQuickAccountFor(undefined)}
+            onCreated={(account) => {
+              setCreatedAccount({ identity: accountIdentity, account });
+              form.setFieldValue('settlementAccountId', account.id);
+              dirtyRef.current = true;
+              markDirty();
+              setQuickAccountFor(undefined);
+              void accountsQuery.refetch();
+            }}
+          />
           <Card
             size="small"
             title="固定账单币种与汇率"

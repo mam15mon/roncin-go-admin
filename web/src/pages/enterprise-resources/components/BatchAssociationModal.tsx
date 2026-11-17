@@ -1,6 +1,7 @@
-import { Modal, Select } from 'antd';
+import { Modal } from 'antd';
 import type { Dispatch, SetStateAction } from 'react';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
+import { PartnerQuickCreateSelect } from '@/features/partners';
 
 type BatchAssociationModalProps = {
   open: boolean;
@@ -32,7 +33,11 @@ export default function BatchAssociationModal({
       onOk={onOk}
       onCancel={() => setOpen(false)}
     >
-      <Select
+      <PartnerQuickCreateSelect<string[]>
+        sessionIdentity={`batch-association:${mode}`}
+        active={open}
+        allowCreate={mode === 'link'}
+        createLabel="快捷新增关联企业"
         style={{ width: '100%' }}
         mode="multiple"
         showSearch={{

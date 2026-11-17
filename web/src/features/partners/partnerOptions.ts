@@ -4,7 +4,10 @@ import { ensureListResponse, unwrapList } from '@/utils/api';
 import type { RequestOptions } from '@/utils/requestClient';
 
 /** 往来单位候选项：在通用字段上补充散客契约标记。 */
-export type PartnerOption = SelectOption & { isCasual?: boolean };
+export type PartnerOption = SelectOption & {
+  isCasual?: boolean;
+  creditExceeded?: boolean;
+};
 
 type PartnerSearchOptions = {
   role?: number;

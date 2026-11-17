@@ -1,10 +1,12 @@
 import {
+  ProForm,
   ProFormDigit,
   ProFormSwitch,
   ProFormText,
 } from '@ant-design/pro-components';
-import React from 'react';
+import React, { useId } from 'react';
 import { ProFormSearchableSelect } from '@/components/ui';
+import { TaxableServiceQuickCreateSelect } from '@/features/finance/fee-catalog';
 
 const codePattern = /^[A-Z0-9_]{2,32}$/;
 const taxRatePattern =
@@ -12,6 +14,7 @@ const taxRatePattern =
 
 type Props = {
   editing: boolean;
+  sessionIdentity?: string;
   template?: boolean;
   billingUnits: API.BillingUnit[];
   taxableServices?: API.TaxableService[];
@@ -21,12 +24,14 @@ type Props = {
 
 export default function FeeSettingFields({
   editing,
+  sessionIdentity,
   template,
   billingUnits,
   taxableServices = [],
   currencies,
   abnormalCases,
 }: Props) {
+  const instanceIdentity = useId();
   return (
     <>
       <ProFormText
@@ -143,18 +148,17 @@ export default function FeeSettingFields({
           />
         </>
       ) : (
-        <ProFormSearchableSelect
+        <ProForm.Item
           colProps={{ span: 12 }}
           name="taxableServiceId"
           label="货物或应税劳务名称"
           rules={[{ required: true, message: '请选择货物或应税劳务名称' }]}
-          options={taxableServices.map((item) => ({
-            label: item.name,
-            value: item.id,
-            name: item.name,
-            code: item.goodsCode,
-          }))}
-        />
+        >
+          <TaxableServiceQuickCreateSelect
+            taxableServices={taxableServices}
+            sessionIdentity={`fee-setting:${sessionIdentity || instanceIdentity}`}
+          />
+        </ProForm.Item>
       )}
       <ProFormDigit
         colProps={{ span: 12 }}

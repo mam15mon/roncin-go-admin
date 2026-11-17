@@ -8,7 +8,11 @@ import EnterpriseResourcesPage from './index';
 const state = vi.hoisted(() => ({ create: vi.fn(), reload: vi.fn() }));
 
 vi.mock('@/app/access', () => ({
-  useAccess: () => ({ canCreateEnterpriseResources: true }),
+  useAccess: () => ({
+    canCreateEnterpriseResources: true,
+    canOperateOrganization: (organizationId?: string) =>
+      organizationId === 'company',
+  }),
 }));
 vi.mock('@/components/ui', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/components/ui')>()),

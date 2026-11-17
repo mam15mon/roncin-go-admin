@@ -69,6 +69,19 @@ vi.mock('@/features/finance/credit-control', () => ({
 vi.mock('@/features/master-data/currencies', () => ({
   getCurrencyOptions: vi.fn().mockResolvedValue([]),
 }));
+vi.mock('@/features/partners', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/features/partners')>()),
+  PartnerQuickCreateSelect: (props: {
+    request: (
+      keyword: string | undefined,
+      signal: AbortSignal,
+    ) => Promise<unknown>;
+  }) => {
+    state.partyRequest = ({ keyWords }) =>
+      props.request(keyWords, new AbortController().signal);
+    return null;
+  },
+}));
 vi.mock('@ant-design/pro-components', () => ({
   ModalForm: (p: {
     open: boolean;
@@ -175,6 +188,10 @@ describe('资金流水登记失败判定', () => {
         organizationId: 'workspace-org',
         purpose: 4,
         keyword: '客户',
+      }),
+      expect.objectContaining({
+        signal: expect.any(AbortSignal),
+        skipErrorHandler: true,
       }),
     );
   });

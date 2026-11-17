@@ -1,5 +1,5 @@
 import type { ActionType } from '@ant-design/pro-components';
-import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
+import { renderWithApp as render } from '@root/tests/renderWithApp';
 import {
   act,
   fireEvent,
@@ -10,6 +10,7 @@ import {
 import { App } from 'antd';
 import type React from 'react';
 import { expect, vi } from 'vitest';
+import { AuthOrganizationKind } from '@/enums.generated';
 import {
   orderFeeServiceBulkRemoveOrderFees,
   orderFeeServiceBulkUpdateOrderFees,
@@ -163,20 +164,32 @@ export async function renderTabs(
   props: React.ComponentProps<typeof OrderFeeTableTabs>,
   options?: RenderOptions,
 ) {
-  const result = render(
+  const { wrapper: Wrapper, ...renderOptions } = options ?? {};
+  const ui = () => (
     <App>
       <OrderFeeTableTabs {...props} />
-    </App>,
-    options,
+    </App>
   );
+  const result = render(Wrapper ? <Wrapper>{ui()}</Wrapper> : ui(), {
+    user: {
+      id: 'user-1',
+      username: 'operator',
+      currentOrganization: {
+        id: 'company-1',
+        name: '测试公司',
+        kind: AuthOrganizationKind.ORGANIZATION_KIND_COMPANY,
+      },
+      permissionCapabilities: [
+        { key: 'business.partner.create', dataScope: 'organization' },
+        { key: 'business.partner.read', dataScope: 'organization' },
+      ],
+    },
+    ...renderOptions,
+  });
   await waitFor(() => expect(listFees).toHaveBeenCalled());
   return {
     rerenderTabs: () =>
-      result.rerender(
-        <App>
-          <OrderFeeTableTabs {...props} />
-        </App>,
-      ),
+      result.rerender(Wrapper ? <Wrapper>{ui()}</Wrapper> : ui()),
   };
 }
 

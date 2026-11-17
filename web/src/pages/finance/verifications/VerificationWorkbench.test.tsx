@@ -189,7 +189,9 @@ vi.mock('antd', async () => {
     Card: ({ children, extra }: any) =>
       React.createElement(React.Fragment, null, extra, children),
     Col: passthrough,
-    ConfigProvider: passthrough,
+    ConfigProvider: Object.assign(passthrough, {
+      useConfig: () => ({ componentDisabled: false }),
+    }),
     DatePicker: (props: any) => React.createElement('input', props),
     Descriptions: passthrough,
     Empty: ({ description }: { description?: React.ReactNode }) =>

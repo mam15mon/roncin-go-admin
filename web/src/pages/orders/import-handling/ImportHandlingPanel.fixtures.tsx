@@ -34,13 +34,16 @@ vi.mock('@/services/roncin/orderService', () => ({
 vi.mock('@/services/roncin/orderAttachmentService', () => ({
   orderAttachmentServiceListAttachments: services.files,
 }));
-vi.mock('@/features/partners', () => ({
+vi.mock('@/features/partners', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/features/partners')>()),
   searchPartnerOptions: services.partners,
 }));
 vi.mock('@/app/access', () => ({
   useAccess: () => ({
     canOrder: () => services.allowed,
     canReadPartners: true,
+    canOperateOrganization: (organizationId?: string) =>
+      organizationId === 'company',
   }),
 }));
 vi.mock('@/components/ui', async (original) => ({

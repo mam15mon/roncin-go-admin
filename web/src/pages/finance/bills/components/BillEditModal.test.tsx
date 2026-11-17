@@ -18,6 +18,12 @@ import type { BillFormValues } from './billConstants';
 
 const mocks = vi.hoisted(() => ({ accounts: vi.fn() }));
 
+vi.mock('@/app/access', () => ({
+  useAccess: () => ({
+    canCreatePartnerAccounts: false,
+    canOperateOrganization: () => false,
+  }),
+}));
 vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceListBillSettlementAccountUpdateCandidates: mocks.accounts,
 }));

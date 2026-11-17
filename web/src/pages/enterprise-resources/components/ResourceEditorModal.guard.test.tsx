@@ -1,10 +1,5 @@
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from '@testing-library/react';
+import { renderWithApp } from '@root/tests/renderWithApp';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { App, Form, type UploadFile } from 'antd';
 import type { MessageInstance } from 'antd/es/message/interface';
 import { useState } from 'react';
@@ -60,7 +55,7 @@ describe('企业资源未保存输入保护', () => {
   );
 
   it('初始 Form 默认值不标脏，图片外部 state 的用户上传标脏，关闭清理', async () => {
-    const view = render(<Harness />);
+    const view = renderWithApp(<Harness />);
     expect(getAnyDirtyTabKey()).toBeUndefined();
     const fileInput = document.querySelector('input[type="file"]');
     if (!fileInput) throw new Error('缺少图片上传入口');
@@ -79,7 +74,7 @@ describe('企业资源未保存输入保护', () => {
   });
 
   it('实际名称输入标脏，卸载移除本表单守卫', () => {
-    const view = render(<Harness />);
+    const view = renderWithApp(<Harness />);
     fireEvent.change(screen.getByLabelText('简称/名称'), {
       target: { value: '待保存图片资料' },
     });

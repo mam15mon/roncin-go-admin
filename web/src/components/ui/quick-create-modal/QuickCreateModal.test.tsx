@@ -4,12 +4,49 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react';
 import { App, Form, Input } from 'antd';
 import { describe, expect, it, vi } from 'vitest';
 import { QuickCreateModal } from './QuickCreateModal';
 
 describe('QuickCreateModal', () => {
+  it('多层快捷创建的同名字段各自关联正确标签，不提交父表单', async () => {
+    const parentSubmit = vi.fn();
+    const childSubmit = vi.fn().mockResolvedValue(undefined);
+    render(
+      <App>
+        <Form onFinish={parentSubmit}>
+          <Form.Item name="billingUnitId" label="父级计费单位">
+            <Input />
+          </Form.Item>
+          <QuickCreateModal<{ billingUnitId: string }>
+            title="子级科目创建"
+            open
+            onCancel={vi.fn()}
+            onSubmit={childSubmit}
+          >
+            <Form.Item name="billingUnitId" label="默认计费单位">
+              <Input />
+            </Form.Item>
+          </QuickCreateModal>
+        </Form>
+      </App>,
+    );
+    const parentInput = screen.getByLabelText('父级计费单位');
+    const dialog = within(screen.getByRole('dialog'));
+    const childInput = dialog.getByLabelText('默认计费单位');
+    expect(parentInput.id).not.toBe(childInput.id);
+    fireEvent.change(parentInput, { target: { value: '原单位' } });
+    fireEvent.change(childInput, { target: { value: '新单位' } });
+    fireEvent.click(dialog.getByRole('button', { name: /保存并选用/ }));
+    await waitFor(() =>
+      expect(childSubmit).toHaveBeenCalledWith({ billingUnitId: '新单位' }),
+    );
+    expect(parentInput).toHaveValue('原单位');
+    expect(parentSubmit).not.toHaveBeenCalled();
+  });
+
   it('提交失败时显示错误并保留表单内容', async () => {
     const onSubmit = vi.fn().mockRejectedValue(new Error('创建往来单位失败'));
 

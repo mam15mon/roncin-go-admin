@@ -40,14 +40,18 @@ import {
 } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { defaultSelectFilterOption } from '@/components/ui/searchable-select/utils';
-import { FinanceOrganizationPurpose } from '@/enums.generated';
+import { FinanceOrganizationPurpose, PartnerRoleType } from '@/enums.generated';
 import { paymentMethodOptions } from '@/features/finance/cashflow-entry';
 import {
   disableCreditExceededOptions,
   useCreditLimitIntervention,
 } from '@/features/finance/credit-control';
+import { searchFinanceSettlementPartnerOptions } from '@/features/finance/settlement-party-options';
 import { currencyOptionsQueryOptions } from '@/features/master-data/currencies';
-import { PartnerSelectOptionTags } from '@/features/partners';
+import {
+  PartnerQuickCreateSelect,
+  PartnerSelectOptionTags,
+} from '@/features/partners';
 import {
   settlementServiceCreateVerification,
   settlementServiceListFinanceSettlementPartyOptions,
@@ -634,7 +638,34 @@ export default function VerificationWorkbench({
           </Col>
           <Col span={12}>
             <Typography.Text>结算单位</Typography.Text>
-            <Select
+            <PartnerQuickCreateSelect
+              sessionIdentity={`verification:${scope.direction}:${scope.currency}`}
+              active={open}
+              defaultRole={
+                scope.direction === 'PAYABLE'
+                  ? PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER
+                  : PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER
+              }
+              isOptionDisabled={(option) =>
+                creditInterventionActive && option.creditExceeded === true
+              }
+              resolveCreatedOption={async (partner, signal) => {
+                if (!organizationId || !canOperate) return undefined;
+                const options = await searchFinanceSettlementPartnerOptions(
+                  {
+                    purpose:
+                      FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_VERIFICATION_CREATE,
+                    organizationId,
+                    keyword: partner.legalName,
+                  },
+                  signal,
+                );
+                return disableCreditExceededOptions(
+                  options,
+                  creditInterventionActive,
+                ).find((option) => option.value === partner.id);
+              }}
+              onCreated={(option) => setSelectedPartyOption(option)}
               showSearch={{
                 filterOption: false,
                 onSearch: (keyword) => setPartnerKeyword(keyword),
@@ -662,12 +693,14 @@ export default function VerificationWorkbench({
                   />
                 </div>
               )}
-              onChange={(settlementPartyId) => {
+              onChange={(settlementPartyId, selected) => {
                 invalidateSubmitSession();
+                const option = Array.isArray(selected) ? selected[0] : selected;
                 setSelectedPartyOption(
-                  (partnerQuery.data ?? []).find(
-                    (option) => option.value === settlementPartyId,
-                  ),
+                  option ??
+                    (partnerQuery.data ?? []).find(
+                      (entry) => entry.value === settlementPartyId,
+                    ),
                 );
                 setScope((value) => ({ ...value, settlementPartyId }));
               }}

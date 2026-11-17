@@ -16,6 +16,7 @@ import type { RcFile } from 'antd/es/upload';
 import type { Dispatch, SetStateAction } from 'react';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { MODAL_SIZE } from '@/components/ui';
+import { PartnerQuickCreateSelect } from '@/features/partners';
 import { isRequestTimeoutError } from '@/requestErrorConfig';
 import { enterpriseResourceServicePrepareEnterpriseResourceImageUpload } from '@/services/roncin/enterpriseResourceService';
 import { LONG_REQUEST_TIMEOUT } from '@/utils/requestTimeout';
@@ -112,7 +113,11 @@ export default function ResourceEditorModal({
           </Form.Item>
         </Space>
         <Form.Item name="partnerIds" label="关联企业">
-          <Select
+          <PartnerQuickCreateSelect<string[]>
+            sessionIdentity={`resource:${active.type}:${editing?.id ?? 'new'}`}
+            active={open}
+            disabled={saving}
+            createLabel="快捷新增关联企业"
             mode="multiple"
             showSearch={{
               filterOption: false,

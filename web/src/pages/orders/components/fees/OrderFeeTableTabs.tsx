@@ -35,11 +35,11 @@ import {
   defaultSelectFilterOption,
   ResponsiveEditableProTable as EditableProTable,
   GuardedModalForm,
-  ProFormSearchableSelect,
   SectionCard,
   scrollToFirstTableError,
 } from '@/components/ui';
-import { OrderBusinessType } from '@/enums.generated';
+import { OrderBusinessType, PartnerRoleType } from '@/enums.generated';
+import { PartnerQuickCreateSelect } from '@/features/partners';
 import { describeRateMissing } from '@/requestErrorConfig';
 import { history } from '@/router/history';
 import {
@@ -2147,17 +2147,28 @@ export default function OrderFeeTableTabs({
           }
         }}
       >
-        <ProFormSearchableSelect
+        <Form.Item
           name="settlementPartyId"
           label="结算单位"
           rules={[{ required: true, message: '请选择结算单位' }]}
-          placeholder="请选择新的结算单位"
-          options={(settlementParties || []).map((p) => ({
-            label: p.name ?? '',
-            value: p.id ?? '',
-            code: p.code,
-          }))}
-        />
+        >
+          <PartnerQuickCreateSelect
+            sessionIdentity={`${orderId}:bulk-settlement:${bulkActionContext?.direction}`}
+            active={bulkActionContext?.type === 'settlementParty'}
+            disabled={feeWritesDisabled}
+            defaultRole={
+              bulkActionContext?.direction === RECEIVABLE
+                ? PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER
+                : PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER
+            }
+            placeholder="请选择新的结算单位"
+            options={(settlementParties || []).map((p) => ({
+              label: p.name ?? '',
+              value: p.id ?? '',
+              code: p.code,
+            }))}
+          />
+        </Form.Item>
       </GuardedModalForm>
 
       {/* 批量删除费用 */}

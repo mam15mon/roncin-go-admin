@@ -1,12 +1,12 @@
-import { PlusOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
-import { Button, Checkbox, ConfigProvider, Form, Input, Select } from 'antd';
+import { ConfigProvider, Form, Select } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
-import { QuickCreateModal } from '@/components/ui';
-import { PartnerAccountUsage } from '@/enums.generated';
-import { useAsyncGuard } from '@/hooks/useAsyncGuard';
-import { partnerServiceCreatePartnerAccount } from '@/services/roncin/partnerService';
+import { QuickCreateSelectFooter } from '@/components/ui';
+import {
+  SettlementAccountQuickCreateModal,
+  settlementAccountLabel,
+} from '@/features/partners/settlement-account';
 import { settlementServiceListBillSettlementAccountCandidates } from '@/services/roncin/settlementService';
 import { ensureListResponse, unwrapList } from '@/utils/api';
 
@@ -16,17 +16,6 @@ type Props = {
   sessionIdentity: string;
   onConfigurationChange: () => void;
 };
-
-type AccountFormValues = Pick<
-  API.PartnerAccountInput,
-  'name' | 'accountHolder' | 'bankName' | 'accountNo' | 'swiftCode'
-> & { isDefault?: boolean };
-
-function accountLabel(account: API.FinanceSettlementAccountOption) {
-  const name = account.name || account.accountHolder || '未命名账户';
-  const suffix = account.accountNo ? ` · ${account.accountNo}` : '';
-  return `${name}｜${account.bankName || '-'}${suffix}｜${account.currency || '-'}`;
-}
 
 /** 身份变化直接重建叶子，旧创建结果不能写入新组或新会话。 */
 export default function SettlementAccountSelect(props: Props) {
@@ -55,7 +44,6 @@ function AccountLeaf({
   const [selectOpen, setSelectOpen] = useState(false);
   const [revision, setRevision] = useState(0);
   const [created, setCreated] = useState<API.FinanceSettlementAccountOption>();
-  const createGuard = useAsyncGuard();
   const onConfigurationChangeRef = useRef(onConfigurationChange);
   onConfigurationChangeRef.current = onConfigurationChange;
   const groupKey = group.groupKey || '';
@@ -73,8 +61,6 @@ function AccountLeaf({
       currency &&
       validDirection,
   );
-  const canQuickCreateRef = useRef(canQuickCreate);
-  canQuickCreateRef.current = canQuickCreate;
   const accountField = ['groups', groupKey, 'settlementAccountId'];
   const candidates = useQuery({
     queryKey: [
@@ -110,10 +96,9 @@ function AccountLeaf({
 
   useEffect(() => {
     if (!canQuickCreate) {
-      createGuard.invalidate();
       setModalOpen(false);
     }
-  }, [canQuickCreate, createGuard]);
+  }, [canQuickCreate]);
 
   useEffect(() => {
     if (!candidates.isSuccess || !canOperate || componentDisabled) return;
@@ -161,138 +146,42 @@ function AccountLeaf({
           onOpenChange={setSelectOpen}
           options={options.map((account) => ({
             value: account.id,
-            label: accountLabel(account),
+            label: settlementAccountLabel(account),
           }))}
           popupRender={
             canQuickCreate
               ? (menu) => (
-                  <>
+                  <QuickCreateSelectFooter
+                    label="新增结算账户"
+                    onCreate={() => {
+                      setSelectOpen(false);
+                      setModalOpen(true);
+                    }}
+                  >
                     {menu}
-                    <Button
-                      type="text"
-                      block
-                      icon={<PlusOutlined />}
-                      onMouseDown={(event) => event.preventDefault()}
-                      onClick={() => {
-                        setSelectOpen(false);
-                        setModalOpen(true);
-                      }}
-                    >
-                      新增结算账户
-                    </Button>
-                  </>
+                  </QuickCreateSelectFooter>
                 )
               : undefined
           }
         />
       </Form.Item>
-      <QuickCreateModal<AccountFormValues, API.PartnerAccount>
-        key={canQuickCreate ? 'enabled' : 'disabled'}
-        title="新增结算账户"
+      <SettlementAccountQuickCreateModal
         open={modalOpen && canQuickCreate}
-        initialValues={{ isDefault: false }}
+        organizationId={organizationId}
+        partnerId={partnerId}
+        partnerName={group.settlementPartyName}
+        currency={currency}
+        direction={group.direction || ''}
+        sessionIdentity={identity}
         onCancel={() => setModalOpen(false)}
-        onSubmit={async (values) => {
-          if (!canQuickCreateRef.current) return undefined;
-          await createGuard.run(
-            ({ signal }) =>
-              partnerServiceCreatePartnerAccount(
-                { partnerId },
-                {
-                  partnerId,
-                  account: {
-                    name: values.name.trim(),
-                    accountHolder: values.accountHolder.trim(),
-                    currency,
-                    bankName: values.bankName.trim(),
-                    accountNo: values.accountNo.trim(),
-                    swiftCode: values.swiftCode?.trim() || undefined,
-                    usage: isReceivable
-                      ? PartnerAccountUsage.PARTNER_ACCOUNT_USAGE_RECEIVABLE
-                      : PartnerAccountUsage.PARTNER_ACCOUNT_USAGE_PAYABLE,
-                    isDefaultReceivable:
-                      isReceivable && Boolean(values.isDefault),
-                    isDefaultPayable:
-                      !isReceivable && Boolean(values.isDefault),
-                    enabled: true,
-                  },
-                },
-                { signal },
-              ),
-            (response) => {
-              if (
-                !canQuickCreateRef.current ||
-                !response ||
-                response.success === false
-              )
-                return;
-              const account = response.data;
-              if (!account?.id)
-                throw new Error('创建结果缺少账户 ID，请核对后重试');
-              setCreated({
-                id: account.id,
-                name: account.name || values.name.trim(),
-                accountHolder:
-                  account.accountHolder || values.accountHolder.trim(),
-                bankName: account.bankName || values.bankName.trim(),
-                accountNo: account.accountNo || values.accountNo.trim(),
-                currency,
-              });
-              form.setFieldValue(accountField, account.id);
-              setRevision((current) => current + 1);
-              onConfigurationChangeRef.current();
-              setModalOpen(false);
-            },
-          );
-          // 成功回填在同步 guard 内完成；失效结果不能触发弹窗的成功副作用。
-          return undefined;
+        onCreated={(account) => {
+          setCreated(account);
+          form.setFieldValue(accountField, account.id);
+          setRevision((current) => current + 1);
+          onConfigurationChangeRef.current();
+          setModalOpen(false);
         }}
-      >
-        <Form.Item label="结算对象">
-          <Input
-            aria-label="结算对象"
-            disabled
-            value={group.settlementPartyName || partnerId}
-          />
-        </Form.Item>
-        <Form.Item label="账户币种">
-          <Input aria-label="账户币种" disabled value={currency} />
-        </Form.Item>
-        <Form.Item label="允许用途">
-          <Input
-            aria-label="允许用途"
-            disabled
-            value={isReceivable ? '应收' : '应付'}
-          />
-        </Form.Item>
-        {(
-          [
-            ['name', '账户名称'],
-            ['accountHolder', '账户户名'],
-            ['bankName', '开户银行名称及支行'],
-            ['accountNo', '银行开户账号'],
-          ] as const
-        ).map(([name, label]) => (
-          <Form.Item
-            key={name}
-            name={name}
-            label={label}
-            rules={[
-              { required: true, whitespace: true, message: `请输入${label}` },
-            ]}
-          >
-            <Input />
-          </Form.Item>
-        ))}
-        <Form.Item name="swiftCode" label="SWIFT Code（外币国际结算）">
-          <Input />
-        </Form.Item>
-        <Form.Item name="isDefault" valuePropName="checked">
-          <Checkbox>
-            {isReceivable ? '设为应收默认账户' : '设为应付默认账户'}
-          </Checkbox>
-        </Form.Item>
-      </QuickCreateModal>
+      />
     </>
   );
 }

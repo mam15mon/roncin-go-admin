@@ -34,28 +34,29 @@ import { useListQueryState } from '@/components/ui/list-query-state';
 import {
   FinanceCashflowStatus,
   FinanceOrganizationPurpose,
+  PartnerRoleType,
 } from '@/enums.generated';
 import {
   getPaymentMethodLabel,
   paymentMethodOptions,
 } from '@/features/finance/cashflow-entry';
-import {
-  disableCreditExceededOptions,
-  useCreditLimitIntervention,
-} from '@/features/finance/credit-control';
+import { useCreditLimitIntervention } from '@/features/finance/credit-control';
 import {
   cashflowLedgerSummaryConfig,
   mapMatchedSummary,
   useLedgerSelectionScope,
 } from '@/features/finance/ledger-summary';
+import { searchFinanceSettlementPartnerOptions } from '@/features/finance/settlement-party-options';
 import { getCurrencyOptions } from '@/features/master-data/currencies';
-import { PartnerSelectOptionTags } from '@/features/partners';
+import {
+  PartnerQuickCreateSelect,
+  PartnerSelectOptionTags,
+} from '@/features/partners';
 import {
   settlementServiceCancelCashflow,
   settlementServiceConfirmCashflow,
   settlementServiceCreateCashflow,
   settlementServiceListCashflows,
-  settlementServiceListFinanceSettlementPartyOptions,
 } from '@/services/roncin/settlementService';
 import {
   ensureListResponse,
@@ -299,13 +300,13 @@ export default function FinanceCashflowsPage() {
       ),
     },
     {
-    {
       title: '所属公司',
       dataIndex: 'organizationName',
       width: 150,
       search: false,
       renderText: (value) => value || '-',
     },
+    {
       title: '状态',
       dataIndex: 'status',
       width: 85,
@@ -579,7 +580,7 @@ export default function FinanceCashflowsPage() {
         initialValues={{
           direction: 'RECEIVABLE',
           currency: 'CNY',
-          transactionDate: dayjs(),
+          transactionDate: dayjs().startOf('day'),
           paymentMethod: 'BANK_TRANSFER',
         }}
         onFinish={async (v) => {
@@ -630,74 +631,92 @@ export default function FinanceCashflowsPage() {
             { label: '付款（流出）', value: 'PAYABLE' },
           ]}
         />
-        <ProFormSearchableSelect
+        <Form.Item
           name="settlementPartyId"
           label="往来结算单位"
           rules={[{ required: true }]}
-          request={({ keyWords }) => {
-            if (
-              !organizationId ||
-              !hasCompanyScope ||
-              !access.canCreateFinanceCashflows
-            ) {
-              return Promise.resolve([]);
+        >
+          <PartnerQuickCreateSelect
+            sessionIdentity={`cashflow:${createSession.current}:${currentDirection ?? 'RECEIVABLE'}`}
+            active={open}
+            defaultRole={
+              currentDirection === 'PAYABLE'
+                ? PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER
+                : PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER
             }
-            return settlementServiceListFinanceSettlementPartyOptions({
-              purpose:
-                FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_CREATE,
-              organizationId,
-              keyword: keyWords,
-              page: 1,
-              pageSize: 50,
-            }).then((response) => {
-              const items = response.data ?? [];
-              setPartyCasualMap((prev) => {
-                const next = { ...prev };
-                for (const item of items) {
-                  if (item.id) {
-                    next[item.id] = Boolean(item.isCasual);
+            disabled={!hasCompanyScope || !access.canCreateFinanceCashflows}
+            isOptionDisabled={(option) =>
+              creditInterventionActive && option.creditExceeded === true
+            }
+            request={async (keyword, signal) => {
+              if (
+                !organizationId ||
+                !hasCompanyScope ||
+                !access.canCreateFinanceCashflows
+              )
+                return [];
+              const options = await searchFinanceSettlementPartnerOptions(
+                {
+                  purpose:
+                    FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_CREATE,
+                  organizationId,
+                  keyword,
+                },
+                signal,
+              );
+              if (signal.aborted) return [];
+              setPartyCasualMap((previous) => ({
+                ...previous,
+                ...Object.fromEntries(
+                  options.map((option) => [
+                    option.value,
+                    Boolean(option.isCasual),
+                  ]),
+                ),
+              }));
+              return options;
+            }}
+            resolveCreatedOption={async (partner, signal) => {
+              if (!organizationId || !hasCompanyScope) return undefined;
+              const options = await searchFinanceSettlementPartnerOptions(
+                {
+                  purpose:
+                    FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_CREATE,
+                  organizationId,
+                  keyword: partner.legalName,
+                },
+                signal,
+              );
+              return options.find((option) => option.value === partner.id);
+            }}
+            onCreated={(option) =>
+              setPartyCasualMap((previous) => ({
+                ...previous,
+                [option.value]: Boolean(option.isCasual),
+              }))
+            }
+            optionRender={(option) => (
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  width: '100%',
+                }}
+              >
+                <span>{option.label}</span>
+                <PartnerSelectOptionTags
+                  data={
+                    option.data as {
+                      isCasual?: boolean;
+                      creditExceeded?: boolean;
+                    }
                   }
-                }
-                return next;
-              });
-              return disableCreditExceededOptions(
-                items
-                  .filter((item) => item.id)
-                  .map((item) => ({
-                    value: item.id as string,
-                    label:
-                      item.name && item.code
-                        ? `${item.name} (${item.code})`
-                        : item.name || item.code || item.id || '',
-                    isCasual: item.isCasual,
-                    creditExceeded: Boolean(item.creditExceeded),
-                  })),
-                creditInterventionActive,
-              );
-            });
-          }}
-          fieldProps={{
-            filterOption: false,
-            optionRender: (option) => {
-              const item = option.data as
-                | { isCasual?: boolean; creditExceeded?: boolean }
-                | undefined;
-              return (
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    width: '100%',
-                  }}
-                >
-                  <span>{option.label}</span>
-                  <PartnerSelectOptionTags data={item} />
-                </div>
-              );
-            },
-          }}
-        />
+                />
+              </div>
+            )}
+          />
+        </Form.Item>
         <ProFormSearchableSelect
           name="currency"
           label="原币币种"

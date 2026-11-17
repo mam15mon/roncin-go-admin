@@ -39,6 +39,10 @@
 | 汇兑损益展示 | [`web/src/features/finance/exchange-gain-loss/index.ts`](../../../../web/src/features/finance/exchange-gain-loss/index.ts) | `ExchangeGainLossTag`（对冲汇差、核销已实现损益共用展示） | 损益口径与计算逻辑（留在调用方） |
 | 人员候选标签 | [`features/personnel`](../../../../web/src/features/personnel/index.ts) | 全站统一仅显示姓名，缺名显示未命名人员；订单创建人姓名取订单详情投影，不依赖可编辑候选 | 拼接公司/部门/团队后缀、登录账号、跨公司成员查询 |
 | 往来单位候选标签 | [`web/src/features/partners/index.ts`](../../../../web/src/features/partners/index.ts) | `PartnerSelectOptionTags`、`searchPartnerOptions` 与 `PartnerOption`（核销、收付、订单等共用） | 往来单位领域展示回流通用 `components/` |
+| 往来单位下拉快捷创建 | [`features/partners`](../../../../web/src/features/partners/index.ts)（[契约](./quick-create-selects.md)） | `PartnerQuickCreateSelect`：单选/多选成功选用、身份及父会话隔离、按用途确认候选资格 | 创建多角色平台、绕过财务信用或原候选条件、覆盖父表单草稿 |
+| 收付与核销结算单位候选 | [`features/finance/settlement-party-options`](../../../../web/src/features/finance/settlement-party-options/index.ts) | 原用途候选请求与稳定映射，普通搜索和新增后资格确认共用 | 权限或信用策略硬编码、直接选用未经用途验证的客商 |
+| 科目与应税劳务快捷创建 | [`features/finance/fee-catalog`](../../../../web/src/features/finance/fee-catalog/index.ts)（[契约](./quick-create-selects.md)） | `FeeSettingQuickCreateModal`、`TaxableServiceQuickCreateSelect`：费用录入、补录与设置共用，百分数税率及嵌套建档 | 反向导入订单页面、把6%写成0.06、全局刷新业务草稿 |
+| 结算账户快捷创建 | [`features/partners/settlement-account`](../../../../web/src/features/partners/settlement-account/index.ts) | `SettlementAccountQuickCreateModal`、`settlementAccountLabel`：建账和账单编辑共用，固定结算单位/币种/用途 | 改挂来源、受保护账单仍开放新增回填、跨会话使用旧响应 |
 | 信用额度干预提示 | [`web/src/features/finance/credit-control/index.ts`](../../../../web/src/features/finance/credit-control/index.ts) | `useCreditLimitIntervention` 与 `disableCreditExceededOptions` 信用控制查询和候选禁用 | 业务查询 Hook 放全局 `hooks/` |
 | 异步竞态防护 | [`web/src/hooks/`](../../../../web/src/hooks/) | `useAsyncGuard` 等命令/UI 副作用生命周期保护 | 以竞态工具替代 Query 管理服务端查询；任何业务查询 Hook（领域 Hook 进 features） |
 | 订单候选取数 | [`features/orders/options`](../../../../web/src/features/orders/options/index.ts) | 字典、首批港口/机场、人员的纯请求助手；缓存归当前工作区 QueryClient，消费方按完整身份建 key | 模块 Map/Promise 缓存、额外 clear 协议、把缓存键隔离误认为命令迟到响应保护 |

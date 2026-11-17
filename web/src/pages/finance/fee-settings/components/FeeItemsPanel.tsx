@@ -197,6 +197,7 @@ export function FeeItemsPanel() {
       renderFormItems={(editing) => (
         <FeeSettingFields
           editing={Boolean(editing)}
+          sessionIdentity={editing?.id || 'new'}
           billingUnits={billingUnits}
           taxableServices={taxableServices}
           currencies={currencies}

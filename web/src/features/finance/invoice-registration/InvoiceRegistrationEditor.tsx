@@ -31,6 +31,7 @@ import InvoiceAllocationFields, {
   GapText,
   type RecordUpdater,
 } from './InvoiceAllocationFields';
+import InvoiceProfileQuickSelect from './InvoiceProfileQuickSelect';
 import { INVOICE_TYPE_OPTIONS, isInvoiceType } from './invoiceTypes';
 import type {
   InvoiceRegistrationBillSource,
@@ -173,11 +174,6 @@ export default function InvoiceRegistrationEditor({
         applyProfileRef.current(index, onlyProfile);
     });
   }, [onlyProfile, recordCount, form, name]);
-  const profileOptions = (items: API.FinanceInvoiceProfileOption[]) =>
-    items.map((profile) => ({
-      value: profile.id,
-      label: `${profile.invoiceTitle ?? ''} · ${profile.taxpayerIdentificationNo ?? ''}`,
-    }));
   return (
     <>
       <Alert
@@ -233,22 +229,23 @@ export default function InvoiceRegistrationEditor({
                       label="开票抬头"
                       rules={[required]}
                     >
-                      <Select
-                        options={profileOptions(
+                      <InvoiceProfileQuickSelect
+                        organizationId={organizationId}
+                        settlementPartyId={settlementPartyId}
+                        sessionIdentity={`${JSON.stringify(name)}:${field.key}:${field.name}`}
+                        profiles={
                           records?.[field.name]?.sourceInvoiceId
                             ? (profiles ?? [])
-                            : (query.data ?? []),
-                        )}
-                        loading={query.isFetching}
-                        onChange={(value: string) =>
-                          applyProfile(
-                            field.name,
-                            query.data?.find((item) => item.id === value),
-                          )
+                            : (query.data ?? [])
                         }
-                        disabled={Boolean(
-                          records?.[field.name]?.sourceInvoiceId,
-                        )}
+                        loading={query.isFetching}
+                        onProfileChange={(profile) =>
+                          applyProfile(field.name, profile)
+                        }
+                        disabled={
+                          Boolean(records?.[field.name]?.sourceInvoiceId) ||
+                          undefined
+                        }
                       />
                     </Form.Item>
                   </Col>

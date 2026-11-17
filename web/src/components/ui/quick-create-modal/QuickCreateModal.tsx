@@ -1,5 +1,5 @@
 import { Alert, App, Button, Form, type FormInstance, Modal } from 'antd';
-import React, { type ReactNode, useRef, useState } from 'react';
+import React, { type ReactNode, useId, useRef, useState } from 'react';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 
 /** 可选附加底部动作：点击不触发表单校验或提交，可读取当前表单实例。 */
@@ -55,6 +55,7 @@ export function QuickCreateModal<
   children,
 }: QuickCreateModalProps<TFormValues, TResult>) {
   const [internalForm] = Form.useForm<TFormValues>();
+  const formName = useId();
   const { message } = App.useApp();
   const form = externalForm || internalForm;
   const [saving, setSaving] = useState(false);
@@ -143,6 +144,7 @@ export function QuickCreateModal<
       width={width}
     >
       <Form
+        name={formName}
         form={form}
         layout="vertical"
         preserve={false}

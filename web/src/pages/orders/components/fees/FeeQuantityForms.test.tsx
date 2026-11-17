@@ -5,6 +5,7 @@ import {
   confirmIfAnyTabDirty,
   getAnyDirtyTabKey,
 } from '@/components/layout/tabCloseGuard';
+import { AuthOrganizationKind } from '@/enums.generated';
 import {
   orderFeeServicePreviewFeeQuantity,
   orderFeeServiceResolveFeeExchangeRate,
@@ -12,7 +13,11 @@ import {
 import FeeSupplementModal from './FeeSupplementModal';
 
 vi.mock('@/app/access', () => ({
-  useAccess: () => ({ canOverrideFeeExchangeRate: false }),
+  useAccess: () => ({
+    canOverrideFeeExchangeRate: false,
+    canOperateOrganization: (organizationId?: string) =>
+      organizationId === 'company',
+  }),
 }));
 vi.mock('@/services/roncin/orderFeeService', () => ({
   orderFeeServicePreviewFeeQuantity: vi.fn(),
@@ -73,6 +78,17 @@ describe('费用数量带入表单入口', () => {
           currency: 'CNY',
         }}
       />,
+      {
+        user: {
+          id: 'user',
+          username: 'operator',
+          currentOrganization: {
+            id: 'company',
+            name: '测试公司',
+            kind: AuthOrganizationKind.ORGANIZATION_KIND_COMPANY,
+          },
+        },
+      },
     );
     expect(getAnyDirtyTabKey()).toBeUndefined();
     await confirmQuantity();

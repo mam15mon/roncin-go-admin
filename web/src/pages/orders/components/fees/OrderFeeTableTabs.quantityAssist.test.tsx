@@ -1,12 +1,7 @@
 import type { ActionType } from '@ant-design/pro-components';
 import { renderWithApp } from '@root/tests/renderWithApp';
-import {
-  act,
-  fireEvent,
-  screen,
-  waitFor,
-  within,
-} from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { ConfigProvider } from 'antd';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   confirmIfAnyTabDirty,
@@ -120,11 +115,17 @@ describe('行内费用数量带入', () => {
           },
         ],
       });
-      renderWithApp(table());
+      renderWithApp(
+        <ConfigProvider theme={{ token: { motion: false } }}>
+          {table()}
+        </ConfigProvider>,
+      );
       // 已保存行常开编辑，直接出现数量带入入口。
-      const fromOrder = await screen.findByRole('button', {
-        name: '从订单带入',
-      });
+      const fromOrder = (await screen.findByText('从订单带入')).closest(
+        'button',
+      );
+      if (!fromOrder) throw new Error('缺少订单数量带入按钮');
+      await waitFor(() => expect(fromOrder).toBeVisible());
       fireEvent.click(fromOrder);
       await screen.findByText('8 立方米');
       expect(getAnyDirtyTabKey()).toBeUndefined();

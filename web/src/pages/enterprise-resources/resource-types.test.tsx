@@ -26,6 +26,8 @@ vi.mock('@/router/history', () => ({
 }));
 vi.mock('@/app/access', () => ({
   useAccess: () => ({
+    canOperateOrganization: (organizationId?: string) =>
+      organizationId === 'company',
     canCreateEnterpriseResources: true,
     canUpdateEnterpriseResources: true,
     canDeleteEnterpriseResources: true,

@@ -57,7 +57,7 @@ describe('航空主单编辑快照', () => {
           finishRefresh = resolve;
         }),
     );
-    fireEvent.click(screen.getByRole('button', { name: '刷 新' }));
+    fireEvent.click(screen.getByRole('button', { name: /刷新/ }));
     fireEvent.change(remarks, { target: { value: '刷新期间的新正文' } });
     await act(async () => finishRefresh(masterResponse('2')));
     expect(remarks).toHaveValue('刷新期间的新正文');

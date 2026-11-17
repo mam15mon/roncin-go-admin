@@ -15,6 +15,12 @@ import BillEditModal from './BillEditModal';
 import type { BillFormValues } from './billConstants';
 
 const api = vi.hoisted(() => ({ getBill: vi.fn(), refresh: vi.fn() }));
+vi.mock('@/app/access', () => ({
+  useAccess: () => ({
+    canCreatePartnerAccounts: false,
+    canOperateOrganization: () => false,
+  }),
+}));
 vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceGetBill: api.getBill,
   settlementServiceListBillSettlementAccountUpdateCandidates: vi

@@ -246,7 +246,10 @@ export function getAirSaveState() {
 }
 
 export async function openAirHouseRemarks() {
-  const house = screen.getByRole('tabpanel', { name: '分运单 HAWB' });
+  const houseTab = screen.queryByText('分运单 (HAWB)')?.closest('[role="tab"]');
+  const panelId = houseTab?.getAttribute('aria-controls');
+  const house = panelId ? document.getElementById(panelId) : null;
+  if (!house) throw new Error('未找到分运单 (HAWB) 页签面板');
   const more = within(house)
     .getByText('更多运单资料')
     .closest('[role="button"]');

@@ -35,7 +35,10 @@ import {
   OrderTerminationStatus,
   PartnerRoleType,
 } from '@/enums.generated';
-import { searchPartnerOptions } from '@/features/partners';
+import {
+  PartnerQuickCreateSelect,
+  searchPartnerOptions,
+} from '@/features/partners';
 import { formatPersonnelLabel } from '@/features/personnel';
 import { usePageForeground } from '@/hooks/usePageForeground';
 import { orderAttachmentServiceListAttachments } from '@/services/roncin/orderAttachmentService';
@@ -745,35 +748,36 @@ export default function ImportHandlingPanel({
               }
             />
           )}
-          <ProFormSearchableSelect
-            name="exchangeAgentId"
-            label="换单代理"
-            disabled={!access.canReadPartners}
-            options={
-              editor.snapshot.exchangeAgentId
-                ? [
-                    {
-                      value: editor.snapshot.exchangeAgentId,
-                      label:
-                        editor.snapshot.exchangeAgentName || '未命名换单代理',
-                    },
-                  ]
-                : []
-            }
-            fieldProps={{ filterOption: false }}
-            request={async ({ keyWords }) => {
-              if (!access.canReadPartners || !guard.current.alive) return [];
-              const generation = guard.current.generation;
-              const options = await searchPartnerOptions(keyWords, {
-                role: PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER,
-                enabled: true,
-              });
-              return guard.current.alive &&
-                generation === guard.current.generation
-                ? options
-                : [];
-            }}
-          />
+          <Form.Item name="exchangeAgentId" label="换单代理">
+            <PartnerQuickCreateSelect
+              sessionIdentity={`${sessionScope}:exchange-agent`}
+              active={Boolean(editor)}
+              role={PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER}
+              createLabel="快捷新增换单代理"
+              disabled={!access.canReadPartners || blocked}
+              options={
+                editor.snapshot.exchangeAgentId
+                  ? [
+                      {
+                        value: editor.snapshot.exchangeAgentId,
+                        label:
+                          editor.snapshot.exchangeAgentName || '未命名换单代理',
+                      },
+                    ]
+                  : []
+              }
+              request={(keyword, signal) =>
+                searchPartnerOptions(
+                  keyword,
+                  {
+                    role: PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER,
+                    enabled: true,
+                  },
+                  { signal, skipErrorHandler: true },
+                )
+              }
+            />
+          </Form.Item>
           <Space orientation="vertical" style={{ width: '100%' }} size={12}>
             {IMPORT_SERVICES.map((service, index) => (
               <StepFields

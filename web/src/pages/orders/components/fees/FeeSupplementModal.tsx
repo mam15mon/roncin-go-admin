@@ -1,19 +1,23 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
 import {
-  ProFormDatePicker,
+  ProFormDependency,
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { Alert, Checkbox, Col, Row, Typography } from 'antd';
-import dayjs from 'dayjs';
+import { Alert, Checkbox, Col, Form, Row, Typography } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
+import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import {
   ExchangeRatePreviewCard,
   GuardedModalForm,
   ProFormSearchableSelect,
+  QuickCreateSelectFooter,
 } from '@/components/ui';
+import { PartnerRoleType } from '@/enums.generated';
+import { FeeSettingQuickCreateModal } from '@/features/finance/fee-catalog';
+import { PartnerQuickCreateSelect } from '@/features/partners';
 import { useFeeExchangePreview } from '../../use-fee-exchange-preview';
 import { FeeQuantityFormAssist } from './FeeQuantityAssist';
 import { PAYABLE } from './feeConstants';
@@ -35,6 +39,7 @@ export type FeeSupplementOptions = {
 type FeeSupplementModalProps = FeeSupplementOptions & {
   orderId: string;
   open: boolean;
+  disabled?: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (values: FeeSupplementFormValues) => Promise<boolean>;
   initialRequest?: Partial<API.OrderFee> & { reason?: string };
@@ -45,6 +50,7 @@ type FeeSupplementModalProps = FeeSupplementOptions & {
 export default function FeeSupplementModal({
   orderId,
   open,
+  disabled = false,
   onOpenChange,
   feeSettings,
   settlementParties,
@@ -59,6 +65,35 @@ export default function FeeSupplementModal({
     identity: initialRequest?.id,
   });
   const access = useAccess();
+  const { initialState } = useInitialState();
+  const organizationId = initialState?.currentUser?.currentOrganization?.id;
+  const [createdSettings, setCreatedSettings] = useState<{
+    identity: string;
+    data: API.OrderFeeSettingOption[];
+  }>();
+  const [quickCreateFeeOpen, setQuickCreateFeeOpen] = useState(false);
+  const [feeSelectOpen, setFeeSelectOpen] = useState(false);
+  const sessionIdentity = `${organizationId}:${orderId}:${initialRequest?.id || 'new'}:${open}`;
+  const allFeeSettings = [
+    ...(createdSettings?.identity === sessionIdentity
+      ? createdSettings.data
+      : []),
+    ...feeSettings,
+  ].filter(
+    (item, index, all) =>
+      all.findIndex((other) => other.id === item.id) === index,
+  );
+  const canCreateFee = Boolean(
+    open &&
+      !disabled &&
+      organizationId &&
+      access.canOperateBusiness &&
+      access.canCreateFeeSettings,
+  );
+  useEffect(() => {
+    setQuickCreateFeeOpen(false);
+    setFeeSelectOpen(false);
+  }, [sessionIdentity, disabled]);
   const [confirmSystemRate, setConfirmSystemRate] = useState(false);
   const [showRateConfirmationError, setShowRateConfirmationError] =
     useState(false);
@@ -94,7 +129,7 @@ export default function FeeSupplementModal({
   };
   const feeSettingId = availableValue(
     initialRequest?.feeSettingId,
-    feeSettings.some((item) => item.id === initialRequest?.feeSettingId),
+    allFeeSettings.some((item) => item.id === initialRequest?.feeSettingId),
     '费用项目',
   );
   const settlementPartyId = availableValue(
@@ -152,309 +187,387 @@ export default function FeeSupplementModal({
     setManualExchangeRate,
   ]);
 
-  return (
-    <GuardedModalForm<FeeSupplementFormValues>
-      guardIdentity={initialRequest?.id}
-      title="填写补录费用"
-      open={open}
-      formRef={internalFormRef}
-      initialValues={prefill}
-      onOpenChange={(next) => {
-        if (next) {
-          internalFormRef.current?.resetFields();
-          internalFormRef.current?.setFieldsValue(prefill);
-        } else {
-          resetPreview();
-        }
-        onOpenChange(next);
-      }}
-      onFinish={(values) => {
-        if (requiresSystemRateConfirmation && !confirmSystemRate) {
-          setShowRateConfirmationError(true);
-          return Promise.resolve(false);
-        }
-        return onSubmit(values).then((result) => {
-          if (result === true) resetDirty();
-          return result;
-        });
-      }}
-      onValuesChange={(changedValues) => {
-        const rateBasisChanged =
-          'direction' in changedValues ||
-          'feeSettingId' in changedValues ||
-          'currency' in changedValues ||
-          false;
-        if (rateBasisChanged && manualExchangeRate) {
-          setManualRateCleared(true);
-        }
-        if (
-          rateBasisChanged ||
-          'quantity' in changedValues ||
-          'unitPrice' in changedValues
-        ) {
-          const retainedManualRate =
-            manualExchangeRate && !rateBasisChanged
-              ? internalFormRef.current?.getFieldValue('exchangeRateOverride')
-              : undefined;
-          handleValuesChange();
-          if (retainedManualRate !== undefined) {
-            internalFormRef.current?.setFieldValue(
-              'exchangeRateOverride',
-              retainedManualRate,
-            );
-            setManualExchangeRate(true);
-          }
-        }
-        if (internalFormRef.current?.getFieldValue('quantity')) {
-          void internalFormRef.current
-            .validateFields(['quantity'])
-            .catch(() => undefined);
-        }
-      }}
-      width={680}
-      modalProps={{ destroyOnHidden: true }}
-    >
-      <Alert
-        type="info"
-        showIcon
-        title="补录可新增或更正应收、应付；补审批准后费用才正式生效。已建账原费用须先回退至账单未建立。"
-        style={{ marginBottom: 16 }}
-      />
-      {unavailable.length > 0 && (
-        <Alert
-          type="warning"
-          showIcon
-          title={`${unavailable.join('、')}已不可用`}
-          description="原值未带入新申请，请重新选择后再提交。"
-          style={{ marginBottom: 16 }}
-        />
-      )}
-      {requiresSystemRateConfirmation && (
-        <Alert
-          type="warning"
-          showIcon
-          title="原申请使用手动汇率，当前已无覆盖权限"
-          description={
-            <div>
-              <p>原手动汇率不会沿用；新申请将按当前系统汇率重新计算。</p>
-              <Checkbox
-                checked={confirmSystemRate}
-                onChange={(event) => {
-                  markDirty();
-                  setConfirmSystemRate(event.target.checked);
-                  setShowRateConfirmationError(false);
-                }}
-              >
-                我确认改用当前系统汇率
-              </Checkbox>
-              {showRateConfirmationError && (
-                <Typography.Text type="danger" style={{ display: 'block' }}>
-                  请先确认汇率变化
-                </Typography.Text>
-              )}
-            </div>
-          }
-          style={{ marginBottom: 16 }}
-        />
-      )}
-      {manualRateCleared && (
-        <Alert
-          type="warning"
-          showIcon
-          title="费用项目、方向或币种已变化，原手动汇率已清除"
-          description="请重新指定手动汇率，或核对当前系统汇率后提交。"
-          style={{ marginBottom: 16 }}
-        />
-      )}
-      <ProFormSearchableSelect
-        name="direction"
-        label="费用方向"
-        rules={[{ required: true }]}
-        options={[
-          { label: '应收', value: 1 },
-          { label: '应付', value: 2 },
-        ]}
-      />
-      <Alert
-        type="info"
-        showIcon
-        title="本次补录或更正按人工确认数量保存，不继承原费用的自动取数来源"
-        style={{ marginBottom: 12 }}
-      />
-      <Row gutter={16}>
-        <Col span={12}>
-          <ProFormSearchableSelect
-            name="feeSettingId"
-            label="费用项目"
-            rules={[{ required: true, message: '请选择费用项目' }]}
-            options={feeSettings.map((item) => ({
-              label: `${item.nameZh || item.nameEn || item.feeCode} (${item.feeCode})`,
-              value: item.id ?? '',
-              code: item.feeCode,
-              name: item.nameZh,
-              nameEn: item.nameEn,
-              aliasName: item.aliasName,
-            }))}
-            fieldProps={{
-              onChange: (val) => {
-                const setting = feeSettings.find((item) => item.id === val);
-                if (setting?.defaultBillingUnitId) {
-                  internalFormRef.current?.setFieldValue(
-                    'billingUnitId',
-                    setting.defaultBillingUnitId,
-                  );
-                  void internalFormRef.current
-                    ?.validateFields(['quantity'])
-                    .catch(() => undefined);
-                }
-                if (setting?.defaultCurrency) {
-                  internalFormRef.current?.setFieldValue(
-                    'currency',
-                    setting.defaultCurrency,
-                  );
-                }
-                handleValuesChange();
-              },
-            }}
-          />
-        </Col>
-        <Col span={12}>
-          <ProFormSearchableSelect
-            name="settlementPartyId"
-            label="结算单位"
-            rules={[{ required: true, message: '请选择结算单位' }]}
-            options={settlementParties.map((item) => ({
-              label: item.name ?? '',
-              value: item.id ?? '',
-              code: item.code,
-              name: item.name,
-            }))}
-          />
-        </Col>
-        <Col span={8}>
-          <ProFormSearchableSelect
-            name="currency"
-            label="币种"
-            rules={[{ required: true, message: '请选择币种' }]}
-            options={currencies.map((c) => ({
-              label: `${c.code} (${c.name})`,
-              value: c.code ?? '',
-              code: c.code,
-              name: c.name,
-            }))}
-          />
-        </Col>
-        <Col span={8}>
-          <ProFormText
-            name="unitPrice"
-            label="单价"
-            rules={[{ required: true, message: '请输入单价' }]}
-            placeholder="0.00"
-          />
-        </Col>
-        <Col span={8}>
-          <ProFormText
-            name="quantity"
-            label="数量"
-            extra={
-              <FeeQuantityFormAssist
-                allowChargeable={false}
-                orderId={orderId}
-                billingUnits={billingUnits}
-                active={open}
-                onValuesChange={() => {
-                  markDirty();
-                  handleValuesChange({ amountOnly: true });
-                }}
-              />
-            }
-            rules={[
-              { required: true, message: '请输入数量' },
-              {
-                validator: (_, value) => {
-                  const error = feeQuantityRuleError(
-                    value,
-                    internalFormRef.current?.getFieldValue('billingUnitId'),
-                    billingUnits,
-                  );
-                  return error
-                    ? Promise.reject(new Error(error))
-                    : Promise.resolve();
-                },
-              },
-            ]}
-            placeholder="1"
-          />
-        </Col>
-        <Col span={12}>
-          <ProFormSearchableSelect
-            name="billingUnitId"
-            label="计费单位"
-            rules={[{ required: true, message: '请选择计费单位' }]}
-            options={billingUnits.map((u) => ({
-              label: `${u.name} (${u.code})`,
-              value: u.id ?? '',
-              code: u.code,
-              name: u.name,
-            }))}
-          />
-        </Col>
-        <Col span={24}>
-          <ExchangeRatePreviewCard
-            amountPreview={totalPreview}
-            currency={internalFormRef.current?.getFieldValue('currency')}
-            amountColor="#fa8c16"
-            status={exchangeRateStatus}
-            ratePreview={exchangeRatePreview}
-            onEnableManual={
-              access.canOverrideFeeExchangeRate
-                ? () => {
-                    markDirty();
-                    setManualRateCleared(false);
-                    setManualExchangeRate(true);
-                  }
-                : undefined
-            }
-          />
-        </Col>
+  const applyFeeSetting = (setting: API.OrderFeeSettingOption | undefined) => {
+    if (setting?.defaultBillingUnitId) {
+      internalFormRef.current?.setFieldValue(
+        'billingUnitId',
+        setting.defaultBillingUnitId,
+      );
+      void internalFormRef.current
+        ?.validateFields(['quantity'])
+        .catch(() => undefined);
+    }
+    if (setting?.defaultCurrency) {
+      internalFormRef.current?.setFieldValue(
+        'currency',
+        setting.defaultCurrency,
+      );
+    }
+    if (manualExchangeRate) setManualRateCleared(true);
+    handleValuesChange();
+  };
 
-        {manualExchangeRate && access.canOverrideFeeExchangeRate && (
-          <Col span={24}>
-            <ProFormText
-              name="exchangeRateOverride"
-              label="手动指定汇率 (对 CNY)"
-              rules={[{ required: true, message: '请输入手动汇率' }]}
-              placeholder="例如 7.2345"
+  return (
+    <>
+      <GuardedModalForm<FeeSupplementFormValues>
+        guardIdentity={initialRequest?.id}
+        title="填写补录费用"
+        open={open}
+        disabled={disabled || undefined}
+        submitter={{ submitButtonProps: { disabled } }}
+        formRef={internalFormRef}
+        initialValues={prefill}
+        onOpenChange={(next) => {
+          if (next) {
+            internalFormRef.current?.resetFields();
+            internalFormRef.current?.setFieldsValue(prefill);
+          } else {
+            resetPreview();
+          }
+          onOpenChange(next);
+        }}
+        onFinish={(values) => {
+          if (disabled) return Promise.resolve(false);
+          if (requiresSystemRateConfirmation && !confirmSystemRate) {
+            setShowRateConfirmationError(true);
+            return Promise.resolve(false);
+          }
+          return onSubmit(values).then((result) => {
+            if (result === true) resetDirty();
+            return result;
+          });
+        }}
+        onValuesChange={(changedValues) => {
+          const rateBasisChanged =
+            'direction' in changedValues ||
+            'feeSettingId' in changedValues ||
+            'currency' in changedValues ||
+            false;
+          if (rateBasisChanged && manualExchangeRate) {
+            setManualRateCleared(true);
+          }
+          if (
+            rateBasisChanged ||
+            'quantity' in changedValues ||
+            'unitPrice' in changedValues
+          ) {
+            const retainedManualRate =
+              manualExchangeRate && !rateBasisChanged
+                ? internalFormRef.current?.getFieldValue('exchangeRateOverride')
+                : undefined;
+            handleValuesChange();
+            if (retainedManualRate !== undefined) {
+              internalFormRef.current?.setFieldValue(
+                'exchangeRateOverride',
+                retainedManualRate,
+              );
+              setManualExchangeRate(true);
+            }
+          }
+          if (internalFormRef.current?.getFieldValue('quantity')) {
+            void internalFormRef.current
+              .validateFields(['quantity'])
+              .catch(() => undefined);
+          }
+        }}
+        width={680}
+        modalProps={{ destroyOnHidden: true }}
+      >
+        <Alert
+          type="info"
+          showIcon
+          title="补录可新增或更正应收、应付；补审批准后费用才正式生效。已建账原费用须先回退至账单未建立。"
+          style={{ marginBottom: 16 }}
+        />
+        {unavailable.length > 0 && (
+          <Alert
+            type="warning"
+            showIcon
+            title={`${unavailable.join('、')}已不可用`}
+            description="原值未带入新申请，请重新选择后再提交。"
+            style={{ marginBottom: 16 }}
+          />
+        )}
+        {requiresSystemRateConfirmation && (
+          <Alert
+            type="warning"
+            showIcon
+            title="原申请使用手动汇率，当前已无覆盖权限"
+            description={
+              <div>
+                <p>原手动汇率不会沿用；新申请将按当前系统汇率重新计算。</p>
+                <Checkbox
+                  checked={confirmSystemRate}
+                  onChange={(event) => {
+                    markDirty();
+                    setConfirmSystemRate(event.target.checked);
+                    setShowRateConfirmationError(false);
+                  }}
+                >
+                  我确认改用当前系统汇率
+                </Checkbox>
+                {showRateConfirmationError && (
+                  <Typography.Text type="danger" style={{ display: 'block' }}>
+                    请先确认汇率变化
+                  </Typography.Text>
+                )}
+              </div>
+            }
+            style={{ marginBottom: 16 }}
+          />
+        )}
+        {manualRateCleared && (
+          <Alert
+            type="warning"
+            showIcon
+            title="费用项目、方向或币种已变化，原手动汇率已清除"
+            description="请重新指定手动汇率，或核对当前系统汇率后提交。"
+            style={{ marginBottom: 16 }}
+          />
+        )}
+        <ProFormSearchableSelect
+          name="direction"
+          label="费用方向"
+          rules={[{ required: true }]}
+          options={[
+            { label: '应收', value: 1 },
+            { label: '应付', value: 2 },
+          ]}
+        />
+        <Alert
+          type="info"
+          showIcon
+          title="本次补录或更正按人工确认数量保存，不继承原费用的自动取数来源"
+          style={{ marginBottom: 12 }}
+        />
+        <Row gutter={16}>
+          <Col span={12}>
+            <ProFormSearchableSelect
+              name="feeSettingId"
+              label="费用项目"
+              rules={[{ required: true, message: '请选择费用项目' }]}
+              options={allFeeSettings.map((item) => ({
+                label: `${item.nameZh || item.nameEn || item.feeCode} (${item.feeCode})`,
+                value: item.id ?? '',
+                code: item.feeCode,
+                name: item.nameZh,
+                nameEn: item.nameEn,
+                aliasName: item.aliasName,
+              }))}
+              fieldProps={{
+                open: feeSelectOpen,
+                onOpenChange: setFeeSelectOpen,
+                onChange: (value) =>
+                  applyFeeSetting(
+                    allFeeSettings.find((item) => item.id === value),
+                  ),
+                popupRender: canCreateFee
+                  ? (menu) => (
+                      <QuickCreateSelectFooter
+                        label="快捷新增费用科目"
+                        onCreate={() => {
+                          setFeeSelectOpen(false);
+                          setQuickCreateFeeOpen(true);
+                        }}
+                      >
+                        {menu}
+                      </QuickCreateSelectFooter>
+                    )
+                  : undefined,
+              }}
             />
           </Col>
-        )}
+          <Col span={12}>
+            <ProFormDependency name={['direction']}>
+              {({ direction }) => (
+                <Form.Item
+                  name="settlementPartyId"
+                  label="结算单位"
+                  rules={[{ required: true, message: '请选择结算单位' }]}
+                >
+                  <PartnerQuickCreateSelect
+                    sessionIdentity={`${sessionIdentity}:${direction}`}
+                    active={open && !disabled}
+                    disabled={disabled || undefined}
+                    defaultRole={
+                      direction === PAYABLE
+                        ? PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER
+                        : PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER
+                    }
+                    options={settlementParties.map((item) => ({
+                      label: item.name ?? '',
+                      value: item.id ?? '',
+                      code: item.code,
+                      name: item.name,
+                    }))}
+                  />
+                </Form.Item>
+              )}
+            </ProFormDependency>
+          </Col>
+          <Col span={8}>
+            <ProFormSearchableSelect
+              name="currency"
+              label="币种"
+              rules={[{ required: true, message: '请选择币种' }]}
+              options={currencies.map((c) => ({
+                label: `${c.code} (${c.name})`,
+                value: c.code ?? '',
+                code: c.code,
+                name: c.name,
+              }))}
+            />
+          </Col>
+          <Col span={8}>
+            <ProFormText
+              name="unitPrice"
+              label="单价"
+              rules={[{ required: true, message: '请输入单价' }]}
+              placeholder="0.00"
+            />
+          </Col>
+          <Col span={8}>
+            <ProFormText
+              name="quantity"
+              label="数量"
+              extra={
+                <FeeQuantityFormAssist
+                  allowChargeable={false}
+                  orderId={orderId}
+                  billingUnits={billingUnits}
+                  active={open}
+                  onValuesChange={() => {
+                    markDirty();
+                    handleValuesChange({ amountOnly: true });
+                  }}
+                />
+              }
+              rules={[
+                { required: true, message: '请输入数量' },
+                {
+                  validator: (_, value) => {
+                    const error = feeQuantityRuleError(
+                      value,
+                      internalFormRef.current?.getFieldValue('billingUnitId'),
+                      billingUnits,
+                    );
+                    return error
+                      ? Promise.reject(new Error(error))
+                      : Promise.resolve();
+                  },
+                },
+              ]}
+              placeholder="1"
+            />
+          </Col>
+          <Col span={12}>
+            <ProFormSearchableSelect
+              name="billingUnitId"
+              label="计费单位"
+              rules={[{ required: true, message: '请选择计费单位' }]}
+              options={billingUnits.map((u) => ({
+                label: `${u.name} (${u.code})`,
+                value: u.id ?? '',
+                code: u.code,
+                name: u.name,
+              }))}
+            />
+          </Col>
+          <Col span={24}>
+            <ExchangeRatePreviewCard
+              amountPreview={totalPreview}
+              currency={internalFormRef.current?.getFieldValue('currency')}
+              amountColor="#fa8c16"
+              status={exchangeRateStatus}
+              ratePreview={exchangeRatePreview}
+              onEnableManual={
+                access.canOverrideFeeExchangeRate
+                  ? () => {
+                      markDirty();
+                      setManualRateCleared(false);
+                      setManualExchangeRate(true);
+                    }
+                  : undefined
+              }
+            />
+          </Col>
 
-        <Col span={24}>
-          <ProFormTextArea
-            name="reason"
-            label="补录原因"
-            rules={[
-              {
-                required: true,
-                whitespace: true,
-                message: '请填写补录原因',
-              },
-              { max: 500, message: '补录原因不能超过 500 个字符' },
-            ]}
-            placeholder="请说明补录原因与业务背景（必填）"
-            fieldProps={{ rows: 3, maxLength: 500, showCount: true }}
-          />
-        </Col>
+          {manualExchangeRate && access.canOverrideFeeExchangeRate && (
+            <Col span={24}>
+              <ProFormText
+                name="exchangeRateOverride"
+                label="手动指定汇率 (对 CNY)"
+                rules={[{ required: true, message: '请输入手动汇率' }]}
+                placeholder="例如 7.2345"
+              />
+            </Col>
+          )}
 
-        <Col span={24}>
-          <ProFormTextArea
-            name="note"
-            label="备注说明"
-            placeholder="请输入费用相关备注（可选）"
-            fieldProps={{ rows: 2, maxLength: 500, showCount: true }}
-          />
-        </Col>
-      </Row>
-    </GuardedModalForm>
+          <Col span={24}>
+            <ProFormTextArea
+              name="reason"
+              label="补录原因"
+              rules={[
+                {
+                  required: true,
+                  whitespace: true,
+                  message: '请填写补录原因',
+                },
+                { max: 500, message: '补录原因不能超过 500 个字符' },
+              ]}
+              placeholder="请说明补录原因与业务背景（必填）"
+              fieldProps={{ rows: 3, maxLength: 500, showCount: true }}
+            />
+          </Col>
+
+          <Col span={24}>
+            <ProFormTextArea
+              name="note"
+              label="备注说明"
+              placeholder="请输入费用相关备注（可选）"
+              fieldProps={{ rows: 2, maxLength: 500, showCount: true }}
+            />
+          </Col>
+        </Row>
+      </GuardedModalForm>
+      <FeeSettingQuickCreateModal
+        key={sessionIdentity}
+        open={quickCreateFeeOpen && canCreateFee}
+        sessionIdentity={sessionIdentity}
+        currencies={currencies}
+        billingUnits={billingUnits}
+        onCancel={() => setQuickCreateFeeOpen(false)}
+        onSuccess={(created) => {
+          const option: API.OrderFeeSettingOption = {
+            id: created.id,
+            feeCode: created.feeCode,
+            nameZh: created.nameZh,
+            nameEn: created.nameEn,
+            aliasName: created.aliasName,
+            defaultCurrency: created.defaultCurrency,
+            defaultBillingUnitId: created.billingUnitId,
+            defaultBillingUnitName: billingUnits.find(
+              (item) => item.id === created.billingUnitId,
+            )?.name,
+            taxRate: created.taxRate,
+            taxableServiceName: created.taxableServiceName,
+          };
+          setCreatedSettings((current) => ({
+            identity: sessionIdentity,
+            data: [
+              option,
+              ...(current?.identity === sessionIdentity
+                ? current.data
+                : []
+              ).filter((item) => item.id !== option.id),
+            ],
+          }));
+          internalFormRef.current?.setFieldValue('feeSettingId', option.id);
+          applyFeeSetting(option);
+          markDirty();
+          setQuickCreateFeeOpen(false);
+        }}
+      />
+    </>
   );
 }

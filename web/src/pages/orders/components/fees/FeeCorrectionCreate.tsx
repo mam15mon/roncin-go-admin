@@ -1,6 +1,5 @@
 import { ProFormDependency, ProFormTextArea } from '@ant-design/pro-components';
 import { App, Button } from 'antd';
-import dayjs from 'dayjs';
 import { useState } from 'react';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { GuardedModalForm, ProFormSearchableSelect } from '@/components/ui';
@@ -48,10 +47,17 @@ export default function FeeCorrectionCreate({
   const currentFees = fees.filter(
     (fee) => !fee.supersededByRequestId && fee.economicEffect !== 'DECREASE',
   );
+  const canApplyOperation = (operation: number) =>
+    operation === 1
+      ? canCreate
+      : operation === 2
+        ? canUpdate
+        : operation === 3 && canDelete;
   const submit = async (
     selection: Session,
     values?: FeeSupplementFormValues,
   ) => {
+    if (disabled || !canApplyOperation(selection.operation)) return false;
     const source = selection.source;
     const response = await orderFeeServiceCreateOrderFeeCorrection(
       { orderId },
@@ -94,12 +100,14 @@ export default function FeeCorrectionCreate({
     onCreated();
     return true;
   };
-  if (!canCreate && !canUpdate && !canDelete) return null;
+  const hasApplyPermission = canCreate || canUpdate || canDelete;
+  // 已打开的输入在失权时保留，只冻结本次操作，避免丢失尚未提交的原因和费用。
+  if (!hasApplyPermission && !session && !selectionOpen) return null;
   const source = session?.source;
   return (
     <>
       <Button
-        disabled={disabled}
+        disabled={disabled || !hasApplyPermission}
         onClick={() => {
           setSelectionKey(generateUUID());
           setSelectionOpen(true);
@@ -108,13 +116,14 @@ export default function FeeCorrectionCreate({
         申请费用补录
       </Button>
       <GuardedModalForm<Selection>
-        key={selectionKey}
+        key={`selection:${selectionKey}`}
         title="选择费用补录方式"
         open={selectionOpen}
         onOpenChange={setSelectionOpen}
         modalProps={{ destroyOnHidden: true }}
         initialValues={{ operation: canCreate ? 1 : canUpdate ? 2 : 3 }}
         onFinish={async (values) => {
+          if (disabled) return false;
           if (
             (values.operation === 1 && !canCreate) ||
             (values.operation === 2 && !canUpdate) ||
@@ -183,10 +192,11 @@ export default function FeeCorrectionCreate({
       </GuardedModalForm>
       {session && (
         <FeeSupplementModal
-          key={session.key}
+          key={`supplement:${session.key}`}
           {...options}
           orderId={orderId}
           open
+          disabled={disabled || !canApplyOperation(session.operation)}
           initialDirection={source?.direction || 1}
           onOpenChange={(open) => {
             if (!open) setSession(undefined);

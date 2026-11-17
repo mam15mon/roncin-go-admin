@@ -1,10 +1,22 @@
 import { renderWithApp } from '@root/tests/renderWithApp';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { AuthOrganizationKind } from '@/enums.generated';
 import FeeSupplementModal from './FeeSupplementModal';
 
 const accessState = vi.hoisted(() => ({ canOverrideFeeExchangeRate: false }));
-vi.mock('@/app/access', () => ({ useAccess: () => accessState }));
+vi.mock('@/app/access', () => ({
+  useAccess: () => ({
+    ...accessState,
+    canOperateOrganization: (organizationId?: string) =>
+      organizationId === 'company',
+  }),
+}));
+vi.mock('@/services/roncin/orderFeeService', () => ({
+  orderFeeServiceResolveFeeExchangeRate: vi
+    .fn()
+    .mockResolvedValue({ exchangeRate: '1', exchangeRateSource: 'SYSTEM' }),
+}));
 
 function renderModal(
   onSubmit: (values: unknown) => Promise<boolean>,
@@ -29,6 +41,17 @@ function renderModal(
       onSubmit={onSubmit}
       initialRequest={initialRequest}
     />,
+    {
+      user: {
+        id: 'user',
+        username: 'operator',
+        currentOrganization: {
+          id: 'company',
+          name: '测试公司',
+          kind: AuthOrganizationKind.ORGANIZATION_KIND_COMPANY,
+        },
+      },
+    },
   );
 }
 

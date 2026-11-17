@@ -24,6 +24,7 @@
 | [公司英文名称](../../server/backend/company-english-name.md) | 公司表单与详情、英文搜索、HBL 实际签发抬头及缺名输出提示 | ✅ |
 | [HBL 制作与 PDF 输出](../../server/backend/sea-hbl-production.md) | 同一 HBL 保存、四版本独立于利润审核、字体与完整分页输出 | ✅ |
 | [Component Guidelines](./component-guidelines.md) | UI 模板规范、公共组件与金额/时间显示口径 | ✅ |
+| [下拉候选快捷创建](./quick-create-selects.md) | 科目、客商、账户、抬头及应税劳务的创建回填、权限与会话隔离 | ✅ |
 | [财务列表快照与汇总](./finance-ledger-snapshots.md) | 六列表 matchedSummary、官方采纳、单行底栏与跨页选择 | ✅ |
 | [财务当前公司工作区](./finance-current-workspace.md) | 列表与弹窗唯一公司来源、公司候选接口退役及来源等值校验 | ✅ |
 | [State Management](./state-management.md) | 服务端状态与请求客户端 | ✅ |
