@@ -368,7 +368,7 @@ test('海运进口直单与主分单、服务并行撤回及外部HBL归档真�
     page.getByLabel('货物描述 (Description of Goods)', { exact: true }),
   ).toHaveValue(longText);
   await page
-    .getByRole('button', { name: /预览／打印／下载/ })
+    .getByRole('button', { name: /预览 \/ 打印 \/ 下载/ })
     .first()
     .click();
   const preview = page.getByRole('dialog', {
@@ -450,7 +450,7 @@ test('海运进口直单与主分单、服务并行撤回及外部HBL归档真�
     page.getByLabel('货物描述 (Description of Goods)', { exact: true }),
   ).toHaveValue(longText);
   await page
-    .getByRole('button', { name: /预览／打印／下载/ })
+    .getByRole('button', { name: /预览 \/ 打印 \/ 下载/ })
     .first()
     .click();
   const productionPreview = page.getByRole('dialog', {

@@ -108,7 +108,7 @@ vi.mock('./components/detail/OrderDetailHeader', () => ({
           moreMenuItems?.find((item) => item.key === 'reload-data')?.onClick?.()
         }
       >
-        刷新数据
+        菜单刷新
       </button>
     </>
   ),

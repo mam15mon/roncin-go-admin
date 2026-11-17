@@ -166,7 +166,7 @@ describe('海运详情修改港口的版本与未保存输入', () => {
     });
     advanceVersion('5');
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: '刷新数据' }));
+      fireEvent.click(screen.getByRole('button', { name: '菜单刷新' }));
     });
     const dialog = await screen.findByRole('dialog');
     await act(async () => {

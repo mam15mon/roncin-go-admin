@@ -264,7 +264,7 @@ vi.mock('./components/detail/OrderDetailHeader', () => ({
             ?.onClick?.()
         }
       >
-        刷新数据
+        刷新
       </button>
       {props.hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT) &&
         props.onReset && (
@@ -518,7 +518,7 @@ describe('订单详情页未保存修改与记录身份', () => {
       target: { value: 'USER-EDITED' },
     });
 
-    const refreshBtn = screen.getByText('刷新数据');
+    const refreshBtn = screen.getByText('刷新');
 
     await act(async () => {
       fireEvent.click(refreshBtn);
@@ -545,7 +545,7 @@ describe('订单详情页未保存修改与记录身份', () => {
     });
 
     await act(async () => {
-      fireEvent.click(screen.getByText('刷新数据'));
+      fireEvent.click(screen.getByText('刷新'));
     });
     await confirmRefreshIfOpen();
 
@@ -567,7 +567,7 @@ describe('订单详情页未保存修改与记录身份', () => {
         <OrderDetailPage />
       </App>,
     );
-    const refreshBtn = screen.getByText('刷新数据');
+    const refreshBtn = screen.getByText('刷新');
     await act(async () => {
       fireEvent.click(refreshBtn);
     });
@@ -604,7 +604,7 @@ describe('订单详情页未保存修改与记录身份', () => {
     );
 
     await act(async () => {
-      fireEvent.click(screen.getByText('刷新数据'));
+      fireEvent.click(screen.getByText('刷新'));
     });
     await confirmRefreshIfOpen();
 
@@ -620,7 +620,7 @@ describe('订单详情页未保存修改与记录身份', () => {
       target: { value: 'B-编辑中的修改' },
     });
     await act(async () => {
-      fireEvent.click(screen.getByText('刷新数据'));
+      fireEvent.click(screen.getByText('刷新'));
     });
     await confirmRefreshIfOpen();
     await act(async () => {
@@ -651,7 +651,7 @@ describe('订单详情页未保存修改与记录身份', () => {
     );
 
     await act(async () => {
-      fireEvent.click(screen.getByText('刷新数据'));
+      fireEvent.click(screen.getByText('刷新'));
     });
     await confirmRefreshIfOpen();
 
@@ -699,7 +699,7 @@ describe('订单详情页未保存修改与记录身份', () => {
       target: { value: 'A-未保存修改' },
     });
     await act(async () => {
-      fireEvent.click(screen.getByText('刷新数据'));
+      fireEvent.click(screen.getByText('刷新'));
     });
     await confirmRefreshIfOpen();
 

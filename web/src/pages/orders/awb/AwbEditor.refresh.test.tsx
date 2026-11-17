@@ -7,7 +7,7 @@ describe('航空制作显式刷新', () => {
     state.read.mockRejectedValueOnce(new Error('受控读取失败'));
     renderAwb();
     const input = await editRemarks('刷新失败保留稿');
-    fireEvent.click(screen.getByRole('button', { name: '刷新资料' }));
+    fireEvent.click(screen.getByRole('button', { name: /刷新/ }));
     fireEvent.click(await screen.findByRole('button', { name: '确认刷新' }));
     await screen.findByText('受控读取失败');
     expect(input).toHaveValue('刷新失败保留稿');
@@ -22,7 +22,7 @@ describe('航空制作显式刷新', () => {
         }),
     );
     renderAwb();
-    fireEvent.click(screen.getByRole('button', { name: '刷新资料' }));
+    fireEvent.click(screen.getByRole('button', { name: /刷新/ }));
     await waitFor(() => expect(state.read).toHaveBeenCalledOnce());
     const input = await editRemarks('刷新途中继续的新输入');
     const updated = structuredClone(state.bundle.order);

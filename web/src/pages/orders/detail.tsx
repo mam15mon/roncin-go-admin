@@ -1286,7 +1286,7 @@ export default function OrderDetailPage() {
       if (isTabDirty(resolveTabKey(pathname))) {
         await Promise.all([loadData(), refreshLockState()]);
         throw new Error(
-          '详情页有未保存修改，输入已保留，请使用“刷新数据”确认更新。',
+          '详情页有未保存修改，输入已保留，请使用“刷新”确认更新。',
         );
       }
       const [refreshed] = await Promise.all([
@@ -1327,7 +1327,7 @@ export default function OrderDetailPage() {
           {
             key: 'reload-data',
             icon: <ReloadOutlined />,
-            label: '刷新数据',
+            label: '刷新',
             onClick: () => {
               requestOrderRefresh(features.refreshTypeState);
             },

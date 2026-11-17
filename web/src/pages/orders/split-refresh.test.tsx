@@ -24,7 +24,7 @@ describe('拆票基线刷新与编辑保护', () => {
     );
     fireEvent.change(note, { target: { value: '保留我的拆票说明' } });
     fireEvent.click(
-      screen.getByText('刷新数据').closest('button') as HTMLButtonElement,
+      screen.getByText('刷新').closest('button') as HTMLButtonElement,
     );
     const cancel = (await screen.findByText('保留编辑')).closest(
       'button',
@@ -35,7 +35,7 @@ describe('拆票基线刷新与编辑保护', () => {
     expect(splitServices.context).toHaveBeenCalledTimes(1);
 
     fireEvent.click(
-      screen.getByText('刷新数据').closest('button') as HTMLButtonElement,
+      screen.getByText('刷新').closest('button') as HTMLButtonElement,
     );
     const confirm = (await screen.findByText('确认刷新')).closest(
       'button',

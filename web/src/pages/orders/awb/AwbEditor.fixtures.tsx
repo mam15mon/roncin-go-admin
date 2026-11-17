@@ -128,7 +128,7 @@ export function saveAwb() {
   fireEvent.click(screen.getByRole('button', { name: '保存正文' }));
 }
 export function outputAwb() {
-  fireEvent.click(screen.getByRole('button', { name: '预览 / 下载 / 打印' }));
+  fireEvent.click(screen.getByRole('button', { name: '预览 / 打印 / 下载' }));
 }
 export function makeImportBundle() {
   state.bundle.master.businessType = 'AI';

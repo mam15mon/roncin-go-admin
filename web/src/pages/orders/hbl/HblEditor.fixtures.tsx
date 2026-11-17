@@ -187,7 +187,7 @@ export async function preview() {
   await act(async () =>
     fireEvent.click(
       screen
-        .getAllByText('预览／打印／下载')[0]
+        .getAllByText('预览 / 打印 / 下载')[0]
         .closest('button') as HTMLElement,
     ),
   );

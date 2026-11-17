@@ -50,10 +50,10 @@ describe('航空制作保存与输入保护', () => {
     renderAwb();
     const input = await editRemarks('冲突草稿');
     saveAwb();
-    await screen.findByText('请刷新资料核对保存结果，当前输入已保留。');
+    await screen.findByText('请刷新后核对保存结果，当前输入已保留。');
     expect(input).toHaveValue('冲突草稿');
     expect(
-      screen.getByRole('button', { name: '预览 / 下载 / 打印' }),
+      screen.getByRole('button', { name: '预览 / 打印 / 下载' }),
     ).toBeDisabled();
     expect(state.preview).not.toHaveBeenCalled();
   });
@@ -71,7 +71,7 @@ describe('航空制作保存与输入保护', () => {
     renderAwb();
     const input = await editRemarks('旧版本草稿');
     saveAwb();
-    await screen.findByText('请刷新资料核对保存结果，当前输入已保留。');
+    await screen.findByText('请刷新后核对保存结果，当前输入已保留。');
     expect(input).toHaveValue('旧版本草稿');
     expect(state.preview).not.toHaveBeenCalled();
   });
@@ -98,7 +98,7 @@ describe('航空制作保存与输入保护', () => {
         ),
       }),
     );
-    await screen.findByText('请刷新资料核对保存结果，当前输入已保留。');
+    await screen.findByText('请刷新后核对保存结果，当前输入已保留。');
     expect(input).toHaveValue('保存途中继续的新稿');
     expect(state.preview).not.toHaveBeenCalled();
   });

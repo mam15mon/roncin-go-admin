@@ -685,7 +685,7 @@ test('AE与AI适用主分运单制作、保存快照、真实PDF与生产按需�
     await page.goto(`${base}/orders/sea-export/${hbl.id}/hbl`);
     await expect(page.getByLabel('HBL 输出版本')).toBeVisible();
     await page
-      .getByRole('button', { name: /预览／打印／下载/ })
+      .getByRole('button', { name: /预览 \/ 打印 \/ 下载/ })
       .first()
       .click();
     const preview = page.getByRole('dialog', { name: /HBL 预览/ });

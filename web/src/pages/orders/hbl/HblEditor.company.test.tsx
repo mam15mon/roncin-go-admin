@@ -33,7 +33,7 @@ describe('HBL 签发公司抬头', () => {
         screen.getByText(variant, { selector: '.ant-segmented-item-label' }),
       );
       expect(
-        screen.getAllByRole('button', { name: /预览／打印／下载/ })[0],
+        screen.getAllByRole('button', { name: /预览 \/ 打印 \/ 下载/ })[0],
       ).toBeDisabled();
     }
     const input = screen.getByLabelText('发货人 (Shipper)');

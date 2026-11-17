@@ -16,7 +16,7 @@ describe('航空制作输出前复核', () => {
     outputAwb();
     await screen.findByText('请先保存正文后再输出。');
     expect(state.preview).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole('button', { name: '刷新资料' }));
+    fireEvent.click(screen.getByRole('button', { name: /刷新/ }));
     await screen.findAllByText('刷新会覆盖尚未保存的航空运单正文，是否继续？');
     fireEvent.click(screen.getByRole('button', { name: '保留编辑' }));
     expect(input).toHaveValue('未保存稿');
@@ -60,7 +60,7 @@ describe('航空制作输出前复核', () => {
     makeImportBundle();
     renderAwb('HAWB', { businessType: OrderBusinessType.BUSINESS_TYPE_AI });
     expect(
-      screen.getByRole('button', { name: '预览 / 下载 / 打印' }),
+      screen.getByRole('button', { name: '预览 / 打印 / 下载' }),
     ).toBeDisabled();
     const input = await editRemarks('可维护的外部归档稿');
     expect(input).toBeEnabled();

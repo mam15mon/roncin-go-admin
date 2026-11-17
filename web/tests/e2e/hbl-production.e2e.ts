@@ -153,7 +153,7 @@ async function installFixture(
 
 async function openPreview(page: Page) {
   await page
-    .getByRole('button', { name: /预览／打印／下载/ })
+    .getByRole('button', { name: /预览 \/ 打印 \/ 下载/ })
     .first()
     .click();
   const dialog = page.getByRole('dialog', { name: /HBL 预览/ });
@@ -274,7 +274,7 @@ test('签发公司缺英文名仍可保存 HBL，补齐后刷新恢复输出', a
   });
   await expect(missingName).toBeVisible();
   await expect(
-    page.getByRole('button', { name: /预览／打印／下载/ }).first(),
+    page.getByRole('button', { name: /预览 \/ 打印 \/ 下载/ }).first(),
   ).toBeDisabled();
   await page
     .getByLabel('货物描述 (Description of Goods)', { exact: true })
@@ -286,7 +286,7 @@ test('签发公司缺英文名仍可保存 HBL，补齐后刷新恢复输出', a
   await expect(page.getByText('HBL 制作资料已保存')).toBeVisible();
   expect(state.writes).toHaveLength(1);
   state.setIssuerNameEn('HBL UPDATED ISSUER COMPANY LTD');
-  await page.getByRole('button', { name: /刷新资料/ }).click();
+  await page.getByRole('button', { name: /刷新/ }).click();
   await expect(missingName).toHaveCount(0);
   const { download } = await openPreview(page);
   const pending = page.waitForEvent('download');
@@ -315,7 +315,7 @@ test('签发公司英文名变化关闭旧预览并提醒刷新，保留未保�
     exact: true,
   });
   await description.fill('保留当前输入 / PRESERVED-INPUT');
-  await page.getByRole('button', { name: /刷新资料/ }).click();
+  await page.getByRole('button', { name: /刷新/ }).click();
   const confirmation = page.getByRole('dialog', { name: '确认替换当前内容？' });
   await expect(confirmation).toBeVisible();
   await confirmation.getByRole('button', { name: '保留当前内容' }).click();

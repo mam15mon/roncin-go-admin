@@ -999,7 +999,7 @@ export default function SeaOrderSplitPage() {
           tags={<Tag color="blue">海运出口 (HOUSE)</Tag>}
           extra={
             <Button icon={<ReloadOutlined />} onClick={handleRefresh}>
-              刷新数据
+              刷新
             </Button>
           }
         />
@@ -1211,7 +1211,7 @@ export default function SeaOrderSplitPage() {
           }
         >
           <Button onClick={() => history.push(`/orders/sea-export/${orderId}`)}>
-            取消返回
+            返回订单
           </Button>
           <AsyncPopconfirm
             title="确认提交拆票"

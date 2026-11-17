@@ -663,7 +663,7 @@ describe('订单费用页外部变动提示与刷新保护', () => {
   it('无草稿时刷新直接重建两张费用表并同步检查参考点', async () => {
     renderFeesPage();
     const token = await screen.findByTestId('fee-reload-token');
-    fireEvent.click(screen.getByRole('button', { name: /刷新数据/ }));
+    fireEvent.click(screen.getByRole('button', { name: /刷新/ }));
     await waitFor(() => expect(token).toHaveTextContent('1'));
     expect(feeTestState.rebaseline).toHaveBeenCalled();
   });
@@ -672,7 +672,7 @@ describe('订单费用页外部变动提示与刷新保护', () => {
     renderFeesPage();
     const token = await screen.findByTestId('fee-reload-token');
     fireEvent.click(screen.getByRole('button', { name: '产生费用草稿' }));
-    fireEvent.click(screen.getByRole('button', { name: /刷新数据/ }));
+    fireEvent.click(screen.getByRole('button', { name: /刷新/ }));
     expect(
       (await screen.findAllByText('刷新将丢弃未保存的费用修改')).length,
     ).toBeGreaterThan(0);
@@ -687,7 +687,7 @@ describe('订单费用页外部变动提示与刷新保护', () => {
     renderFeesPage();
     const token = await screen.findByTestId('fee-reload-token');
     fireEvent.click(screen.getByRole('button', { name: '产生费用草稿' }));
-    fireEvent.click(screen.getByRole('button', { name: /刷新数据/ }));
+    fireEvent.click(screen.getByRole('button', { name: /刷新/ }));
     fireEvent.click(await screen.findByRole('button', { name: /确认刷新/ }));
     await waitFor(() => expect(token).toHaveTextContent('1'));
     expect(feeTestState.rebaseline).toHaveBeenCalled();

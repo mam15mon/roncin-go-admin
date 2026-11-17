@@ -484,7 +484,7 @@ export default function OrderFeesPage() {
         }
         extra={
           <Button icon={<ReloadOutlined />} onClick={refreshFeeWorkbench}>
-            刷新数据
+            刷新
           </Button>
         }
       />

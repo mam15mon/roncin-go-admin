@@ -214,9 +214,7 @@ export default function HblEditor({
       !values.source?.linkVersion ||
       values.source.houseId !== house.id
     ) {
-      message.error(
-        '制作草稿与当前 HBL 不一致，输入已保留，请刷新资料后重试。',
-      );
+      message.error('制作草稿与当前 HBL 不一致，输入已保留，请刷新后重试。');
       return false;
     }
     setRefreshing(true);
@@ -429,7 +427,7 @@ export default function HblEditor({
       disabled={busy || Boolean(outputBlocked)}
       onClick={() => void requestPreview()}
     >
-      预览／打印／下载
+      预览 / 打印 / 下载
     </Button>
   );
   const saveButton = (
@@ -488,7 +486,7 @@ export default function HblEditor({
                   disabled={busy}
                   onClick={requestRefresh}
                 >
-                  刷新资料
+                  刷新
                 </Button>
                 {previewButton}
                 {saveButton}

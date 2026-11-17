@@ -582,7 +582,7 @@ describe('订单详情页拆票与改配动作隔离', () => {
     );
   });
 
-  it('显式刷新数据在当前加载完成后才用最新服务端值重置表单', async () => {
+  it('显式刷新在当前加载完成后才用最新服务端值重置表单', async () => {
     const pendingLoad = deferred<void>();
     detailTestState.loadData.mockImplementation(() => pendingLoad.promise);
     mockGetChangeActions.mockResolvedValue({ data: {} } as never);

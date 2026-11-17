@@ -28,7 +28,7 @@ describe('HBL 签发公司抬头变动', () => {
       await screen.findByText('这个订单已经发生变动，请重新刷新。'),
     ).toBeVisible();
     expect(input).toHaveValue('未保存输入');
-    fireEvent.click(screen.getByRole('button', { name: /刷新资料/ }));
+    fireEvent.click(screen.getByRole('button', { name: /刷新/ }));
     await waitFor(() =>
       expect(
         screen.getByRole('dialog', { name: '确认替换当前内容？' }),
@@ -36,7 +36,7 @@ describe('HBL 签发公司抬头变动', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: '保留当前内容' }));
     expect(input).toHaveValue('未保存输入');
-    fireEvent.click(screen.getByRole('button', { name: /刷新资料/ }));
+    fireEvent.click(screen.getByRole('button', { name: /刷新/ }));
     fireEvent.click(await screen.findByRole('button', { name: '确定替换' }));
     await screen.findByDisplayValue('原发货人');
     await preview();
@@ -68,7 +68,7 @@ describe('HBL 签发公司抬头变动', () => {
     state.preview.mockClear();
     await act(async () =>
       fireEvent.click(
-        screen.getAllByRole('button', { name: /预览／打印／下载/ })[0],
+        screen.getAllByRole('button', { name: /预览 \/ 打印 \/ 下载/ })[0],
       ),
     );
     expect(state.preview).not.toHaveBeenCalled();

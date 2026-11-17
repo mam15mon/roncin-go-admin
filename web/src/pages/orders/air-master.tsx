@@ -1,3 +1,4 @@
+import { ReloadOutlined } from '@ant-design/icons';
 import {
   type ActionType,
   PageContainer,
@@ -361,7 +362,9 @@ function AirMasterContent({
                 </Button>
               </>
             )}
-            <Button onClick={requestRefresh}>刷新</Button>
+            <Button icon={<ReloadOutlined />} onClick={requestRefresh}>
+              刷新
+            </Button>
           </Space>
         }
       />

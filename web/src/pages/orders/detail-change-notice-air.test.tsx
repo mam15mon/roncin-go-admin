@@ -84,7 +84,7 @@ describe('空运详情共用显式刷新保护', () => {
       await view.queryClient.refetchQueries({
         queryKey: ['orders', 'change-notice'],
       });
-      fireEvent.click(screen.getByRole('button', { name: '刷新数据' }));
+      fireEvent.click(screen.getByRole('button', { name: '菜单刷新' }));
     });
     expect(getOrderReadMock()).toHaveBeenCalledOnce();
     const dialog = await screen.findByRole('dialog');

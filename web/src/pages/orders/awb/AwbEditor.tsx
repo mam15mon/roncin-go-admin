@@ -1,3 +1,4 @@
+import { ReloadOutlined } from '@ant-design/icons';
 import {
   PageContainer,
   ProForm,
@@ -379,8 +380,12 @@ export default function AwbEditor({
         breadcrumbs={[{ label: definition.navigationTitle, href: listPath }]}
         tags={<Tag color="blue">{target}</Tag>}
         actions={
-          <Button onClick={requestRefresh} loading={refreshing}>
-            刷新资料
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={requestRefresh}
+            loading={refreshing}
+          >
+            刷新
           </Button>
         }
       />
@@ -417,7 +422,7 @@ export default function AwbEditor({
           <Alert
             type="warning"
             showIcon
-            title="请刷新资料核对保存结果，当前输入已保留。"
+            title="请刷新后核对保存结果，当前输入已保留。"
           />
         )}
         {blockOutput && <Alert type="warning" title={blockOutput} />}
@@ -478,7 +483,7 @@ export default function AwbEditor({
           loading={checking}
           disabled={busy || syncError || notice.changed || Boolean(blockOutput)}
         >
-          预览 / 下载 / 打印
+          预览 / 打印 / 下载
         </Button>
         {canUpdate && (
           <Button

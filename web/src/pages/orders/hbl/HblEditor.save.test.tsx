@@ -44,7 +44,7 @@ describe('HBL 制作保存与输入保护', () => {
         screen.getAllByRole('button', { name: /保存制作资料/ })[0],
       ).toBeEnabled(),
     );
-    fireEvent.click(screen.getByRole('button', { name: /刷新资料/ }));
+    fireEvent.click(screen.getByRole('button', { name: /刷新/ }));
     const keep = await screen.findByText('保留当前内容', {
       selector: 'button span',
     });

@@ -94,7 +94,7 @@ describe('海运详情变动提醒与真实刷新确认', () => {
       target: { value: 'unsaved-port' },
     });
     await exposeExternalChange(view.queryClient);
-    for (const entry of ['刷新', '刷新数据']) {
+    for (const entry of ['刷新', '菜单刷新']) {
       await click(entry);
       const title = await screen.findByText('刷新订单资料', {
         selector: '.ant-modal-confirm-title',
@@ -163,7 +163,7 @@ describe('海运详情变动提醒与真实刷新确认', () => {
       target: { value: 'unsaved-port' },
     });
     await exposeExternalChange(view.queryClient);
-    await click('刷新数据');
+    await click('菜单刷新');
     await confirmRefresh();
     const errorMessage = await screen.findByText(
       '刷新失败，输入已保留，请稍后重试。',
@@ -184,7 +184,7 @@ describe('海运详情变动提醒与真实刷新确认', () => {
     fireEvent.change(screen.getByLabelText('起运港'), {
       target: { value: 'order-one-draft' },
     });
-    await click('刷新数据');
+    await click('菜单刷新');
     const title = await screen.findByText('刷新订单资料', {
       selector: '.ant-modal-confirm-title',
     });
@@ -222,7 +222,7 @@ describe('海运详情变动提醒与真实刷新确认', () => {
     renderDetail();
     advanceVersion('5');
     state.order.originLocationId = 'latest-port';
-    await click('刷新数据');
+    await click('菜单刷新');
     await waitFor(() => expect(state.loadData).toHaveBeenCalledOnce());
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(screen.getByLabelText('起运港')).toHaveValue('latest-port');
