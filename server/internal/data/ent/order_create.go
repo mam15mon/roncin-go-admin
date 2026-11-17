@@ -491,20 +491,6 @@ func (_c *OrderCreate) SetNillableContainerOwnership(v *order.ContainerOwnership
 	return _c
 }
 
-// SetShipmentMode sets the "shipment_mode" field.
-func (_c *OrderCreate) SetShipmentMode(v order.ShipmentMode) *OrderCreate {
-	_c.mutation.SetShipmentMode(v)
-	return _c
-}
-
-// SetNillableShipmentMode sets the "shipment_mode" field if the given value is not nil.
-func (_c *OrderCreate) SetNillableShipmentMode(v *order.ShipmentMode) *OrderCreate {
-	if v != nil {
-		_c.SetShipmentMode(*v)
-	}
-	return _c
-}
-
 // SetFlowStatus sets the "flow_status" field.
 func (_c *OrderCreate) SetFlowStatus(v order.FlowStatus) *OrderCreate {
 	_c.mutation.SetFlowStatus(v)
@@ -1927,11 +1913,6 @@ func (_c *OrderCreate) check() error {
 			return &ValidationError{Name: "container_ownership", err: fmt.Errorf(`ent: validator failed for field "Order.container_ownership": %w`, err)}
 		}
 	}
-	if v, ok := _c.mutation.ShipmentMode(); ok {
-		if err := order.ShipmentModeValidator(v); err != nil {
-			return &ValidationError{Name: "shipment_mode", err: fmt.Errorf(`ent: validator failed for field "Order.shipment_mode": %w`, err)}
-		}
-	}
 	if _, ok := _c.mutation.FlowStatus(); !ok {
 		return &ValidationError{Name: "flow_status", err: errors.New(`ent: missing required field "Order.flow_status"`)}
 	}
@@ -2263,10 +2244,6 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.ContainerOwnership(); ok {
 		_spec.SetField(order.FieldContainerOwnership, field.TypeEnum, value)
 		_node.ContainerOwnership = &value
-	}
-	if value, ok := _c.mutation.ShipmentMode(); ok {
-		_spec.SetField(order.FieldShipmentMode, field.TypeEnum, value)
-		_node.ShipmentMode = &value
 	}
 	if value, ok := _c.mutation.FlowStatus(); ok {
 		_spec.SetField(order.FieldFlowStatus, field.TypeEnum, value)
@@ -3555,24 +3532,6 @@ func (u *OrderUpsert) UpdateContainerOwnership() *OrderUpsert {
 // ClearContainerOwnership clears the value of the "container_ownership" field.
 func (u *OrderUpsert) ClearContainerOwnership() *OrderUpsert {
 	u.SetNull(order.FieldContainerOwnership)
-	return u
-}
-
-// SetShipmentMode sets the "shipment_mode" field.
-func (u *OrderUpsert) SetShipmentMode(v order.ShipmentMode) *OrderUpsert {
-	u.Set(order.FieldShipmentMode, v)
-	return u
-}
-
-// UpdateShipmentMode sets the "shipment_mode" field to the value that was provided on create.
-func (u *OrderUpsert) UpdateShipmentMode() *OrderUpsert {
-	u.SetExcluded(order.FieldShipmentMode)
-	return u
-}
-
-// ClearShipmentMode clears the value of the "shipment_mode" field.
-func (u *OrderUpsert) ClearShipmentMode() *OrderUpsert {
-	u.SetNull(order.FieldShipmentMode)
 	return u
 }
 
@@ -5070,27 +5029,6 @@ func (u *OrderUpsertOne) UpdateContainerOwnership() *OrderUpsertOne {
 func (u *OrderUpsertOne) ClearContainerOwnership() *OrderUpsertOne {
 	return u.Update(func(s *OrderUpsert) {
 		s.ClearContainerOwnership()
-	})
-}
-
-// SetShipmentMode sets the "shipment_mode" field.
-func (u *OrderUpsertOne) SetShipmentMode(v order.ShipmentMode) *OrderUpsertOne {
-	return u.Update(func(s *OrderUpsert) {
-		s.SetShipmentMode(v)
-	})
-}
-
-// UpdateShipmentMode sets the "shipment_mode" field to the value that was provided on create.
-func (u *OrderUpsertOne) UpdateShipmentMode() *OrderUpsertOne {
-	return u.Update(func(s *OrderUpsert) {
-		s.UpdateShipmentMode()
-	})
-}
-
-// ClearShipmentMode clears the value of the "shipment_mode" field.
-func (u *OrderUpsertOne) ClearShipmentMode() *OrderUpsertOne {
-	return u.Update(func(s *OrderUpsert) {
-		s.ClearShipmentMode()
 	})
 }
 
@@ -6894,27 +6832,6 @@ func (u *OrderUpsertBulk) UpdateContainerOwnership() *OrderUpsertBulk {
 func (u *OrderUpsertBulk) ClearContainerOwnership() *OrderUpsertBulk {
 	return u.Update(func(s *OrderUpsert) {
 		s.ClearContainerOwnership()
-	})
-}
-
-// SetShipmentMode sets the "shipment_mode" field.
-func (u *OrderUpsertBulk) SetShipmentMode(v order.ShipmentMode) *OrderUpsertBulk {
-	return u.Update(func(s *OrderUpsert) {
-		s.SetShipmentMode(v)
-	})
-}
-
-// UpdateShipmentMode sets the "shipment_mode" field to the value that was provided on create.
-func (u *OrderUpsertBulk) UpdateShipmentMode() *OrderUpsertBulk {
-	return u.Update(func(s *OrderUpsert) {
-		s.UpdateShipmentMode()
-	})
-}
-
-// ClearShipmentMode clears the value of the "shipment_mode" field.
-func (u *OrderUpsertBulk) ClearShipmentMode() *OrderUpsertBulk {
-	return u.Update(func(s *OrderUpsert) {
-		s.ClearShipmentMode()
 	})
 }
 

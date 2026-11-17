@@ -87,8 +87,6 @@ const (
 	FieldShipmentType = "shipment_type"
 	// FieldContainerOwnership holds the string denoting the container_ownership field in the database.
 	FieldContainerOwnership = "container_ownership"
-	// FieldShipmentMode holds the string denoting the shipment_mode field in the database.
-	FieldShipmentMode = "shipment_mode"
 	// FieldFlowStatus holds the string denoting the flow_status field in the database.
 	FieldFlowStatus = "flow_status"
 	// FieldTerminationStatus holds the string denoting the termination_status field in the database.
@@ -522,7 +520,6 @@ var Columns = []string{
 	FieldPaymentTerm,
 	FieldShipmentType,
 	FieldContainerOwnership,
-	FieldShipmentMode,
 	FieldFlowStatus,
 	FieldTerminationStatus,
 	FieldTerminationType,
@@ -867,29 +864,6 @@ func ContainerOwnershipValidator(co ContainerOwnership) error {
 		return nil
 	default:
 		return fmt.Errorf("order: invalid enum value for container_ownership field: %q", co)
-	}
-}
-
-// ShipmentMode defines the type for the "shipment_mode" enum field.
-type ShipmentMode string
-
-// ShipmentMode values.
-const (
-	ShipmentModeTRADITIONAL_FORWARDING ShipmentMode = "TRADITIONAL_FORWARDING"
-	ShipmentModeCROSS_BORDER           ShipmentMode = "CROSS_BORDER"
-)
-
-func (sm ShipmentMode) String() string {
-	return string(sm)
-}
-
-// ShipmentModeValidator is a validator for the "shipment_mode" field enum values. It is called by the builders before save.
-func ShipmentModeValidator(sm ShipmentMode) error {
-	switch sm {
-	case ShipmentModeTRADITIONAL_FORWARDING, ShipmentModeCROSS_BORDER:
-		return nil
-	default:
-		return fmt.Errorf("order: invalid enum value for shipment_mode field: %q", sm)
 	}
 }
 
@@ -1265,11 +1239,6 @@ func ByShipmentType(opts ...sql.OrderTermOption) OrderOption {
 // ByContainerOwnership orders the results by the container_ownership field.
 func ByContainerOwnership(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldContainerOwnership, opts...).ToFunc()
-}
-
-// ByShipmentMode orders the results by the shipment_mode field.
-func ByShipmentMode(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldShipmentMode, opts...).ToFunc()
 }
 
 // ByFlowStatus orders the results by the flow_status field.

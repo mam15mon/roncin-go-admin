@@ -449,40 +449,6 @@ func (s *OrderService) ListPersonnelOptions(ctx context.Context, request *v1.Lis
 	return okList(ctx, &v1.ListPersonnelOptionsResponse{Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize)}), nil
 }
 
-func (s *OrderService) ListOrderConsolidations(ctx context.Context, request *v1.ListOrderConsolidationsRequest) (*v1.ListOrderConsolidationsResponse, error) {
-	principal, principalErr := biz.RequirePrincipal(ctx)
-	if principalErr != nil {
-		return nil, principalErr
-	}
-	orderID, err := uuid.Parse(request.GetId())
-	if err != nil {
-		return nil, biz.ErrOrderInvalidArgument
-	}
-	items, err := s.usecase.ListConsolidationSummaries(ctx, principal.Organization.ID, orderID)
-	if err != nil {
-		return nil, err
-	}
-	data := make([]*v1.OrderConsolidationSummary, 0, len(items))
-	for _, item := range items {
-		members := make([]*v1.OrderConsolidationMember, 0, len(item.Members))
-		for _, member := range item.Members {
-			members = append(members, &v1.OrderConsolidationMember{
-				OrderId: member.OrderID.String(), OrderNo: member.OrderNo, CustomerReferenceNo: stringPtrIfNotEmpty(member.CustomerReferenceNo), HouseNos: member.HouseNos,
-				Entrusted: cargoMeasurementToAPI(member.Entrusted), Actual: cargoMeasurementToAPI(member.Actual),
-			})
-		}
-		data = append(data, &v1.OrderConsolidationSummary{
-			ConsolidationId: item.ConsolidationID.String(), MasterNo: item.MasterNo, MemberCount: int32(len(item.Members)),
-			Entrusted: cargoMeasurementToAPI(item.Entrusted), Actual: cargoMeasurementToAPI(item.Actual), Members: members,
-		})
-	}
-	return okList(ctx, &v1.ListOrderConsolidationsResponse{Data: data}), nil
-}
-
-func cargoMeasurementToAPI(value biz.OrderCargoMeasurement) *v1.OrderCargoMeasurement {
-	return &v1.OrderCargoMeasurement{Packages: int32(value.Packages), GrossWeightKg: value.GrossWeightKg, VolumeCbm: value.VolumeCbm}
-}
-
 func (s *OrderService) ListSameBatchOrders(ctx context.Context, request *v1.ListSameBatchOrdersRequest) (*v1.ListSameBatchOrdersResponse, error) {
 	principal, principalErr := biz.RequirePrincipal(ctx)
 	if principalErr != nil {

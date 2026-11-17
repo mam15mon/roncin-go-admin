@@ -295,8 +295,8 @@ describe('AE 新建与详情五卡片合同', () => {
     );
     const business = screen.getByRole('region', { name: '业务与客户' });
     const cargo = screen.getByRole('region', { name: '货物与商业' });
-    // 与海运同归属：业务卡只留客户、单号与集运/跨境；经营条款与金额随货物卡，备注不在货物卡。
-    expect(business).toHaveTextContent('集运/跨境');
+    // 与海运同归属：业务卡只留客户与单号；经营条款与金额随货物卡，备注不在货物卡。
+    expect(business).not.toHaveTextContent('集运/跨境');
     for (const label of ['贸易条款', '业务付款方式', '合约号', '订舱代理']) {
       expect(business).not.toHaveTextContent(label);
     }

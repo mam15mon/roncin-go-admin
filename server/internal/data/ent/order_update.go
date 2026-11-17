@@ -642,26 +642,6 @@ func (_u *OrderUpdate) ClearContainerOwnership() *OrderUpdate {
 	return _u
 }
 
-// SetShipmentMode sets the "shipment_mode" field.
-func (_u *OrderUpdate) SetShipmentMode(v order.ShipmentMode) *OrderUpdate {
-	_u.mutation.SetShipmentMode(v)
-	return _u
-}
-
-// SetNillableShipmentMode sets the "shipment_mode" field if the given value is not nil.
-func (_u *OrderUpdate) SetNillableShipmentMode(v *order.ShipmentMode) *OrderUpdate {
-	if v != nil {
-		_u.SetShipmentMode(*v)
-	}
-	return _u
-}
-
-// ClearShipmentMode clears the value of the "shipment_mode" field.
-func (_u *OrderUpdate) ClearShipmentMode() *OrderUpdate {
-	_u.mutation.ClearShipmentMode()
-	return _u
-}
-
 // SetFlowStatus sets the "flow_status" field.
 func (_u *OrderUpdate) SetFlowStatus(v order.FlowStatus) *OrderUpdate {
 	_u.mutation.SetFlowStatus(v)
@@ -2863,11 +2843,6 @@ func (_u *OrderUpdate) check() error {
 			return &ValidationError{Name: "container_ownership", err: fmt.Errorf(`ent: validator failed for field "Order.container_ownership": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.ShipmentMode(); ok {
-		if err := order.ShipmentModeValidator(v); err != nil {
-			return &ValidationError{Name: "shipment_mode", err: fmt.Errorf(`ent: validator failed for field "Order.shipment_mode": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.FlowStatus(); ok {
 		if err := order.FlowStatusValidator(v); err != nil {
 			return &ValidationError{Name: "flow_status", err: fmt.Errorf(`ent: validator failed for field "Order.flow_status": %w`, err)}
@@ -3173,12 +3148,6 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.ContainerOwnershipCleared() {
 		_spec.ClearField(order.FieldContainerOwnership, field.TypeEnum)
-	}
-	if value, ok := _u.mutation.ShipmentMode(); ok {
-		_spec.SetField(order.FieldShipmentMode, field.TypeEnum, value)
-	}
-	if _u.mutation.ShipmentModeCleared() {
-		_spec.ClearField(order.FieldShipmentMode, field.TypeEnum)
 	}
 	if value, ok := _u.mutation.FlowStatus(); ok {
 		_spec.SetField(order.FieldFlowStatus, field.TypeEnum, value)
@@ -5471,26 +5440,6 @@ func (_u *OrderUpdateOne) ClearContainerOwnership() *OrderUpdateOne {
 	return _u
 }
 
-// SetShipmentMode sets the "shipment_mode" field.
-func (_u *OrderUpdateOne) SetShipmentMode(v order.ShipmentMode) *OrderUpdateOne {
-	_u.mutation.SetShipmentMode(v)
-	return _u
-}
-
-// SetNillableShipmentMode sets the "shipment_mode" field if the given value is not nil.
-func (_u *OrderUpdateOne) SetNillableShipmentMode(v *order.ShipmentMode) *OrderUpdateOne {
-	if v != nil {
-		_u.SetShipmentMode(*v)
-	}
-	return _u
-}
-
-// ClearShipmentMode clears the value of the "shipment_mode" field.
-func (_u *OrderUpdateOne) ClearShipmentMode() *OrderUpdateOne {
-	_u.mutation.ClearShipmentMode()
-	return _u
-}
-
 // SetFlowStatus sets the "flow_status" field.
 func (_u *OrderUpdateOne) SetFlowStatus(v order.FlowStatus) *OrderUpdateOne {
 	_u.mutation.SetFlowStatus(v)
@@ -7705,11 +7654,6 @@ func (_u *OrderUpdateOne) check() error {
 			return &ValidationError{Name: "container_ownership", err: fmt.Errorf(`ent: validator failed for field "Order.container_ownership": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.ShipmentMode(); ok {
-		if err := order.ShipmentModeValidator(v); err != nil {
-			return &ValidationError{Name: "shipment_mode", err: fmt.Errorf(`ent: validator failed for field "Order.shipment_mode": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.FlowStatus(); ok {
 		if err := order.FlowStatusValidator(v); err != nil {
 			return &ValidationError{Name: "flow_status", err: fmt.Errorf(`ent: validator failed for field "Order.flow_status": %w`, err)}
@@ -8032,12 +7976,6 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 	}
 	if _u.mutation.ContainerOwnershipCleared() {
 		_spec.ClearField(order.FieldContainerOwnership, field.TypeEnum)
-	}
-	if value, ok := _u.mutation.ShipmentMode(); ok {
-		_spec.SetField(order.FieldShipmentMode, field.TypeEnum, value)
-	}
-	if _u.mutation.ShipmentModeCleared() {
-		_spec.ClearField(order.FieldShipmentMode, field.TypeEnum)
 	}
 	if value, ok := _u.mutation.FlowStatus(); ok {
 		_spec.SetField(order.FieldFlowStatus, field.TypeEnum, value)

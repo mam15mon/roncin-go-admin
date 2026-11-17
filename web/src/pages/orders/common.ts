@@ -10,7 +10,6 @@ import {
   OrderShippingDocumentStatus,
   PartnerRoleType,
   PaymentTerm,
-  ShipmentMode,
   ShipmentType,
   TradeDirection,
   TradeTerm,
@@ -96,14 +95,6 @@ export const shipmentTypeOptions = [
 export const containerOwnershipOptions = [
   { label: '船东箱 (COC)', value: ContainerOwnership.CONTAINER_OWNERSHIP_COC },
   { label: '自备箱 (SOC)', value: ContainerOwnership.CONTAINER_OWNERSHIP_SOC },
-];
-
-export const shipmentModeOptions = [
-  {
-    label: '集运',
-    value: ShipmentMode.SHIPMENT_MODE_TRADITIONAL_FORWARDING,
-  },
-  { label: '跨境', value: ShipmentMode.SHIPMENT_MODE_CROSS_BORDER },
 ];
 
 export const shippingDocumentStatusValueEnum: Record<

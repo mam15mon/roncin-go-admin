@@ -64,8 +64,6 @@ func orderRowsWithShipmentType(id, orgID uuid.UUID, shipmentType string) *sqlmoc
 			values[i] = shipmentType
 		case orderent.FieldContainerOwnership:
 			values[i] = "COC"
-		case orderent.FieldShipmentMode:
-			values[i] = "TRADITIONAL_FORWARDING"
 		case orderent.FieldFlowStatus:
 			values[i] = "CONFIRMED"
 		case orderent.FieldTerminationStatus:

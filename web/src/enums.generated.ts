@@ -391,14 +391,6 @@ export const ContainerOwnership = {
 
 export type ContainerOwnership = (typeof ContainerOwnership)[keyof typeof ContainerOwnership];
 
-export const ShipmentMode = {
-  SHIPMENT_MODE_UNSPECIFIED: 0,
-  SHIPMENT_MODE_TRADITIONAL_FORWARDING: 1,
-  SHIPMENT_MODE_CROSS_BORDER: 2,
-} as const;
-
-export type ShipmentMode = (typeof ShipmentMode)[keyof typeof ShipmentMode];
-
 export const DangerousPackingGroup = {
   DANGEROUS_PACKING_GROUP_UNSPECIFIED: 0,
   DANGEROUS_PACKING_GROUP_I: 1,

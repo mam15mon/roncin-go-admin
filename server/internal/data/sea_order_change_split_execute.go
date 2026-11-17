@@ -1247,7 +1247,6 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 					SetPaymentTerm(sourceOrder.PaymentTerm).
 					SetNillableShipmentType(sourceOrder.ShipmentType).
 					SetNillableContainerOwnership(sourceOrder.ContainerOwnership).
-					SetNillableShipmentMode(sourceOrder.ShipmentMode).
 					SetCustomerID(sourceOrder.CustomerID).
 					SetCustomerReferenceNo(sourceOrder.CustomerReferenceNo).
 					SetShipperShortName(sourceOrder.ShipperShortName).

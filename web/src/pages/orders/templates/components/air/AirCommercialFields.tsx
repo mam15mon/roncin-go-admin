@@ -1,6 +1,5 @@
 import {
   ProFormDateTimePicker,
-  ProFormRadio,
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
@@ -12,14 +11,9 @@ import {
   ProFormSearchableSelect,
 } from '@/components/ui';
 import { PartnerRoleType } from '@/enums.generated';
-import {
-  paymentTermOptions,
-  shipmentModeOptions,
-  tradeTermOptions,
-} from '../../../common';
+import { paymentTermOptions, tradeTermOptions } from '../../../common';
 import PartnerQuickAddSelect from '../../../components/PartnerQuickAddSelect';
 import type { TemplateProps } from '../../types';
-import { TemplateControlGroup } from '../FieldGroup';
 import { SeaCollapsibleNotesField } from '../sea/SeaCollapsibleNotesField';
 
 /**
@@ -29,18 +23,6 @@ import { SeaCollapsibleNotesField } from '../sea/SeaCollapsibleNotesField';
  */
 export function getAirCommercialFields(props: TemplateProps) {
   return {
-    shipmentMode: (
-      <FormCell span={2}>
-        <TemplateControlGroup title="集运/跨境">
-          <ProFormRadio.Group
-            name="shipmentMode"
-            fieldProps={{ 'aria-label': '集运/跨境' }}
-            options={shipmentModeOptions}
-            disabled={props.readonly}
-          />
-        </TemplateControlGroup>
-      </FormCell>
-    ),
     trade: (
       <ProFormSearchableSelect
         name="tradeTerm"

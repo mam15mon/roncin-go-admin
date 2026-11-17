@@ -82114,7 +82114,6 @@ type OrderMutation struct {
 	payment_term                            *order.PaymentTerm
 	shipment_type                           *order.ShipmentType
 	container_ownership                     *order.ContainerOwnership
-	shipment_mode                           *order.ShipmentMode
 	flow_status                             *order.FlowStatus
 	termination_status                      *order.TerminationStatus
 	termination_type                        *order.TerminationType
@@ -83904,55 +83903,6 @@ func (m *OrderMutation) ContainerOwnershipCleared() bool {
 func (m *OrderMutation) ResetContainerOwnership() {
 	m.container_ownership = nil
 	delete(m.clearedFields, order.FieldContainerOwnership)
-}
-
-// SetShipmentMode sets the "shipment_mode" field.
-func (m *OrderMutation) SetShipmentMode(om order.ShipmentMode) {
-	m.shipment_mode = &om
-}
-
-// ShipmentMode returns the value of the "shipment_mode" field in the mutation.
-func (m *OrderMutation) ShipmentMode() (r order.ShipmentMode, exists bool) {
-	v := m.shipment_mode
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldShipmentMode returns the old "shipment_mode" field's value of the Order entity.
-// If the Order object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderMutation) OldShipmentMode(ctx context.Context) (v *order.ShipmentMode, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldShipmentMode is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldShipmentMode requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldShipmentMode: %w", err)
-	}
-	return oldValue.ShipmentMode, nil
-}
-
-// ClearShipmentMode clears the value of the "shipment_mode" field.
-func (m *OrderMutation) ClearShipmentMode() {
-	m.shipment_mode = nil
-	m.clearedFields[order.FieldShipmentMode] = struct{}{}
-}
-
-// ShipmentModeCleared returns if the "shipment_mode" field was cleared in this mutation.
-func (m *OrderMutation) ShipmentModeCleared() bool {
-	_, ok := m.clearedFields[order.FieldShipmentMode]
-	return ok
-}
-
-// ResetShipmentMode resets all changes to the "shipment_mode" field.
-func (m *OrderMutation) ResetShipmentMode() {
-	m.shipment_mode = nil
-	delete(m.clearedFields, order.FieldShipmentMode)
 }
 
 // SetFlowStatus sets the "flow_status" field.
@@ -88005,7 +87955,7 @@ func (m *OrderMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderMutation) Fields() []string {
-	fields := make([]string, 0, 83)
+	fields := make([]string, 0, 82)
 	if m.created_at != nil {
 		fields = append(fields, order.FieldCreatedAt)
 	}
@@ -88110,9 +88060,6 @@ func (m *OrderMutation) Fields() []string {
 	}
 	if m.container_ownership != nil {
 		fields = append(fields, order.FieldContainerOwnership)
-	}
-	if m.shipment_mode != nil {
-		fields = append(fields, order.FieldShipmentMode)
 	}
 	if m.flow_status != nil {
 		fields = append(fields, order.FieldFlowStatus)
@@ -88333,8 +88280,6 @@ func (m *OrderMutation) Field(name string) (ent.Value, bool) {
 		return m.ShipmentType()
 	case order.FieldContainerOwnership:
 		return m.ContainerOwnership()
-	case order.FieldShipmentMode:
-		return m.ShipmentMode()
 	case order.FieldFlowStatus:
 		return m.FlowStatus()
 	case order.FieldTerminationStatus:
@@ -88508,8 +88453,6 @@ func (m *OrderMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldShipmentType(ctx)
 	case order.FieldContainerOwnership:
 		return m.OldContainerOwnership(ctx)
-	case order.FieldShipmentMode:
-		return m.OldShipmentMode(ctx)
 	case order.FieldFlowStatus:
 		return m.OldFlowStatus(ctx)
 	case order.FieldTerminationStatus:
@@ -88857,13 +88800,6 @@ func (m *OrderMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetContainerOwnership(v)
-		return nil
-	case order.FieldShipmentMode:
-		v, ok := value.(order.ShipmentMode)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetShipmentMode(v)
 		return nil
 	case order.FieldFlowStatus:
 		v, ok := value.(order.FlowStatus)
@@ -89374,9 +89310,6 @@ func (m *OrderMutation) ClearedFields() []string {
 	if m.FieldCleared(order.FieldContainerOwnership) {
 		fields = append(fields, order.FieldContainerOwnership)
 	}
-	if m.FieldCleared(order.FieldShipmentMode) {
-		fields = append(fields, order.FieldShipmentMode)
-	}
 	if m.FieldCleared(order.FieldTerminationType) {
 		fields = append(fields, order.FieldTerminationType)
 	}
@@ -89567,9 +89500,6 @@ func (m *OrderMutation) ClearField(name string) error {
 		return nil
 	case order.FieldContainerOwnership:
 		m.ClearContainerOwnership()
-		return nil
-	case order.FieldShipmentMode:
-		m.ClearShipmentMode()
 		return nil
 	case order.FieldTerminationType:
 		m.ClearTerminationType()
@@ -89797,9 +89727,6 @@ func (m *OrderMutation) ResetField(name string) error {
 		return nil
 	case order.FieldContainerOwnership:
 		m.ResetContainerOwnership()
-		return nil
-	case order.FieldShipmentMode:
-		m.ResetShipmentMode()
 		return nil
 	case order.FieldFlowStatus:
 		m.ResetFlowStatus()

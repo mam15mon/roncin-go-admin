@@ -2,7 +2,6 @@ import dayjs from 'dayjs';
 import {
   OrderBusinessType,
   OrderPersonnelRole,
-  ShipmentMode,
   TradeDirection,
 } from '@/enums.generated';
 import { getAirTemplateSections } from '../../templates/air-template';
@@ -77,7 +76,6 @@ const personnelFields = [
 
 type CommonValues = Pick<
   CreateOrderFormValues,
-  | 'shipmentMode'
   | 'cargoValue'
   | 'cargoCurrency'
   | 'insurancePremium'
@@ -118,7 +116,6 @@ function commonFields(values: Partial<CommonValues>, clearEmpty = false) {
   const time = (value?: CommonValues['receivedAt'] | null) =>
     value ? dayjs(value).toISOString() : clearEmpty ? '' : undefined;
   return {
-    shipmentMode: values.shipmentMode ?? (clearEmpty ? 0 : undefined),
     cargoValue: text(values.cargoValue),
     cargoCurrency: text(values.cargoCurrency),
     insurancePremium: text(values.insurancePremium),
@@ -203,7 +200,6 @@ export const airExportFormAdapter: OrderKindFormAdapter = {
   buildCreateDefaults: ({ creator, cargoCategoryOptions }) => ({
     orderDate: dayjs(),
     paymentTerm: 1,
-    shipmentMode: ShipmentMode.SHIPMENT_MODE_TRADITIONAL_FORWARDING,
     airMasterMode: 'NEW',
     airDocumentMode: 'HOUSE',
     creatorUserId: creator?.userId,

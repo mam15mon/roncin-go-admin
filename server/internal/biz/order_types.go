@@ -185,17 +185,6 @@ func (v OrderContainerOwnership) Valid() bool {
 	return v == OrderContainerCOC || v == OrderContainerSOC
 }
 
-type OrderShipmentMode string
-
-const (
-	OrderShipmentTraditionalForwarding OrderShipmentMode = "TRADITIONAL_FORWARDING"
-	OrderShipmentCrossBorder           OrderShipmentMode = "CROSS_BORDER"
-)
-
-func (v OrderShipmentMode) Valid() bool {
-	return v == OrderShipmentTraditionalForwarding || v == OrderShipmentCrossBorder
-}
-
 // OrderDangerousPackingGroup 危险品包装类别（IATA DGR）。空值兼「未填」与
 // 「不适用」双语义：Class 1/2/7 没有包装类别，禁止做空值即必填的校验。
 type OrderDangerousPackingGroup string
@@ -316,7 +305,6 @@ type Order struct {
 	PaymentTerm           OrderPaymentTerm
 	ShipmentType          *OrderShipmentType
 	ContainerOwnership    *OrderContainerOwnership
-	ShipmentMode          *OrderShipmentMode
 	FlowStatus            OrderFlowStatus
 	TerminationStatus     OrderTerminationStatus
 	TerminationType       *OrderTerminationType
@@ -426,29 +414,6 @@ type OrderList = PagedList[*Order]
 type OrderExport struct {
 	Items       []*Order
 	GeneratedAt time.Time
-}
-
-type OrderCargoMeasurement struct {
-	Packages      int
-	GrossWeightKg float64
-	VolumeCbm     float64
-}
-
-type OrderConsolidationMember struct {
-	OrderID             uuid.UUID
-	OrderNo             string
-	CustomerReferenceNo string
-	HouseNos            []string
-	Entrusted           OrderCargoMeasurement
-	Actual              OrderCargoMeasurement
-}
-
-type OrderConsolidationSummary struct {
-	ConsolidationID uuid.UUID
-	MasterNo        string
-	Entrusted       OrderCargoMeasurement
-	Actual          OrderCargoMeasurement
-	Members         []*OrderConsolidationMember
 }
 
 type OrderReferenceCheck struct {

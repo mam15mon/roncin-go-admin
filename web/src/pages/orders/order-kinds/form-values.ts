@@ -27,7 +27,6 @@ export type CreateOrderFormValues = {
   receivedAt?: string | dayjs.Dayjs;
   shipmentType?: number;
   containerOwnership?: number;
-  shipmentMode?: number;
   cargoCategoryIds?: string[];
   originLocationId?: string;
   destinationLocationId?: string;

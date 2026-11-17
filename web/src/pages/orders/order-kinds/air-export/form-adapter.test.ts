@@ -318,7 +318,6 @@ describe('空运本票经营字段往返', () => {
       customerId: 'customer',
       airDocumentMode: 'HOUSE',
       paymentTerm: 2,
-      shipmentMode: 2,
       tradeTerm: 1,
       bookingAgentId: 'supplier',
       foreignAgentId: 'agent',
@@ -337,7 +336,6 @@ describe('空运本票经营字段往返', () => {
     });
     expect(payload).toMatchObject({
       paymentTerm: 2,
-      shipmentMode: 2,
       tradeTerm: 1,
       bookingAgentId: 'supplier',
       foreignAgentId: 'agent',
@@ -362,7 +360,6 @@ describe('空运本票经营字段往返', () => {
       {
         customerId: 'customer',
         paymentTerm: 2,
-        shipmentMode: 2,
         cargoValue: '0',
         cargoCurrency: 'USD',
         receivedAt: '2026-11-16T02:20:00Z',
@@ -383,7 +380,6 @@ describe('空运本票经营字段往返', () => {
     });
     expect(payload.receivedAt).toBe('2026-11-16T02:20:00.000Z');
     expect(payload.cargoValue).toBe('0');
-    expect(payload.shipmentMode).toBe(2);
   });
 
   it('更新清空经营字段时发送明确空值，JSON序列化后仍保留清除意图', () => {
@@ -400,7 +396,6 @@ describe('空运本票经营字段往返', () => {
     expect(JSON.parse(JSON.stringify(payload))).toMatchObject({
       id: 'order',
       expectedVersion: '4',
-      shipmentMode: 0,
       tradeTerm: 0,
       bookingAgentId: '',
       foreignAgentId: '',

@@ -106,7 +106,7 @@ describe('页签关闭查询清理', () => {
     ['客户', '关闭其他标签页', ['/partners/suppliers', '/finance/fees']],
     ['客户', '关闭右侧标签页', ['/partners/suppliers', '/finance/fees']],
     [
-      '集运费用明细',
+      '费用明细',
       '关闭左侧标签页',
       ['/partners/customers', '/partners/suppliers'],
     ],

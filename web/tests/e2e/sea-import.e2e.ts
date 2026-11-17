@@ -134,7 +134,6 @@ test('海运进口直单与主分单、服务并行撤回及外部HBL归档真�
     tradeTerm: 3,
     paymentTerm: 1,
     shipmentType: 2,
-    shipmentMode: 1,
     goodsDescription: '海运进口隔离验收货物',
     totalPackages: 2,
     totalGrossWeightKg: 200,

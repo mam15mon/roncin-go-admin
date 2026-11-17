@@ -191,7 +191,7 @@ func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) 
 		DangerousPackingGroup: orderDangerousPackingGroupFromAPI(request.DangerousPackingGroup),
 		BusinessType:          orderBusinessTypeFromAPI(request.GetBusinessType()), TradeDirection: orderTradeDirectionFromAPI(request.GetTradeDirection()),
 		TradeTerm: orderTradeTermFromAPI(request.GetTradeTerm()), PaymentTerm: orderPaymentTermFromAPI(request.GetPaymentTerm()),
-		ShipmentType: orderShipmentTypeFromAPI(request.ShipmentType), ContainerOwnership: orderContainerOwnershipFromAPI(request.ContainerOwnership), ShipmentMode: orderShipmentModeFromAPI(request.ShipmentMode),
+		ShipmentType: orderShipmentTypeFromAPI(request.ShipmentType), ContainerOwnership: orderContainerOwnershipFromAPI(request.ContainerOwnership),
 		CargoCategoryIDs: cargoCategoryIDs,
 		OriginLocationID: originLocationID, DestinationLocationID: destinationLocationID,
 		DischargeLocationID: dischargeLocationID, TransitLocationID: transitLocationID,
@@ -308,9 +308,6 @@ func mergeOrderUpdateRequest(existing *biz.Order, request *v1.UpdateOrderRequest
 	}
 	if request.ContainerOwnership != nil {
 		output.ContainerOwnership = orderContainerOwnershipFromAPI(request.ContainerOwnership)
-	}
-	if request.ShipmentMode != nil {
-		output.ShipmentMode = orderShipmentModeFromAPI(request.ShipmentMode)
 	}
 	output.CargoCategoryIDs, err = parseUUIDValues(request.GetCargoCategoryIds(), biz.ErrOrderInvalidArgument)
 	if err != nil {

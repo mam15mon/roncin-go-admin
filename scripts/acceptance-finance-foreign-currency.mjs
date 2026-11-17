@@ -209,7 +209,6 @@ const orderResponse = await request('/api/v1/orders', {
     tradeTerm: 3,
     paymentTerm: 1,
     shipmentType: 2,
-    shipmentMode: 1,
     goodsDescription: '外币财务全链路验收货物',
     totalPackages: 1,
     totalGrossWeightKg: 100,

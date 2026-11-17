@@ -82,13 +82,15 @@ function compactPrerequisite(item) {
 
 const cookie = await login();
 const request = createClient(cookie);
-const [me, customers, rules] = await Promise.all([
+const [me, customers, rules, shippingLines] = await Promise.all([
   request('/api/v1/auth/me'),
   request('/api/v1/partners?page=1&pageSize=100&role=1&enabled=true'),
   request('/api/v1/master-data/number-rules'),
+  request('/api/v1/master-data/shipping-lines?page=1&pageSize=1&enabled=true'),
 ]);
 
 const customer = customers.data?.[0];
+const shippingLine = shippingLines.data?.[0];
 const orderRule = rules.data?.find(
   (item) =>
     item.documentType === 1 || item.documentType === 'DOCUMENT_TYPE_ORDER',
@@ -96,6 +98,7 @@ const orderRule = rules.data?.find(
 
 assert(me.data?.currentOrganization?.id, '当前登录用户没有可用组织');
 assert(customer?.id, '当前组织没有启用的客户，请先在往来单位中创建客户');
+assert(shippingLine?.id, '缺少启用船公司，请先同步行业主数据');
 assert(orderRule?.enabled, '当前组织没有启用的订单编号规则');
 
 const prerequisiteSummary = {
@@ -121,8 +124,10 @@ const stamp = new Date()
   .replace(/[-:.TZ]/g, '')
   .slice(0, 14);
 const customerReferenceNo = `ACC-SE-${stamp}`;
-const masterNo = `ACC-MBL-${stamp}`;
+const masterNo = `ACCMBL${stamp}`;
 const houseNo = `ACC-HBL-${stamp}`;
+const etd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+const eta = new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString();
 const declarationCutoffAt = new Date(
   Date.now() + 24 * 60 * 60 * 1000,
 ).toISOString();
@@ -136,7 +141,10 @@ const createdResponse = await request('/api/v1/orders', {
     tradeTerm: 3,
     paymentTerm: 1,
     shipmentType: 2,
-    shipmentMode: 1,
+    shippingLineId: shippingLine.id,
+    personnelAssignments: [2, 3, 4].map((role) => ({ role, userId: me.data.id })),
+    etd,
+    eta,
     loadingTerms: 'CFS-CFS',
     declarationCutoffAt,
     goodsDescription: '海运出口闭环验收货物',
@@ -147,16 +155,11 @@ const createdResponse = await request('/api/v1/orders', {
     customerReferenceNo,
     orderDate: new Date().toISOString(),
     operationNotes: '自动化验收创建',
-    shippingDocuments: [
-      {
-        masterNo,
-        houseNo,
-        releaseType: 'ORIGINAL',
-        masterDocumentType: 'ORIGINAL_BL',
-        masterReleaseMethod: 'ORIGINAL',
-        note: '海运出口闭环验收提单',
-      },
-    ],
+    seaMasterBill: { masterNo },
+    seaDocument: {
+      documentStructure: 3,
+      houseBill: { houseNo, issuerSource: 1 },
+    },
   }),
 });
 
@@ -184,13 +187,13 @@ assert(
   detail?.declarationCutoffAt === declarationCutoffAt,
   '订单详情未正确回显独立截申报时间',
 );
-assert(detail?.shippingDocuments?.length === 1, '订单详情未正确回显一条提单');
+assert(detail?.seaDocumentSummary?.houseNo === houseNo, '订单详情未正确回显分单');
 assert(
-  detail.shippingDocuments[0].masterNo === masterNo,
+  detail.seaMasterBill?.masterNo === masterNo,
   '订单详情主单号与创建输入不一致',
 );
 assert(
-  detail.shippingDocuments[0].houseNo === houseNo,
+  detail.seaDocumentSummary?.houseNo === houseNo,
   '订单详情分单号与创建输入不一致',
 );
 
@@ -200,15 +203,7 @@ const updatedResponse = await request(`/api/v1/orders/${created.id}`, {
     id: created.id,
     expectedVersion: detail.version,
     notes: '海运出口闭环验收草稿已更新',
-    shippingDocuments: detail.shippingDocuments.map((document) => ({
-      id: document.id,
-      masterNo: document.masterNo,
-      houseNo: document.houseNo,
-      releaseType: document.releaseType,
-      note: document.note,
-      masterDocumentType: document.masterDocumentType,
-      masterReleaseMethod: document.masterReleaseMethod,
-    })),
+    seaMasterBill: { masterNo },
     containerRequests: (detail.containerRequests || []).map((item) => ({
       id: item.id,
       containerSpecId: item.containerSpecId,
@@ -221,7 +216,7 @@ assert(
   '订单草稿更新未生效',
 );
 assert(
-  updatedResponse.data?.shippingDocuments?.length === 1,
+  updatedResponse.data?.seaDocumentSummary?.houseNo === houseNo,
   '更新草稿时提单数据被意外清空',
 );
 
@@ -248,6 +243,8 @@ assert(
   '货物明细列表未返回新增记录',
 );
 
+const sharedMaster = (await request(`/api/v1/orders/${created.id}`)).data?.seaMasterBill;
+assert(sharedMaster?.masterBillId && sharedMaster.transportExecutionId, '缺少当前共享主单与航程');
 const siblingReferenceNo = `${customerReferenceNo}-02`;
 const siblingHouseNo = `${houseNo}-02`;
 const siblingResponse = await request('/api/v1/orders', {
@@ -259,65 +256,72 @@ const siblingResponse = await request('/api/v1/orders', {
     tradeTerm: 3,
     paymentTerm: 1,
     shipmentType: 2,
-    shipmentMode: 1,
-    goodsDescription: '海运出口自拼汇总验收货物',
+    shippingLineId: shippingLine.id,
+    personnelAssignments: [2, 3, 4].map((role) => ({ role, userId: me.data.id })),
+    etd,
+    eta,
+    goodsDescription: '海运出口共享主单验收货物',
     totalPackages: 5,
     totalGrossWeightKg: 800,
     totalVolumeCbm: 6.2,
     customerReferenceNo: siblingReferenceNo,
     orderDate: new Date().toISOString(),
-    shippingDocuments: [
-      {
-        masterNo,
-        houseNo: siblingHouseNo,
-        releaseType: 'ORIGINAL',
-        masterDocumentType: 'ORIGINAL_BL',
-        masterReleaseMethod: 'ORIGINAL',
-      },
-    ],
+    seaMasterBill: {
+      masterNo,
+      candidateId: sharedMaster.masterBillId,
+      expectedCandidateVersion: sharedMaster.version,
+      candidateTeId: sharedMaster.transportExecutionId,
+      expectedCandidateTeVersion: sharedMaster.transportExecutionVersion,
+    },
+    seaDocument: {
+      documentStructure: 3,
+      houseBill: { houseNo: siblingHouseNo, issuerSource: 1 },
+    },
   }),
 });
 const sibling = siblingResponse.data;
-assert(sibling?.id, '创建自拼成员订单响应缺少 ID');
+assert(sibling?.id, '创建共享主单成员订单响应缺少 ID');
 
 await request(`/api/v1/orders/${sibling.id}/cargo-items`, {
   method: 'POST',
   body: JSON.stringify({
     orderId: sibling.id,
-    cargoName: '自拼成员验收货物',
+    cargoName: '共享主单成员验收货物',
     packageCount: 5,
     grossWeightKg: 760,
     volumeCbm: 6,
   }),
 });
 
-const consolidationResponse = await request(
-  `/api/v1/orders/${created.id}/consolidations`,
-);
-const consolidation = consolidationResponse.data?.find(
-  (item) => item.masterNo === masterNo,
-);
-assert(consolidation, '自拼汇总未返回当前主单批次');
-assert(consolidation.memberCount === 2, '自拼汇总成员票数应为 2');
+const [currentShared, siblingDetail, sameBatch, siblingCargo] = await Promise.all([
+  request(`/api/v1/orders/${created.id}`),
+  request(`/api/v1/orders/${sibling.id}`),
+  request(`/api/v1/orders/${created.id}/same-batch`),
+  request(`/api/v1/orders/${sibling.id}/cargo-items`),
+]);
 assert(
-  consolidation.entrusted?.packages === 15 &&
-    consolidation.entrusted?.grossWeightKg === 2300 &&
-    consolidation.entrusted?.volumeCbm === 18.2,
-  '自拼汇总委托件重尺不正确',
+  currentShared.data?.seaMasterBill?.masterBillId === siblingDetail.data?.seaMasterBill?.masterBillId &&
+    currentShared.data?.seaMasterBill?.transportExecutionId === siblingDetail.data?.seaMasterBill?.transportExecutionId,
+  '两票拼箱订单未共享同一主单与航程',
 );
+assert(currentShared.data?.seaMasterBill?.memberCount === 2, '共享主单成员票数应为 2');
 assert(
-  consolidation.actual?.packages === 15 &&
-    consolidation.actual?.grossWeightKg === 2010.5 &&
-    consolidation.actual?.volumeCbm === 18.6,
-  '自拼汇总实际件重尺不正确',
+  sameBatch.data?.some((item) => item.orderId === sibling.id && item.houseNo === siblingHouseNo),
+  '同批订单未返回共享主单的成员订单及分单号',
 );
+const memberOrders = [currentShared.data, siblingDetail.data];
 assert(
-  consolidation.members?.some(
-    (member) =>
-      member.orderId === sibling.id &&
-      member.houseNos?.includes(siblingHouseNo),
-  ),
-  '自拼汇总未返回成员订单及分单号',
+  memberOrders.reduce((sum, item) => sum + (item.totalPackages || 0), 0) === 15 &&
+    memberOrders.reduce((sum, item) => sum + (item.totalGrossWeightKg || 0), 0) === 2300 &&
+    memberOrders.reduce((sum, item) => sum + (item.totalVolumeCbm || 0), 0) === 18.2,
+  '共享主单成员委托件重尺不正确',
+);
+const memberCargo = [...(cargoList.data || []), ...(siblingCargo.data || [])];
+assert(
+  memberCargo.reduce((sum, item) => sum + (item.packageCount || 0), 0) === 15 &&
+    memberCargo.reduce((sum, item) => sum + (item.grossWeightKg || 0), 0) === 2010.5 &&
+    memberCargo.reduce((sum, item) => sum + (item.volumeCbm || 0), 0) === 18.6,
+  '共享主单成员实际件重尺不正确',
 );
 
 const transitionedResponse = await request(
@@ -351,7 +355,7 @@ assert(
   '状态流转后订单详情未回显 BOOKED',
 );
 assert(
-  finalDetail.data?.shippingDocuments?.length === 1,
+  finalDetail.data?.seaDocumentSummary?.houseNo === houseNo,
   '状态流转后提单数据不完整',
 );
 assert(
@@ -443,9 +447,9 @@ console.log(
         closureStatus: closedResponse.data.closureStatus,
         version: closedResponse.data.version,
         customerReferenceNo: finalDetail.data.customerReferenceNo,
-        shippingDocumentCount: finalDetail.data.shippingDocuments?.length || 0,
+        houseBillCount: finalDetail.data.seaDocumentSummary?.houseNo ? 1 : 0,
         cargoItemCount: cargoList.data?.length || 0,
-        consolidationMemberCount: consolidation.memberCount,
+        sharedMasterMemberCount: currentShared.data.seaMasterBill.memberCount,
       },
     },
     null,

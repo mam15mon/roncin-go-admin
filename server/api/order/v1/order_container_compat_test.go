@@ -84,12 +84,3 @@ func TestOrderContainerFieldNumbersRemainCompatible(t *testing.T) {
 		})
 	}
 }
-
-func TestShipmentModeNumbersRemainCompatible(t *testing.T) {
-	if ShipmentMode_SHIPMENT_MODE_TRADITIONAL_FORWARDING != 1 {
-		t.Fatalf("传统货代模式枚举值应为 1，实际为 %d", ShipmentMode_SHIPMENT_MODE_TRADITIONAL_FORWARDING)
-	}
-	if ShipmentMode_SHIPMENT_MODE_CROSS_BORDER != 2 {
-		t.Fatalf("跨境模式枚举值应为 2，实际为 %d", ShipmentMode_SHIPMENT_MODE_CROSS_BORDER)
-	}
-}

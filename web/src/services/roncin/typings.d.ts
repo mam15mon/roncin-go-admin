@@ -1789,7 +1789,6 @@ declare namespace API {
     bookingAgentId?: string;
     shipmentType?: number;
     containerOwnership?: number;
-    shipmentMode?: number;
     cargoCategoryIds?: string[];
     originLocationId?: string;
     destinationLocationId?: string;
@@ -4799,14 +4798,6 @@ declare namespace API {
     traceId?: string;
   };
 
-  type ListOrderConsolidationsResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderConsolidationSummary[];
-    traceId?: string;
-  };
-
   type ListOrderFeeCorrectionRequestsResponse = {
     success?: boolean;
     code?: number;
@@ -5496,7 +5487,6 @@ declare namespace API {
     paymentTerm?: number;
     shipmentType?: number;
     containerOwnership?: number;
-    shipmentMode?: number;
     flowStatus?: number;
     cargoCategoryIds?: string[];
     originLocationId?: string;
@@ -5699,30 +5689,6 @@ declare namespace API {
   type OrderCargoItemServiceUpdateCargoItemParams = {
     orderId: string;
     id: string;
-  };
-
-  type OrderCargoMeasurement = {
-    packages?: number;
-    grossWeightKg?: number;
-    volumeCbm?: number;
-  };
-
-  type OrderConsolidationMember = {
-    orderId?: string;
-    orderNo?: string;
-    customerReferenceNo?: string;
-    houseNos?: string[];
-    entrusted?: OrderCargoMeasurement;
-    actual?: OrderCargoMeasurement;
-  };
-
-  type OrderConsolidationSummary = {
-    consolidationId?: string;
-    masterNo?: string;
-    memberCount?: number;
-    entrusted?: OrderCargoMeasurement;
-    actual?: OrderCargoMeasurement;
-    members?: OrderConsolidationMember[];
   };
 
   type OrderContainer = {
@@ -6385,10 +6351,6 @@ declare namespace API {
     orderId: string;
     page?: number;
     pageSize?: number;
-  };
-
-  type OrderServiceListOrderConsolidationsParams = {
-    id: string;
   };
 
   type OrderServiceListOrdersParams = {
@@ -9772,7 +9734,6 @@ declare namespace API {
     bookingAgentId?: string;
     shipmentType?: number;
     containerOwnership?: number;
-    shipmentMode?: number;
     cargoCategoryIds?: string[];
     originLocationId?: string;
     destinationLocationId?: string;

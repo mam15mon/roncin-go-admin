@@ -68,7 +68,6 @@ func (Order) Fields() []ent.Field {
 		field.Enum("payment_term").Values("PREPAID", "COLLECT"),
 		field.Enum("shipment_type").Values("FCL", "LCL", "BREAK_BULK").Optional().Nillable(),
 		field.Enum("container_ownership").Values("COC", "SOC").Optional().Nillable(),
-		field.Enum("shipment_mode").Values("TRADITIONAL_FORWARDING", "CROSS_BORDER").Optional().Nillable(),
 		field.Enum("flow_status").Values("DRAFT", "BOOKED", "SPACE_ALLOCATED", "TRUCKING_ARRANGED", "DOCUMENT_CUTOFF", "CUSTOMS_DECLARATION_ARRANGED", "DOCUMENT_RELEASED", "IMPORT_NOT_APPLICABLE", "IMPORT_NOT_STARTED", "IMPORT_IN_PROGRESS", "IMPORT_COMPLETED").Default("DRAFT"),
 		field.Enum("termination_status").Values("ACTIVE", "TERMINATING", "TERMINATED").Default("ACTIVE"),
 		field.Enum("termination_type").Values("CUSTOMER_CANCEL", "CARRIER_CANCEL", "CUSTOMS_RETURN", "OPERATION_CANCEL", "OTHER").Optional().Nillable(),

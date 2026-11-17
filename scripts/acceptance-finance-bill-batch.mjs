@@ -208,7 +208,6 @@ const orderInput = {
     tradeTerm: 3,
     paymentTerm: 1,
     shipmentType: 2,
-    shipmentMode: 1,
     goodsDescription: '财务批量转账单自动验收货物',
     totalPackages: 2,
     totalGrossWeightKg: 200,

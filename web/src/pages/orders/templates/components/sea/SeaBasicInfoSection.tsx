@@ -25,7 +25,6 @@ import { orderServiceCheckOrderReference } from '@/services/roncin/orderService'
 import { partnerServiceGetPartner } from '@/services/roncin/partnerService';
 import {
   paymentTermOptions,
-  shipmentModeOptions,
   shipmentTypeOptions,
   tradeTermOptions,
 } from '../../../common';
@@ -666,15 +665,6 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
     ),
     shipmentOptions: (
       <>
-        <FormCell span={2}>
-          <TemplateControlGroup title="集运/跨境">
-            <ProFormRadio.Group
-              name="shipmentMode"
-              fieldProps={{ 'aria-label': '集运/跨境' }}
-              options={shipmentModeOptions}
-            />
-          </TemplateControlGroup>
-        </FormCell>
         <FormCell span={2}>
           <TemplateControlGroup title="托运类型">
             <ProFormRadio.Group

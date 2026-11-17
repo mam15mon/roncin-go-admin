@@ -311,7 +311,6 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
       tradeDirection: 1,
       tradeTerm: 3,
       paymentTerm: 1,
-      shipmentMode: 1,
       goodsDescription: '同订单页面闭环验收',
       totalPackages: 1,
       totalGrossWeightKg: 100,

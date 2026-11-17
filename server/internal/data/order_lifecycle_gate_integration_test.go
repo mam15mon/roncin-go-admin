@@ -15,7 +15,6 @@ import (
 	ordercargoitement "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
 	orderlifecycleeventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	orderreleasepodent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
-	ordershippingdocumentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	seahousebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	seamasterbillorderlinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 )
@@ -56,8 +55,7 @@ func cleanupLifecycleGateSubresources(t *testing.T, data *Data, fixture *orderPo
 //  2. 生命周期命令不被内容门禁误杀：锁定后的放单订单可结案、反结案须先解锁；
 //  3. 退关完成原子结束活动 SE Link，取消退关保留 Link，恢复不复活历史 Link，
 //     旧版本请求稳定冲突且零部分提交；
-//  4. 自拼汇总只统计 Link ACTIVE 且 Order ACTIVE 的 LCL 成员，HBL 来自当前
-//     SeaHouseBill 而不是旧 ShippingDocuments。
+//  4. 普通 LCL 共享主单成员退关只结束该票活动关联，相邻成员和 HBL 保留。
 func TestOrderLifecycleGatePostgres(t *testing.T) {
 	data, cleanup := getIntegrationData(t)
 	defer cleanup()
@@ -417,7 +415,7 @@ func TestOrderLifecycleGatePostgres(t *testing.T) {
 		}
 	})
 
-	t.Run("自拼汇总过滤退关成员并使用当前 HBL", func(t *testing.T) {
+	t.Run("普通拼箱共享主单退关保留相邻成员和 HBL", func(t *testing.T) {
 		fixture := newOrderPostgresFixture(t, data)
 		cleanupLifecycleGateSubresources(t, data, fixture)
 		ctx := context.Background()
@@ -465,71 +463,42 @@ func TestOrderLifecycleGatePostgres(t *testing.T) {
 			t.Fatalf("创建共享 MBL 的 LCL 订单 2 失败: %v", err)
 		}
 
-		// 旧 ShippingDocument 模型中的同号单据不应进入自拼汇总。
-		if _, err := data.db.OrderShippingDocument.Create().
-			SetOrderID(order1.ID).
-			SetHouseNo("LEGACY-" + fixture.suffix).
-			SetStatus(ordershippingdocumentent.StatusCONFIRMED).
-			Save(ctx); err != nil {
-			t.Fatalf("创建旧模型分单记录失败: %v", err)
+		// 普通拼箱共享主单不依赖已退役的自拼汇总投影，直接核对活动关联事实。
+		activeCount := func() int {
+			t.Helper()
+			count, queryErr := data.db.SeaMasterBillOrderLink.Query().Where(
+				seamasterbillorderlinkent.MasterBillIDEQ(order1.SeaMasterBill.MasterBillID),
+				seamasterbillorderlinkent.StatusEQ(seamasterbillorderlinkent.StatusACTIVE),
+			).Count(ctx)
+			if queryErr != nil {
+				t.Fatal(queryErr)
+			}
+			return count
 		}
-		hbl1 := mustOrderActiveHouseNo(t, data, order1.ID)
-		hbl2 := mustOrderActiveHouseNo(t, data, order2.ID)
-
-		summaries, err := usecase.ListConsolidationSummaries(ctx, fixture.organizationID, order1.ID)
-		if err != nil {
-			t.Fatalf("查询自拼汇总失败: %v", err)
+		if got := activeCount(); got != 2 {
+			t.Fatalf("共享主单活动成员 = %d，期望2", got)
 		}
-		if len(summaries) != 1 {
-			t.Fatalf("自拼汇总数 = %d，期望 1", len(summaries))
+		house1 := mustOrderActiveHouseNo(t, data, order1.ID)
+		house2 := mustOrderActiveHouseNo(t, data, order2.ID)
+		if house1 == "" || house2 == "" {
+			t.Fatal("共享主单成员应保留各自HBL")
 		}
-		before := summaries[0]
-		if len(before.Members) != 2 {
-			t.Fatalf("退关前成员数 = %d，期望 2", len(before.Members))
-		}
-		if before.Entrusted.Packages != packages1+packages2 || before.Entrusted.GrossWeightKg != gross1+gross2 || before.Entrusted.VolumeCbm != volume1+volume2 {
-			t.Fatalf("退关前委托件重尺异常: %#v", before.Entrusted)
-		}
-		houseNosByOrder := map[uuid.UUID][]string{}
-		for _, member := range before.Members {
-			houseNosByOrder[member.OrderID] = member.HouseNos
-		}
-		assertStringSliceEqual(t, houseNosByOrder[order1.ID], []string{hbl1})
-		assertStringSliceEqual(t, houseNosByOrder[order2.ID], []string{hbl2})
-
-		// 订单 2 完整退关后不再计入成员、件重尺与 HBL。
 		terminating := mustStartTermination(t, usecase, fixture, order2)
 		if _, err := usecase.TransitionTermination(ctx, fixture.organizationID, fixture.actorID, order2.ID, terminating, biz.OrderTerminationTerminated, terminationTypePtr(biz.OrderTerminationCustomerCancel), "订单2退关"); err != nil {
-			t.Fatalf("订单 2 完成退关失败: %v", err)
+			t.Fatal(err)
 		}
-		after, err := usecase.ListConsolidationSummaries(ctx, fixture.organizationID, order1.ID)
+		if got := activeCount(); got != 1 {
+			t.Fatalf("退关后共享主单活动成员 = %d，期望1", got)
+		}
+		if got := mustOrderActiveHouseNo(t, data, order1.ID); got != house1 {
+			t.Fatalf("相邻成员HBL被改写: %q", got)
+		}
+		retained, err := usecase.Get(ctx, fixture.organizationID, order1.ID)
 		if err != nil {
-			t.Fatalf("退关后查询自拼汇总失败: %v", err)
+			t.Fatal(err)
 		}
-		if len(after) != 1 {
-			t.Fatalf("退关后自拼汇总数 = %d，期望 1", len(after))
-		}
-		if len(after[0].Members) != 1 || after[0].Members[0].OrderID != order1.ID {
-			t.Fatalf("退关后成员 = %#v，期望仅订单 1", after[0].Members)
-		}
-		if after[0].Entrusted.Packages != packages1 || after[0].Entrusted.GrossWeightKg != gross1 || after[0].Entrusted.VolumeCbm != volume1 {
-			t.Fatalf("退关后委托件重尺异常: %#v", after[0].Entrusted)
-		}
-		assertStringSliceEqual(t, after[0].Members[0].HouseNos, []string{hbl1})
-
-		// 作废 HBL 后不再返回 house number。
-		if _, err := data.db.SeaHouseBill.Update().Where(
-			seahousebillent.OrganizationIDEQ(fixture.organizationID),
-			seahousebillent.OrderIDEQ(order1.ID),
-		).SetStatus(seahousebillent.StatusVOIDED).Save(ctx); err != nil {
-			t.Fatalf("作废订单 1 的 HBL 失败: %v", err)
-		}
-		voided, err := usecase.ListConsolidationSummaries(ctx, fixture.organizationID, order1.ID)
-		if err != nil {
-			t.Fatalf("HBL 作废后查询自拼汇总失败: %v", err)
-		}
-		if len(voided) != 1 || len(voided[0].Members) != 1 || len(voided[0].Members[0].HouseNos) != 0 {
-			t.Fatalf("作废 HBL 后 house numbers = %#v，期望为空", voided[0].Members[0].HouseNos)
+		if retained.TotalPackages == nil || *retained.TotalPackages != packages1 || retained.TotalGrossWeightKg == nil || *retained.TotalGrossWeightKg != gross1 || retained.TotalVolumeCbm == nil || *retained.TotalVolumeCbm != volume1 {
+			t.Fatal("退关不应改写相邻订单委托件重尺")
 		}
 	})
 }

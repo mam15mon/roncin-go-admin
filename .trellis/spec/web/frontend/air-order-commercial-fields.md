@@ -6,8 +6,8 @@ AE/AI新建和详情的公共经营字段UI、默认值、载荷和回显；入�
 
 ## 2. 签名与字段
 
-- `getAirCommercialFields(props: TemplateProps)`：返回字段片段（`shipmentMode/trade/payment/contract/agents/times/cargoValue/insurance/factory`），写法同海运 `getSeaBaseInfoFields`，由模板按海运同序摆放：
-  - 业务与客户：客户、单号片段复用海运，后接 `shipmentMode`；
+- `getAirCommercialFields(props: TemplateProps)`：返回字段片段（`trade/payment/contract/agents/times/cargoValue/insurance/factory`），写法同海运 `getSeaBaseInfoFields`，由模板按海运同序摆放：
+  - 业务与客户：客户、单号片段复用海运；集运／跨境模式已退役，不注册隐藏默认值；
   - 订舱与运输首行：航空单证模式、主单关联方式（仅新建）、订舱号、`agents`；
   - 货物与商业：品类 + `trade/payment/contract` 同行，件重尺 + `times` + `cargoValue/insurance/factory` 同一 6 列网格。
 - `AirCargoDescriptionFields`：委托描述/特殊要求对半。

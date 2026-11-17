@@ -321,36 +321,6 @@ func orderContainerOwnershipToAPI(value *biz.OrderContainerOwnership) *v1.Contai
 	}
 	return &result
 }
-func orderShipmentModeFromAPI(value *v1.ShipmentMode) *biz.OrderShipmentMode {
-	if value == nil {
-		return nil
-	}
-	var result biz.OrderShipmentMode
-	switch *value {
-	case v1.ShipmentMode_SHIPMENT_MODE_TRADITIONAL_FORWARDING:
-		result = biz.OrderShipmentTraditionalForwarding
-	case v1.ShipmentMode_SHIPMENT_MODE_CROSS_BORDER:
-		result = biz.OrderShipmentCrossBorder
-	default:
-		return nil
-	}
-	return &result
-}
-func orderShipmentModeToAPI(value *biz.OrderShipmentMode) *v1.ShipmentMode {
-	if value == nil {
-		return nil
-	}
-	var result v1.ShipmentMode
-	switch *value {
-	case biz.OrderShipmentTraditionalForwarding:
-		result = v1.ShipmentMode_SHIPMENT_MODE_TRADITIONAL_FORWARDING
-	case biz.OrderShipmentCrossBorder:
-		result = v1.ShipmentMode_SHIPMENT_MODE_CROSS_BORDER
-	default:
-		return nil
-	}
-	return &result
-}
 func orderDangerousPackingGroupFromAPI(value *v1.DangerousPackingGroup) *biz.OrderDangerousPackingGroup {
 	if value == nil {
 		return nil

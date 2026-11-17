@@ -23,7 +23,6 @@ const OperationOrderServiceExportOrders = "/order.v1.OrderService/ExportOrders"
 const OperationOrderServiceGetImportHandling = "/order.v1.OrderService/GetImportHandling"
 const OperationOrderServiceGetOrder = "/order.v1.OrderService/GetOrder"
 const OperationOrderServiceListImportHandlingEvents = "/order.v1.OrderService/ListImportHandlingEvents"
-const OperationOrderServiceListOrderConsolidations = "/order.v1.OrderService/ListOrderConsolidations"
 const OperationOrderServiceListOrders = "/order.v1.OrderService/ListOrders"
 const OperationOrderServiceListPersonnelOptions = "/order.v1.OrderService/ListPersonnelOptions"
 const OperationOrderServiceListSameBatchOrders = "/order.v1.OrderService/ListSameBatchOrders"
@@ -41,7 +40,6 @@ type OrderServiceHTTPServer interface {
 	GetImportHandling(context.Context, *GetImportHandlingRequest) (*GetImportHandlingResponse, error)
 	GetOrder(context.Context, *GetOrderRequest) (*GetOrderResponse, error)
 	ListImportHandlingEvents(context.Context, *ListImportHandlingEventsRequest) (*ListImportHandlingEventsResponse, error)
-	ListOrderConsolidations(context.Context, *ListOrderConsolidationsRequest) (*ListOrderConsolidationsResponse, error)
 	ListOrders(context.Context, *ListOrdersRequest) (*ListOrdersResponse, error)
 	ListPersonnelOptions(context.Context, *ListPersonnelOptionsRequest) (*ListPersonnelOptionsResponse, error)
 	ListSameBatchOrders(context.Context, *ListSameBatchOrdersRequest) (*ListSameBatchOrdersResponse, error)
@@ -64,7 +62,6 @@ func RegisterOrderServiceHTTPServer(s *http.Server, srv OrderServiceHTTPServer) 
 	r.Handle("GET", "/api/v1/orders", _OrderService_ListOrders0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/order-reference-check", _OrderService_CheckOrderReference0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/order-personnel-options", _OrderService_ListPersonnelOptions0_HTTP_Handler(srv))
-	r.Handle("GET", "/api/v1/orders/{id}/consolidations", _OrderService_ListOrderConsolidations0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/orders/{id}/same-batch", _OrderService_ListSameBatchOrders0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/orders", _OrderService_CreateOrder0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/orders/{id}", _OrderService_UpdateOrder0_HTTP_Handler(srv))
@@ -256,28 +253,6 @@ func _OrderService_ListPersonnelOptions0_HTTP_Handler(srv OrderServiceHTTPServer
 	}
 }
 
-func _OrderService_ListOrderConsolidations0_HTTP_Handler(srv OrderServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ListOrderConsolidationsRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationOrderServiceListOrderConsolidations)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ListOrderConsolidations(ctx, req.(*ListOrderConsolidationsRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*ListOrderConsolidationsResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
 func _OrderService_ListSameBatchOrders0_HTTP_Handler(srv OrderServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in ListSameBatchOrdersRequest
@@ -414,7 +389,6 @@ type OrderServiceHTTPClient interface {
 	GetImportHandling(ctx context.Context, req *GetImportHandlingRequest, opts ...http.CallOption) (rsp *GetImportHandlingResponse, err error)
 	GetOrder(ctx context.Context, req *GetOrderRequest, opts ...http.CallOption) (rsp *GetOrderResponse, err error)
 	ListImportHandlingEvents(ctx context.Context, req *ListImportHandlingEventsRequest, opts ...http.CallOption) (rsp *ListImportHandlingEventsResponse, err error)
-	ListOrderConsolidations(ctx context.Context, req *ListOrderConsolidationsRequest, opts ...http.CallOption) (rsp *ListOrderConsolidationsResponse, err error)
 	ListOrders(ctx context.Context, req *ListOrdersRequest, opts ...http.CallOption) (rsp *ListOrdersResponse, err error)
 	ListPersonnelOptions(ctx context.Context, req *ListPersonnelOptionsRequest, opts ...http.CallOption) (rsp *ListPersonnelOptionsResponse, err error)
 	ListSameBatchOrders(ctx context.Context, req *ListSameBatchOrdersRequest, opts ...http.CallOption) (rsp *ListSameBatchOrdersResponse, err error)
@@ -522,22 +496,6 @@ func (c *OrderServiceHTTPClientImpl) ListImportHandlingEvents(ctx context.Contex
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationOrderServiceListImportHandlingEvents),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-func (c *OrderServiceHTTPClientImpl) ListOrderConsolidations(ctx context.Context, in *ListOrderConsolidationsRequest, opts ...http.CallOption) (*ListOrderConsolidationsResponse, error) {
-	var out ListOrderConsolidationsResponse
-	pattern := "/api/v1/orders/{id}/consolidations"
-	path := http.BuildPath(pattern, in, http.WithQueryParams())
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.Operation(OperationOrderServiceListOrderConsolidations),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

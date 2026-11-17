@@ -123,23 +123,6 @@ export async function orderServiceTransitionOrderClosure(
   );
 }
 
-/** 此处后端没有提供注释 GET /api/v1/orders/${param0}/consolidations */
-export async function orderServiceListOrderConsolidations(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.OrderServiceListOrderConsolidationsParams,
-  options?: { [key: string]: any }
-) {
-  const { id: param0, ...queryParams } = params;
-  return request<API.ListOrderConsolidationsResponse>(
-    `/api/v1/orders/${param0}/consolidations`,
-    {
-      method: "GET",
-      params: { ...queryParams },
-      ...(options || {}),
-    }
-  );
-}
-
 /** 此处后端没有提供注释 GET /api/v1/orders/${param0}/import-handling */
 export async function orderServiceGetImportHandling(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

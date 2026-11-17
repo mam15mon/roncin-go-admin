@@ -78,7 +78,7 @@ export const TAB_KEY_RULES: Array<{ pattern: RegExp; key: string }> = [
     pattern: /^\/partners\/foreign-agents(?:\/(?:create|[^/]+))?$/,
     key: '/partners/foreign-agents',
   },
-  // 5. 费用管理：集运费用明细与单票费用详情
+  // 5. 费用管理：费用明细与单票费用详情
   // 仅允许：/finance/fees, /finance/fees/detail/:orderId
   {
     pattern: /^\/finance\/fees(?:\/detail\/[^/]+)?$/,

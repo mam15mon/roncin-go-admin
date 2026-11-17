@@ -10,15 +10,15 @@
 - 「中文消息」列为定义处的静态消息；同一错误码多处定义时逐行列出全部消息。含 `%s` 的为动态模板（`fmt.Sprintf` 或字符串拼接），完全动态（变量传参）时记为「（动态消息）」。
 - 「关联 proto ErrorReason」列仅在错误码经 `reasonFromProto(...)` 关联 `server/api/**/error_reason.proto` 枚举时填写。
 - 分组按定义文件所属业务域（同一错误码出现在多个业务域时在各域分别列出），组内按错误码排序；「定义位置」为 `server/internal/biz/` 下的文件名。
-- 当前共 405 个唯一错误码，408 条目录记录。
+- 当前共 416 个唯一错误码，419 条目录记录。
 
 ## 汇总
 
 | 业务域 | 错误码数 |
 | --- | --- |
-| 订单 | 120 |
+| 订单 | 123 |
 | 单证 | 29 |
-| 财务 | 86 |
+| 财务 | 94 |
 | 提成 | 40 |
 | 往来单位 | 35 |
 | 权限 | 49 |
@@ -48,6 +48,8 @@
 | FEE_SUPPLEMENT_REQUEST_INVALID | 400 Bad Request | 补录费用申请参数不合法 | order_fee_supplement.go | — |
 | FEE_SUPPLEMENT_REQUEST_NOT_FOUND | 404 Not Found | 补录费用申请不存在 | order_fee_supplement.go | — |
 | FEE_SUPPLEMENT_TRANSITION | 409 Conflict | 当前补录申请状态不允许该操作 | order_fee_supplement.go | — |
+| IMPORT_HANDLING_INVALID | 400 Bad Request | 进口服务资料不合法 | order_import_handling.go | — |
+| IMPORT_HANDLING_REASON_REQUIRED | 400 Bad Request | 纠正已完成换单的代理必须填写原因<br>撤回、取消或纠正已完成服务必须填写原因 | order_import_handling.go | — |
 | NUMBER_RULE_EXISTS | 409 Conflict | 单据类型的编号规则已存在 | orderconfig.go | — |
 | NUMBER_RULE_NOT_FOUND | 404 Not Found | 编号规则不存在 | orderconfig.go | — |
 | NUMBER_SEQUENCE_EXHAUSTED | 409 Conflict | 当前编号周期的序列已耗尽 | orderconfig.go | — |
@@ -70,7 +72,6 @@
 | ORDER_CLOSURE_BLOCKED | 409 Conflict | 订单尚未满足结案条件 | order.go | — |
 | ORDER_CLOSURE_INVALID | 400 Bad Request | 订单结案状态流转不合法 | order.go | — |
 | ORDER_COMMISSION_PERSONNEL_MISSING | 400 Bad Request | 订单缺少%s、%s人员，请在内部信息区补全后再开单 | order.go | — |
-| ORDER_CONSOLIDATION_SHIPMENT_TYPE_INVALID | 400 Bad Request | 仅拼箱订单可查看自拼汇总 | order.go | — |
 | ORDER_CONTAINER_EXISTS | 409 Conflict | 该箱号已存在于当前订单 | order_container.go | — |
 | ORDER_CONTAINER_INVALID_ARGUMENT | 400 Bad Request | 仅整箱(FCL)业务允许维护集装箱<br>订单集装箱参数不合法 | order_container.go | — |
 | ORDER_CONTAINER_NOT_FOUND | 404 Not Found | 订单集装箱不存在 | order_container.go | — |
@@ -90,8 +91,10 @@
 | ORDER_FEE_NOT_FOUND | 404 Not Found | 订单费用不存在 | order_fee.go | — |
 | ORDER_FEE_PARTY_INVALID | 400 Bad Request | 结算单位必须是当前组织启用的往来单位 | order_fee.go | — |
 | ORDER_FEE_QUANTITY_MUST_BE_INTEGER | 400 Bad Request | 该计费单位的数量必须为正整数 | order_fee.go | — |
+| ORDER_FEE_SAVE_PARTIALLY_APPLIED | 409 Conflict | 本次保存此前已部分生效，请刷新费用后核对再保存 | order_fee_save.go | — |
 | ORDER_FEE_SETTING_INVALID | 400 Bad Request | 费用设置不存在、已停用或不适用于当前订单 | order_fee.go | — |
 | ORDER_FEE_SUPPLEMENT_DELETE_FORBIDDEN | 409 Conflict | 补录生成的费用不能普通删除，请前往补录申请专用撤销 | order_fee.go | — |
+| ORDER_FEE_TAX_RATE_FORBIDDEN | 403 Forbidden | 无权更改订单费用税率 | order_fee.go | — |
 | ORDER_FEE_VERSION_CONFLICT | 409 Conflict | 订单费用已被其他操作人修改，请刷新后重试 | order_fee.go | — |
 | ORDER_IDEMPOTENCY_CONFLICT | 409 Conflict | 订单请求幂等键已被其他请求使用 | order.go | — |
 | ORDER_INVALID_ARGUMENT | 400 Bad Request | 订单字段不合法<br>港口不存在或已停用，请刷新后重新选择<br>机场不存在或已停用，请刷新后重新选择<br>请填写 ETD（预计离港时间）<br>请填写 ETA（预计到港时间）<br>ETD（预计离港时间）格式不合法<br>ETA（预计到港时间）格式不合法<br>ETA（预计到港时间）不能早于 ETD（预计离港时间） | order.go、order_usecase.go | — |
@@ -126,7 +129,7 @@
 | ORDER_UNLOCK_REQUEST_ACTIVE | 409 Conflict | 当前订单已有生效中或审批中的解锁请求 | order_lock.go | — |
 | SEA_CARGO_ALLOCATION_NOT_FOUND | 404 Not Found | 海运货物分配记录不存在 | sea_order_change.go | — |
 | SEA_DOCUMENT_VERSION_CONFLICT | 409 Conflict | 单证版本冲突，请刷新后重试 | order_lock.go | — |
-| SEA_MASTER_BILL_INVALID_ARGUMENT | 400 Bad Request | 海运出口订单必须选择船公司<br>海运出口订单必须提供主单信息 | order_usecase.go | — |
+| SEA_MASTER_BILL_INVALID_ARGUMENT | 400 Bad Request | 海运订单必须选择船公司<br>海运订单必须提供主单信息 | order_usecase.go | — |
 | SEA_MASTER_BILL_MEMBER_ORDER_LOCKED | 409 Conflict | 共享 MBL 关联的部分订单已被锁定，需全部解锁后才能修改共享 MBL | order_lock.go | — |
 | SEA_ORDER_REASSIGNMENT_BLOCKED | 409 Conflict / 400 Bad Request | 订单仍有共享箱分配，请先撤销共享箱确认并移除本票分配后再改配<br>当前操作票状态或财务事实不允许改配 | sea_order_change.go | — |
 | SEA_ORDER_REASSIGNMENT_IDEMPOTENCY_CONFLICT | 409 Conflict | 相同幂等键请求指纹冲突 | sea_order_change.go | — |
@@ -220,15 +223,17 @@
 | FEE_SETTING_NOT_FOUND | 404 Not Found | 费用设置不存在 | fee_catalog.go | — |
 | FINANCE_BILL_BATCH_CONFLICT | 409 Conflict | 批量建单幂等键已被其他请求使用 | finance_bill.go | — |
 | FINANCE_BILL_BATCH_MISMATCH | 400 Bad Request | 批量账单分组资料与服务端预览不一致 | finance_bill.go | — |
+| FINANCE_BILL_FEES_LOCKED | 409 Conflict | 账单已有发票、核销或对冲记录，不能增删费用；请先撤销相关财务记录 | finance_bill_fees.go | ERROR_REASON_FINANCE_BILL_FEES_LOCKED |
 | FINANCE_BILL_FEE_INVALID | 409 Conflict | 所选费用必须为未建账状态且尚未进入其他账单 | finance_bill.go | ERROR_REASON_FINANCE_BILL_FEE_INVALID |
 | FINANCE_BILL_FEE_MISMATCH | 400 Bad Request | 同一账单的费用必须具有相同收付方向、结算单位、币种和本币 | finance_bill.go | — |
 | FINANCE_BILL_GROUPING_MODE_UNSUPPORTED | 400 Bad Request | 当前阶段暂不支持对冲建账模式 | finance_bill.go | — |
 | FINANCE_BILL_IDEMPOTENCY_CONFLICT | 409 Conflict | 账单请求幂等键已被其他请求使用 | finance_bill.go | — |
 | FINANCE_BILL_INVALID_ARGUMENT | 400 Bad Request | 账单字段不合法 | finance_bill.go | — |
 | FINANCE_BILL_INVALID_TRANSITION | 409 Conflict | 当前账单状态不允许执行该操作 | finance_bill.go | — |
-| FINANCE_BILL_MIXED_DIRECTION | 400 Bad Request | 普通账单需将应收、应付分别建账，请先完成一个方向，再创建另一个方向 | finance_bill.go | — |
+| FINANCE_BILL_LAST_FEE | 409 Conflict | 账单至少保留一条费用；如需释放全部费用，请取消账单 | finance_bill_fees.go | ERROR_REASON_FINANCE_BILL_LAST_FEE |
 | FINANCE_BILL_NOT_FOUND | 404 Not Found | 账单不存在 | finance_bill.go | — |
 | FINANCE_BILL_PREVIEW_STALE | 409 Conflict | 费用或拆单结果已变化，请重新预览 | finance_bill.go | ERROR_REASON_FINANCE_BILL_PREVIEW_STALE |
+| FINANCE_BILL_PROTECTED_FIELDS | 409 Conflict | 账单已登记发票、核销或对冲，只能修改备注、对账标题和到期日；如需调整账单日期、账户、账期或预计开票，请先撤销相关财务记录 | finance_bill.go | — |
 | FINANCE_BILL_SETTLEMENT_ACCOUNT_INVALID | 400 Bad Request | 结算账户与账单结算单位、方向、币种或启用状态不匹配 | finance_bill.go | ERROR_REASON_FINANCE_BILL_SETTLEMENT_ACCOUNT_INVALID |
 | FINANCE_BILL_VERSION_CONFLICT | 409 Conflict | 账单已被其他操作人修改，请刷新后重试 | finance_bill.go | — |
 | FINANCE_CASHFLOW_CASUAL_SUPPLIER_ACCOUNT_REQUIRED | 400 Bad Request | 向散客供应商出款时，对方收款账户为必填项 | finance_cashflow.go | — |
@@ -241,14 +246,18 @@
 | FINANCE_CORRECTION_SETTLEMENT_REQUIRED | 409 Conflict | 已更正费用仍有原账余额，请先完成更正内部对冲 | finance_settlement_projection.go | — |
 | FINANCE_CUSTOM_SETTING_CONFLICT | 409 Conflict | 财务自定义设置已被更新，请刷新后重试 | finance_custom_setting.go | — |
 | FINANCE_CUSTOM_SETTING_INVALID_ARGUMENT | 400 Bad Request | 财务自定义设置字段不合法 | finance_custom_setting.go | — |
-| FINANCE_INVOICE_BILL_INVALID | 409 Conflict | 所选账单必须已确认且未进入其他有效开票记录 | finance_invoice.go | — |
+| FINANCE_INVOICE_ALLOCATION_EXCEEDED | 409 Conflict | 发票分配超过费用可登记余额，请刷新后重试 | finance_invoice_registration.go | — |
+| FINANCE_INVOICE_BILL_INVALID | 409 Conflict | 所选账单必须已确认且存在可登记的有效费用余额 | finance_invoice.go | — |
 | FINANCE_INVOICE_BILL_MISMATCH | 400 Bad Request | 同一开票记录的账单必须具有相同收付方向、结算单位和币种 | finance_invoice.go | — |
+| FINANCE_INVOICE_EXEMPTION_CONFLICT | 409 Conflict | 账单已有有效发票或无需发票标记，请刷新后重试 | finance_invoice_exemption.go | — |
+| FINANCE_INVOICE_EXEMPTION_NOT_FOUND | 409 Conflict | 账单没有有效的无需发票标记，请刷新后重试 | finance_invoice_exemption.go | — |
 | FINANCE_INVOICE_IDEMPOTENCY_CONFLICT | 409 Conflict | 开票请求幂等键已被其他请求使用 | finance_invoice.go | — |
 | FINANCE_INVOICE_INVALID_ARGUMENT | 400 Bad Request | 开票记录字段不合法 | finance_invoice.go | — |
 | FINANCE_INVOICE_INVALID_TRANSITION | 409 Conflict | 当前开票记录状态不允许执行该操作 | finance_invoice.go | — |
 | FINANCE_INVOICE_NOT_FOUND | 404 Not Found | 开票记录不存在 | finance_invoice.go | — |
 | FINANCE_INVOICE_PROFILE_REQUIRED | 409 Conflict | 请选择该结算单位下启用且完整的开票抬头 | finance_invoice.go | ERROR_REASON_FINANCE_INVOICE_PROFILE_REQUIRED |
 | FINANCE_INVOICE_RED_NO_EXISTS | 409 Conflict | 红字发票号码已被其他开票记录使用 | finance_invoice.go | — |
+| FINANCE_INVOICE_SETTLEMENT_DEPENDENCY | 409 Conflict | 关联账单已有有效核销或已确认对冲，请先核对影响并按权限完成必要反向处理 | finance_invoice_registration.go | — |
 | FINANCE_INVOICE_TAX_NO_EXISTS | 409 Conflict | 税控发票号码已被其他开票记录使用 | finance_invoice.go | — |
 | FINANCE_INVOICE_VERSION_CONFLICT | 409 Conflict | 开票记录已被其他操作人修改，请刷新后重试 | finance_invoice.go | — |
 | FINANCE_LEDGER_INVALID_ARGUMENT | 400 Bad Request | 费用台账查询条件不合法 | settlement.go | — |
@@ -264,6 +273,8 @@
 | FINANCE_NETTING_TOO_MANY_BILLS | 400 Bad Request | 同一结算单位与账单币种下的候选账单数量超过上限，请缩小范围后重试 | finance_netting.go | — |
 | FINANCE_NETTING_TRANSITION | 409 Conflict | 当前对冲状态不允许执行该操作 | finance_netting.go | — |
 | FINANCE_NETTING_VERSION_CONFLICT | 409 Conflict | 对冲单已被其他操作人修改，请刷新后重试 | finance_netting.go | — |
+| FINANCE_REPORT_EXPORT_LIMIT | 400 Bad Request | 报表导出超过10000行，请缩小筛选范围 | finance_report.go | — |
+| FINANCE_REPORT_INVALID_ARGUMENT | 400 Bad Request | 报表筛选参数不合法 | finance_report.go | — |
 | FINANCE_SETTLEMENT_PROJECTION_INVALID | 409 Conflict | 结算分摊与账单行余额不一致，请先处理关联结算 | finance_settlement_projection.go | — |
 | FINANCE_VERIFICATION_BALANCE | 409 Conflict | 核销金额超过资金或账单未核销余额 | finance_verification.go | — |
 | FINANCE_VERIFICATION_IDEMPOTENCY | 409 Conflict | 幂等键已用于不同的核销请求 | finance_verification.go | — |
@@ -421,7 +432,7 @@
 | AIR_WAYBILL_BLOCKED | 409 Conflict | 主单成员存在无权、锁定、终止或结案订单，不能修改共享资料 | air_export.go | — |
 | AIR_WAYBILL_CONFLICT | 409 Conflict | 已被更新，请刷新后重试 | air_export.go | — |
 | AIR_WAYBILL_EXISTS | 409 Conflict | 主单号已存在，请明确选择已有主单；分单号同主单内不可重复 | air_export.go | — |
-| AIR_WAYBILL_INVALID | 400 Bad Request | 空运主分单资料不合法<br>主运单号必须为 3 位航司前缀加 8 位号码<br>主运单号校验位不正确<br>请填写有效分运单号（最多 64 位）<br>请选择航司、不同的起运机场和目的机场<br>空运时间须包含时区<br>请填写预计起飞和到达时间<br>空运建票必须填写主单号及分单号<br>普通保存不能更换共享主单<br>共享运输资料请在主单页面预览后修改 | air_export.go | — |
+| AIR_WAYBILL_INVALID | 400 Bad Request | 空运主分单资料不合法<br>主运单号必须为 3 位航司前缀加 8 位号码<br>主运单号校验位不正确<br>请填写有效分运单号（最多 64 位）<br>请选择航司、不同的起运机场和目的机场<br>空运时间须包含时区<br>请填写预计起飞和到达时间<br>普通保存不能更换共享主单<br>共享运输资料请在主单页面预览后修改 | air_export.go | — |
 | AIR_WAYBILL_NOT_FOUND | 404 Not Found | 空运主单不存在 | air_export.go | — |
 | AIR_WEIGHT_CONFLICT | 409 Conflict | 重量依据已被更新，请刷新后重试 | air_weight.go | — |
 | AIR_WEIGHT_INVALID | 400 Bad Request | 空运重量参数不合法 | air_weight.go | — |

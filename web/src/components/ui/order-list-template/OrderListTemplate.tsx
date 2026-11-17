@@ -6,7 +6,6 @@ import {
   FileDoneOutlined,
   InboxOutlined,
   LockFilled,
-  NodeIndexOutlined,
   PaperClipOutlined,
   WarningOutlined,
 } from '@ant-design/icons';
@@ -21,7 +20,6 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ShipmentType } from '@/enums.generated';
 import { toTableRequest } from '@/utils/api';
 import { formatDate, trimDecimal } from '@/utils/format';
 import { useColumnSettings } from '../column-settings';
@@ -88,7 +86,6 @@ export function OrderListTemplate({
   onOpenContainers,
   onOpenCargo,
   onOpenAttachments,
-  onOpenConsolidations,
   onOpenAbnormal,
   options,
   readonly = false,
@@ -638,19 +635,6 @@ export function OrderListTemplate({
                         },
                       ]
                     : []),
-                  ...(onOpenConsolidations &&
-                  options?.transportMode === 'sea' &&
-                  record.rawRecord?.shipmentType ===
-                    ShipmentType.SHIPMENT_TYPE_LCL
-                    ? [
-                        {
-                          key: 'consolidations',
-                          icon: <NodeIndexOutlined />,
-                          label: '自拼汇总',
-                          onClick: () => onOpenConsolidations(record),
-                        },
-                      ]
-                    : []),
                   ...(onOpenAbnormal
                     ? [
                         {
@@ -686,7 +670,6 @@ export function OrderListTemplate({
       onOpenContainers,
       onOpenCargo,
       onOpenAttachments,
-      onOpenConsolidations,
       onOpenAbnormal,
       readonly,
       progressColumnTitle,

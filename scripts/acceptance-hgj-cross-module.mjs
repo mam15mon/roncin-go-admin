@@ -71,7 +71,7 @@ function orderInput(kind, reference, extra = {}) {
   const eta = kind.direction === 2 ? `${businessDate}T00:30:00+08:00` : `${plusDays(businessDate, 1)}T00:30:00+08:00`;
   return {
     customerId: partner.id, businessType: kind.type, tradeDirection: kind.direction, paymentTerm: 2, tradeTerm: 3,
-    shipmentMode: kind.type % 2 ? 1 : 2, customerReferenceNo: reference,
+customerReferenceNo: reference,
     goodsDescription: `四类完整导出中文,"引号"\n第二行 ${kind.code}`, internalReferenceNo: '=SUM(1,2)',
     totalPackages: 2, totalGrossWeightKg: 12.345, totalVolumeCbm: 1.234,
     cargoValue: '15362.5', cargoCurrency: 'CNY', insurancePremium: '125.67', insuranceCurrency: 'CNY', contractNo: `HGJ-CONTRACT-${kind.code}`, factoryName: `四类验收工厂-${kind.code}`,

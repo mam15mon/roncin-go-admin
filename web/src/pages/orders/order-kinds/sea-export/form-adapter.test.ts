@@ -6,7 +6,6 @@ import {
   OrderPersonnelRole,
   SeaDocumentStructure,
   SeaHouseBillIssuerSource,
-  ShipmentMode,
   ShipmentType,
   TradeDirection,
   TradeTerm,
@@ -25,7 +24,7 @@ describe('buildSeaExportCreateDefaults', () => {
     displayName: '张三',
   };
 
-  it('按传统货代口径生成默认运输、贸易条款与推荐服务', () => {
+  it('生成默认托运类型、贸易条款与推荐服务', () => {
     const defaults = buildSeaExportCreateDefaults({
       creator,
       cargoCategoryOptions: [
@@ -34,9 +33,6 @@ describe('buildSeaExportCreateDefaults', () => {
     });
 
     expect(dayjs.isDayjs(defaults.orderDate)).toBe(true);
-    expect(defaults.shipmentMode).toBe(
-      ShipmentMode.SHIPMENT_MODE_TRADITIONAL_FORWARDING,
-    );
     expect(defaults.shipmentType).toBe(ShipmentType.SHIPMENT_TYPE_FCL);
     expect(defaults.containerOwnership).toBe(
       ContainerOwnership.CONTAINER_OWNERSHIP_COC,
@@ -549,7 +545,6 @@ describe('SE 适配器完整固定夹具等价', () => {
       receivedAt: '2026-08-22T03:00:00.000Z',
       shipmentType: 1,
       containerOwnership: 1,
-      shipmentMode: 1,
       cargoCategoryIds: ['cat-gen'],
       originLocationId: 'loc-origin',
       destinationLocationId: 'loc-dest',
@@ -628,7 +623,6 @@ describe('SE 适配器完整固定夹具等价', () => {
       receivedAt: '2026-08-22T03:00:00.000Z',
       shipmentType: 1,
       containerOwnership: 1,
-      shipmentMode: 1,
       cargoCategoryIds: ['cat-gen'],
       originLocationId: 'loc-origin',
       destinationLocationId: 'loc-dest',
@@ -736,7 +730,6 @@ describe('SE 适配器完整固定夹具等价', () => {
         receivedAt: '2026-08-22T03:00:00.000Z',
         shipmentType: 1,
         containerOwnership: 1,
-        shipmentMode: 1,
         cargoCategoryIds: ['cat-gen'],
         originLocationId: 'loc-origin',
         destinationLocationId: 'loc-dest',
@@ -813,7 +806,6 @@ describe('SE 适配器完整固定夹具等价', () => {
       receivedAt: dayjs('2026-08-22T03:00:00.000Z'),
       shipmentType: 1,
       containerOwnership: 1,
-      shipmentMode: 1,
       cargoCategoryIds: ['cat-gen'],
       originLocationId: 'loc-origin',
       destinationLocationId: 'loc-dest',
@@ -961,7 +953,6 @@ describe('SE 适配器完整固定夹具等价', () => {
       receivedAt: dayjs('2026-08-22T03:00:00.000Z'),
       shipmentType: 1,
       containerOwnership: 1,
-      shipmentMode: 1,
       cargoCategoryIds: ['cat-gen'],
       originLocationId: 'loc-origin',
       destinationLocationId: 'loc-dest',
@@ -1025,7 +1016,6 @@ describe('SE 适配器完整固定夹具等价', () => {
       receivedAt: '2026-08-22T03:00:00.000Z',
       shipmentType: 1,
       containerOwnership: 1,
-      shipmentMode: 1,
       cargoCategoryIds: ['cat-gen'],
       originLocationId: 'loc-origin',
       destinationLocationId: 'loc-dest',

@@ -105,10 +105,6 @@ func orderToBiz(item *ent.Order) *biz.Order {
 		value := biz.OrderContainerOwnership(*item.ContainerOwnership)
 		result.ContainerOwnership = &value
 	}
-	if item.ShipmentMode != nil {
-		value := biz.OrderShipmentMode(*item.ShipmentMode)
-		result.ShipmentMode = &value
-	}
 	if item.DangerousPackingGroup != nil {
 		value := biz.OrderDangerousPackingGroup(*item.DangerousPackingGroup)
 		result.DangerousPackingGroup = &value
@@ -246,11 +242,6 @@ func setOrderOptionalReferences(update *ent.OrderUpdateOne, input *biz.Order) {
 	} else {
 		update.SetContainerOwnership(orderent.ContainerOwnership(*input.ContainerOwnership))
 	}
-	if input.ShipmentMode == nil {
-		update.ClearShipmentMode()
-	} else {
-		update.SetShipmentMode(orderent.ShipmentMode(*input.ShipmentMode))
-	}
 	if input.DangerousPackingGroup == nil {
 		update.ClearDangerousPackingGroup()
 	} else {
@@ -318,14 +309,6 @@ func orderContainerOwnershipToEnt(value *biz.OrderContainerOwnership) *orderent.
 		return nil
 	}
 	result := orderent.ContainerOwnership(*value)
-	return &result
-}
-
-func orderShipmentModeToEnt(value *biz.OrderShipmentMode) *orderent.ShipmentMode {
-	if value == nil {
-		return nil
-	}
-	result := orderent.ShipmentMode(*value)
 	return &result
 }
 

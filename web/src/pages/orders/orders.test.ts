@@ -6,7 +6,6 @@ import {
   isMasterDataKind,
   MASTER_DATA_KINDS,
   PARTNER_ROLES,
-  shipmentModeOptions,
   shipmentTypeOptions,
   tradeDirectionOptions,
 } from './common';
@@ -71,10 +70,6 @@ describe('orders common and config', () => {
     expect(tradeDirectionOptions).toHaveLength(2);
     expect(PARTNER_ROLES).not.toHaveProperty('BOOKING_AGENT');
     expect(PARTNER_ROLES.FOREIGN_AGENT).toBe(3);
-    expect(shipmentModeOptions).toEqual([
-      { label: '集运', value: 1 },
-      { label: '跨境', value: 2 },
-    ]);
     expect(shipmentTypeOptions).toEqual([
       { label: '整箱', value: 1 },
       { label: '拼箱', value: 2 },

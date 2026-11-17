@@ -92,8 +92,6 @@ type Order struct {
 	ShipmentType *order.ShipmentType `json:"shipment_type,omitempty"`
 	// ContainerOwnership holds the value of the "container_ownership" field.
 	ContainerOwnership *order.ContainerOwnership `json:"container_ownership,omitempty"`
-	// ShipmentMode holds the value of the "shipment_mode" field.
-	ShipmentMode *order.ShipmentMode `json:"shipment_mode,omitempty"`
 	// FlowStatus holds the value of the "flow_status" field.
 	FlowStatus order.FlowStatus `json:"flow_status,omitempty"`
 	// TerminationStatus holds the value of the "termination_status" field.
@@ -585,7 +583,7 @@ func (*Order) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case order.FieldLockGeneration, order.FieldVersion, order.FieldFeeContentVersion, order.FieldFeeReviewVersion, order.FieldTotalPackages:
 			values[i] = new(sql.NullInt64)
-		case order.FieldSearchKeywords, order.FieldShipperSearchKeywords, order.FieldConsigneeSearchKeywords, order.FieldOrderNo, order.FieldIdempotencyKey, order.FieldCustomerReferenceNo, order.FieldInternalReferenceNo, order.FieldShipperShortName, order.FieldConsigneeShortName, order.FieldContractNo, order.FieldCargoValue, order.FieldCargoCurrency, order.FieldInsurancePremium, order.FieldInsuranceCurrency, order.FieldUnNumber, order.FieldHazardClass, order.FieldDangerousPackingGroup, order.FieldFactoryName, order.FieldCargoReadyAt, order.FieldDeclarationCutoffAt, order.FieldReceivedAt, order.FieldBusinessType, order.FieldTradeDirection, order.FieldTradeTerm, order.FieldPaymentTerm, order.FieldShipmentType, order.FieldContainerOwnership, order.FieldShipmentMode, order.FieldFlowStatus, order.FieldTerminationStatus, order.FieldTerminationType, order.FieldTerminationReason, order.FieldClosureStatus, order.FieldClosureReason, order.FieldLockSource, order.FieldAutoLockTriggerType, order.FieldFeeReviewStatus, order.FieldVesselVoyage, order.FieldEtd, order.FieldEta, order.FieldSiCutoff, order.FieldDocCutoff, order.FieldCustomsCutoff, order.FieldVgmCutoff, order.FieldGoodsDescription, order.FieldTotalPackageUnit, order.FieldSpecialRequirements, order.FieldOrderDate, order.FieldBookingNo, order.FieldNotes, order.FieldBookingNotes, order.FieldAllocationNotes, order.FieldOperationNotes:
+		case order.FieldSearchKeywords, order.FieldShipperSearchKeywords, order.FieldConsigneeSearchKeywords, order.FieldOrderNo, order.FieldIdempotencyKey, order.FieldCustomerReferenceNo, order.FieldInternalReferenceNo, order.FieldShipperShortName, order.FieldConsigneeShortName, order.FieldContractNo, order.FieldCargoValue, order.FieldCargoCurrency, order.FieldInsurancePremium, order.FieldInsuranceCurrency, order.FieldUnNumber, order.FieldHazardClass, order.FieldDangerousPackingGroup, order.FieldFactoryName, order.FieldCargoReadyAt, order.FieldDeclarationCutoffAt, order.FieldReceivedAt, order.FieldBusinessType, order.FieldTradeDirection, order.FieldTradeTerm, order.FieldPaymentTerm, order.FieldShipmentType, order.FieldContainerOwnership, order.FieldFlowStatus, order.FieldTerminationStatus, order.FieldTerminationType, order.FieldTerminationReason, order.FieldClosureStatus, order.FieldClosureReason, order.FieldLockSource, order.FieldAutoLockTriggerType, order.FieldFeeReviewStatus, order.FieldVesselVoyage, order.FieldEtd, order.FieldEta, order.FieldSiCutoff, order.FieldDocCutoff, order.FieldCustomsCutoff, order.FieldVgmCutoff, order.FieldGoodsDescription, order.FieldTotalPackageUnit, order.FieldSpecialRequirements, order.FieldOrderDate, order.FieldBookingNo, order.FieldNotes, order.FieldBookingNotes, order.FieldAllocationNotes, order.FieldOperationNotes:
 			values[i] = new(sql.NullString)
 		case order.FieldCreatedAt, order.FieldUpdatedAt, order.FieldTerminatedAt, order.FieldClosedAt, order.FieldLockedAt:
 			values[i] = new(sql.NullTime)
@@ -829,13 +827,6 @@ func (_m *Order) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.ContainerOwnership = new(order.ContainerOwnership)
 				*_m.ContainerOwnership = order.ContainerOwnership(value.String)
-			}
-		case order.FieldShipmentMode:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field shipment_mode", values[i])
-			} else if value.Valid {
-				_m.ShipmentMode = new(order.ShipmentMode)
-				*_m.ShipmentMode = order.ShipmentMode(value.String)
 			}
 		case order.FieldFlowStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -1460,11 +1451,6 @@ func (_m *Order) String() string {
 	builder.WriteString(", ")
 	if v := _m.ContainerOwnership; v != nil {
 		builder.WriteString("container_ownership=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
-	}
-	builder.WriteString(", ")
-	if v := _m.ShipmentMode; v != nil {
-		builder.WriteString("shipment_mode=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")

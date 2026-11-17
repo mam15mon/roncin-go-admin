@@ -40,7 +40,6 @@ export function getAirTemplateSections(
           {basic.customer}
           {basic.orderIdentity}
           {basic.references}
-          {commercial.shipmentMode}
           {basic.orderDate}
         </FormRow>
       ),

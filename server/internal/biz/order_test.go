@@ -61,10 +61,6 @@ func (s *orderRepoStub) ListPersonnelOptions(_ context.Context, _ uuid.UUID, opt
 	return &PagedList[*OrderPersonnelOption]{Page: options.Page, PageSize: options.PageSize}, nil
 }
 
-func (s *orderRepoStub) ListConsolidationSummaries(context.Context, uuid.UUID, uuid.UUID) ([]*OrderConsolidationSummary, error) {
-	return nil, nil
-}
-
 func (s *orderRepoStub) ListSameBatchOrders(context.Context, uuid.UUID, uuid.UUID) ([]*SameBatchOrderSummary, error) {
 	return nil, nil
 }

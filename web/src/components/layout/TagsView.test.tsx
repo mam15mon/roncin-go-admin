@@ -140,7 +140,7 @@ describe('routeUtils', () => {
       expect(resolveRouteTitle('/partners/foreign-agents/789')).toBe(
         '国外代理详情',
       );
-      expect(resolveRouteTitle('/finance/fees')).toBe('集运费用明细');
+      expect(resolveRouteTitle('/finance/fees')).toBe('费用明细');
       expect(resolveRouteTitle('/finance/fees/detail/FEE123')).toBe('费用详情');
       expect(resolveRouteTitle('/master-data')).toBe('主数据');
       expect(resolveRouteTitle('/admin')).toBe('系统管理');
@@ -214,7 +214,7 @@ describe('routeUtils', () => {
       );
     });
 
-    it('集运费用明细与单票详情归组为 /finance/fees', () => {
+    it('费用明细与单票详情归组为 /finance/fees', () => {
       expect(resolveTabKey('/finance/fees')).toBe('/finance/fees');
       expect(resolveTabKey('/finance/fees/detail/FEE123')).toBe(
         '/finance/fees',
@@ -423,7 +423,7 @@ describe('TagsView Component', () => {
     expect(screen.getByText('新建国外代理')).toBeInTheDocument();
   });
 
-  it('集运费用详情复用费用页签，跳转至业务订单时为订单新建独立页签', () => {
+  it('费用详情复用费用页签，跳转至业务订单时为订单新建独立页签', () => {
     mockPathname = '/finance/fees/detail/FEE001';
     const { rerender } = render(<TagsView />);
 

@@ -57,11 +57,6 @@ service OrderService {
     option (google.api.http) = {get: "/api/v1/order-personnel-options"};
   }
 
-  rpc ListOrderConsolidations(ListOrderConsolidationsRequest) returns (ListOrderConsolidationsResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {get: "/api/v1/orders/{id}/consolidations"};
-  }
-
   rpc ListSameBatchOrders(ListSameBatchOrdersRequest) returns (ListSameBatchOrdersResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/orders/{id}/same-batch"};
@@ -163,13 +158,6 @@ enum ContainerOwnership {
   CONTAINER_OWNERSHIP_UNSPECIFIED = 0;
   CONTAINER_OWNERSHIP_COC = 1;
   CONTAINER_OWNERSHIP_SOC = 2;
-}
-
-// ShipmentMode 运输模式。
-enum ShipmentMode {
-  SHIPMENT_MODE_UNSPECIFIED = 0;
-  SHIPMENT_MODE_TRADITIONAL_FORWARDING = 1;
-  SHIPMENT_MODE_CROSS_BORDER = 2;
 }
 
 // DangerousPackingGroup 危险品包装类别（IATA DGR）。
@@ -310,7 +298,8 @@ message Order {
   PaymentTerm payment_term = 10;
   optional ShipmentType shipment_type = 11;
   optional ContainerOwnership container_ownership = 12;
-  optional ShipmentMode shipment_mode = 13;
+  reserved 13;
+  reserved "shipment_mode";
   OrderFlowStatus flow_status = 14;
   reserved 15, 16;
   reserved "status_template_id", "service_type_ids";
@@ -416,30 +405,6 @@ message Order {
   optional string origin_location_name_en = 108;
   optional string destination_location_name_en = 109;
   optional string discharge_location_name_en = 110;
-}
-
-message OrderCargoMeasurement {
-  int32 packages = 1;
-  double gross_weight_kg = 2;
-  double volume_cbm = 3;
-}
-
-message OrderConsolidationMember {
-  string order_id = 1;
-  string order_no = 2;
-  optional string customer_reference_no = 3;
-  repeated string house_nos = 4;
-  OrderCargoMeasurement entrusted = 5;
-  OrderCargoMeasurement actual = 6;
-}
-
-message OrderConsolidationSummary {
-  string consolidation_id = 1;
-  string master_no = 2;
-  int32 member_count = 3;
-  OrderCargoMeasurement entrusted = 4;
-  OrderCargoMeasurement actual = 5;
-  repeated OrderConsolidationMember members = 6;
 }
 
 // OrderShippingDocumentInput 订单表单中的分单输入。
@@ -624,10 +589,6 @@ message ListPersonnelOptionsRequest {
   int32 page_size = 4;
 }
 
-message ListOrderConsolidationsRequest {
-  string id = 1 [(google.api.field_behavior) = REQUIRED];
-}
-
 // OrderReferenceCheck 订单业务编号查重结果。
 message OrderReferenceCheck {
   bool duplicate = 1;
@@ -648,7 +609,8 @@ message CreateOrderRequest {
   optional string booking_agent_id = 8;
   optional ShipmentType shipment_type = 9;
   optional ContainerOwnership container_ownership = 10;
-  optional ShipmentMode shipment_mode = 11;
+  reserved 11;
+  reserved "shipment_mode";
   repeated string cargo_category_ids = 13;
   optional string origin_location_id = 14;
   optional string destination_location_id = 15;
@@ -717,7 +679,8 @@ message UpdateOrderRequest {
   optional string booking_agent_id = 9;
   optional ShipmentType shipment_type = 10;
   optional ContainerOwnership container_ownership = 11;
-  optional ShipmentMode shipment_mode = 12;
+  reserved 12;
+  reserved "shipment_mode";
   repeated string cargo_category_ids = 14;
   optional string origin_location_id = 15;
   optional string destination_location_id = 16;
@@ -867,14 +830,6 @@ message ExportOrdersResponse {
   int32 total = 5;
   string generated_at = 6;
   string trace_id = 7;
-}
-
-message ListOrderConsolidationsResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  repeated OrderConsolidationSummary data = 4;
-  string trace_id = 5;
 }
 
 // CheckOrderReferenceResponse 订单业务编号查重响应。

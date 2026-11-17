@@ -5,7 +5,6 @@ import {
   OrderPersonnelRole,
   SeaDocumentStructure,
   SeaHouseBillIssuerSource,
-  ShipmentMode,
   ShipmentType,
   TradeDirection,
   TradeTerm,
@@ -73,7 +72,6 @@ export function buildSeaExportCreateDefaults(
   return {
     orderDate: dayjs(),
     paymentTerm: 1,
-    shipmentMode: ShipmentMode.SHIPMENT_MODE_TRADITIONAL_FORWARDING,
     shipmentType: ShipmentType.SHIPMENT_TYPE_FCL,
     containerOwnership: ContainerOwnership.CONTAINER_OWNERSHIP_COC,
     tradeTerm: TradeTerm.TRADE_TERM_CIF,
@@ -247,10 +245,6 @@ export function buildSeaCreatePayload(
       values.containerOwnership !== null
         ? Number(values.containerOwnership)
         : undefined,
-    shipmentMode:
-      values.shipmentMode !== undefined && values.shipmentMode !== null
-        ? Number(values.shipmentMode)
-        : undefined,
     cargoCategoryIds: values.cargoCategoryIds,
     originLocationId: values.originLocationId || undefined,
     destinationLocationId: values.destinationLocationId || undefined,
@@ -355,8 +349,6 @@ export function buildSeaExportDetailInitialValues(
     shipmentType: order.shipmentType ?? ShipmentType.SHIPMENT_TYPE_FCL,
     containerOwnership:
       order.containerOwnership ?? ContainerOwnership.CONTAINER_OWNERSHIP_COC,
-    shipmentMode:
-      order.shipmentMode ?? ShipmentMode.SHIPMENT_MODE_TRADITIONAL_FORWARDING,
     cargoCategoryIds: order.cargoCategoryIds ?? [],
     originLocationId: order.originLocationId,
     destinationLocationId: order.destinationLocationId,
@@ -463,10 +455,6 @@ export function buildSeaExportUpdatePayload(
     containerOwnership:
       values.containerOwnership !== undefined
         ? Number(values.containerOwnership)
-        : undefined,
-    shipmentMode:
-      values.shipmentMode !== undefined
-        ? Number(values.shipmentMode)
         : undefined,
     cargoCategoryIds: values.cargoCategoryIds,
     originLocationId: values.originLocationId || undefined,

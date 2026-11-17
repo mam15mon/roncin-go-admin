@@ -265,7 +265,7 @@ const routes: UmiRoute[] = [
       {
         path: '/finance/fees',
         organizationSwitch: { keep: true },
-        name: '集运费用明细',
+        name: '费用明细',
         access: 'canReadFinanceFees',
         component: './finance/fees',
       },

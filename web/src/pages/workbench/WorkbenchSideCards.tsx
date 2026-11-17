@@ -269,7 +269,7 @@ export function QuickEntriesCard() {
         : null,
     ),
     access.canReadFinanceFees
-      ? { title: '集运费用明细', path: '/finance/fees' }
+      ? { title: '费用明细', path: '/finance/fees' }
       : null,
     access.canReadFinanceBills
       ? { title: '账单管理', path: '/finance/bills' }

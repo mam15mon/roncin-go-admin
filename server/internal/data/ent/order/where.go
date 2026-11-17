@@ -2306,36 +2306,6 @@ func ContainerOwnershipNotNil() predicate.Order {
 	return predicate.Order(sql.FieldNotNull(FieldContainerOwnership))
 }
 
-// ShipmentModeEQ applies the EQ predicate on the "shipment_mode" field.
-func ShipmentModeEQ(v ShipmentMode) predicate.Order {
-	return predicate.Order(sql.FieldEQ(FieldShipmentMode, v))
-}
-
-// ShipmentModeNEQ applies the NEQ predicate on the "shipment_mode" field.
-func ShipmentModeNEQ(v ShipmentMode) predicate.Order {
-	return predicate.Order(sql.FieldNEQ(FieldShipmentMode, v))
-}
-
-// ShipmentModeIn applies the In predicate on the "shipment_mode" field.
-func ShipmentModeIn(vs ...ShipmentMode) predicate.Order {
-	return predicate.Order(sql.FieldIn(FieldShipmentMode, vs...))
-}
-
-// ShipmentModeNotIn applies the NotIn predicate on the "shipment_mode" field.
-func ShipmentModeNotIn(vs ...ShipmentMode) predicate.Order {
-	return predicate.Order(sql.FieldNotIn(FieldShipmentMode, vs...))
-}
-
-// ShipmentModeIsNil applies the IsNil predicate on the "shipment_mode" field.
-func ShipmentModeIsNil() predicate.Order {
-	return predicate.Order(sql.FieldIsNull(FieldShipmentMode))
-}
-
-// ShipmentModeNotNil applies the NotNil predicate on the "shipment_mode" field.
-func ShipmentModeNotNil() predicate.Order {
-	return predicate.Order(sql.FieldNotNull(FieldShipmentMode))
-}
-
 // FlowStatusEQ applies the EQ predicate on the "flow_status" field.
 func FlowStatusEQ(v FlowStatus) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldFlowStatus, v))

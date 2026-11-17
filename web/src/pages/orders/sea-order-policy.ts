@@ -1,8 +1,3 @@
-export const SEA_SHIPMENT_MODE = {
-  TRADITIONAL_FORWARDING: 1,
-  CROSS_BORDER: 2,
-} as const;
-
 export const SEA_SHIPMENT_TYPE = {
   FCL: 1,
   LCL: 2,
@@ -10,16 +5,12 @@ export const SEA_SHIPMENT_TYPE = {
 } as const;
 
 export type SeaOrderPolicyInput = {
-  shipmentMode?: number;
   shipmentType?: number;
 };
 
 export type SeaOrderFormPolicy = {
-  modeLabel: string;
-  showConsolidationReference: boolean;
   showContainerPlan: boolean;
   showRevenueTon: boolean;
-  emphasizeCrossBorderCompliance: boolean;
 };
 
 /**
@@ -28,14 +19,10 @@ export type SeaOrderFormPolicy = {
 export function resolveSeaOrderFormPolicy(
   input: SeaOrderPolicyInput,
 ): SeaOrderFormPolicy {
-  const crossBorder = input.shipmentMode === SEA_SHIPMENT_MODE.CROSS_BORDER;
   const shipmentType = input.shipmentType ?? SEA_SHIPMENT_TYPE.FCL;
 
   return {
-    modeLabel: crossBorder ? '跨境' : '集运',
-    showConsolidationReference: shipmentType === SEA_SHIPMENT_TYPE.LCL,
     showContainerPlan: shipmentType !== SEA_SHIPMENT_TYPE.BREAK_BULK,
     showRevenueTon: shipmentType === SEA_SHIPMENT_TYPE.BREAK_BULK,
-    emphasizeCrossBorderCompliance: crossBorder,
   };
 }

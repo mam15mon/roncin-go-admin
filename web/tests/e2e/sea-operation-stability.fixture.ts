@@ -12,7 +12,6 @@ import {
   SeaDocumentStructure,
   SeaHouseBillIssuerSource,
   SeaHouseBillStatus,
-  ShipmentMode,
   ShipmentType,
   TradeTerm,
 } from '../../src/enums.generated';
@@ -112,7 +111,6 @@ export async function installSeaStabilityFixture(page: Page) {
     shippingLineName: master.shippingLineName,
     shipmentType: ShipmentType.SHIPMENT_TYPE_FCL,
     containerOwnership: ContainerOwnership.CONTAINER_OWNERSHIP_COC,
-    shipmentMode: ShipmentMode.SHIPMENT_MODE_TRADITIONAL_FORWARDING,
     tradeTerm: TradeTerm.TRADE_TERM_FOB,
     paymentTerm: PaymentTerm.PAYMENT_TERM_PREPAID,
     originLocationId: master.originLocationId,

@@ -205,13 +205,6 @@ func (uc *OrderUsecase) ListPersonnelOptions(ctx context.Context, organizationID
 	return uc.repo.ListPersonnelOptions(ctx, organizationID, options)
 }
 
-func (uc *OrderUsecase) ListConsolidationSummaries(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderConsolidationSummary, error) {
-	if organizationID == uuid.Nil || orderID == uuid.Nil {
-		return nil, ErrOrderInvalidArgument
-	}
-	return uc.repo.ListConsolidationSummaries(ctx, organizationID, orderID)
-}
-
 func (uc *OrderUsecase) ListSameBatchOrders(ctx context.Context, organizationID, orderID uuid.UUID) ([]*SameBatchOrderSummary, error) {
 	if organizationID == uuid.Nil || orderID == uuid.Nil {
 		return nil, ErrOrderInvalidArgument
@@ -473,7 +466,7 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 			}
 		}
 	}
-	if output.ShipmentType != nil && !output.ShipmentType.Valid() || output.ContainerOwnership != nil && !output.ContainerOwnership.Valid() || output.ShipmentMode != nil && !output.ShipmentMode.Valid() {
+	if output.ShipmentType != nil && !output.ShipmentType.Valid() || output.ContainerOwnership != nil && !output.ContainerOwnership.Valid() {
 		return nil, ErrOrderInvalidArgument
 	}
 	if output.ShipmentType != nil && *output.ShipmentType == OrderShipmentBreakBulk && (len(output.ContainerRequests) > 0 || output.VGMCutoff != "") {
@@ -616,7 +609,7 @@ func orderCreateIntentHash(order *Order) string {
 	part("customer", order.CustomerID.String())
 	part("trade", string(order.BusinessType), string(order.TradeDirection), string(order.TradeTerm), string(order.PaymentTerm))
 	part("agents", uuidText(order.ShippingLineID), uuidText(order.BookingAgentID), uuidText(order.ForeignAgentID), uuidText(order.ShippingAgentID))
-	part("shipment", orderPointerText(order.ShipmentType), orderPointerText(order.ContainerOwnership), orderPointerText(order.ShipmentMode))
+	part("shipment", orderPointerText(order.ShipmentType), orderPointerText(order.ContainerOwnership))
 	part("references", order.CustomerReferenceNo, order.InternalReferenceNo, order.BookingNo, order.ContractNo)
 	part("short-names", order.ShipperShortName, order.ConsigneeShortName)
 	part("cargo", order.CargoValue, order.CargoCurrency, order.InsurancePremium, order.InsuranceCurrency)

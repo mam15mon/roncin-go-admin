@@ -73,7 +73,10 @@ it.each([false, true])(
       .filter((field) => !field.id && !field.name)
       .map((field) => field.outerHTML);
     expect(unnamedFields).toEqual([]);
-    for (const name of ['集运/跨境', '托运类型', '分单签发主体']) {
+    expect(
+      screen.queryByRole('radiogroup', { name: '集运/跨境' }),
+    ).not.toBeInTheDocument();
+    for (const name of ['托运类型', '分单签发主体']) {
       expect(
         screen.getByRole('radiogroup', { name, hidden: true }),
       ).toBeInTheDocument();

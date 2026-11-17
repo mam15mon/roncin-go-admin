@@ -25,9 +25,6 @@ import AttachmentDrawer, {
 import CargoItemDrawer, {
   type CargoItemDrawerRef,
 } from './components/drawers/CargoItemDrawer';
-import ConsolidationDrawer, {
-  type ConsolidationDrawerRef,
-} from './components/drawers/ConsolidationDrawer';
 import ContainerDrawer, {
   type ContainerDrawerRef,
 } from './components/drawers/ContainerDrawer';
@@ -61,7 +58,6 @@ export default function OrderListPage() {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const attachmentDrawerRef = useRef<AttachmentDrawerRef | null>(null);
   const containerDrawerRef = useRef<ContainerDrawerRef | null>(null);
-  const consolidationDrawerRef = useRef<ConsolidationDrawerRef | null>(null);
   const cargoItemDrawerRef = useRef<CargoItemDrawerRef | null>(null);
   const shippingDocumentDrawerRef = useRef<ShippingDocumentDrawerRef | null>(
     null,
@@ -338,11 +334,6 @@ export default function OrderListPage() {
           setActiveOrder(item.rawRecord);
           item.rawRecord && attachmentDrawerRef.current?.open(item.rawRecord);
         }}
-        onOpenConsolidations={(item) => {
-          setActiveOrder(item.rawRecord);
-          item.rawRecord &&
-            consolidationDrawerRef.current?.open(item.rawRecord);
-        }}
         onOpenAbnormal={
           access.canOrder(definition.businessType, 'abnormal_case.read')
             ? (item) => {
@@ -383,7 +374,6 @@ export default function OrderListPage() {
         containerSpecOptions={containerSpecOptions}
         containerSpecMap={containerSpecMap}
       />
-      <ConsolidationDrawer ref={consolidationDrawerRef} />
       <CargoItemDrawer
         ref={cargoItemDrawerRef}
         canCreate={

@@ -12,6 +12,7 @@
 | [Directory Structure](./directory-structure.md) | 页面组织、features 分层与依赖边界 | ✅ |
 | [航空订单就近工作区](./air-order-workspace.md) | 五卡插槽、共同运输快照与草稿基线、主分单页签、重量及只读操作 | ✅ |
 | [空运公共经营字段](./air-order-commercial-fields.md) | AE本票经营字段UI、金额日期往返与显式清空 | ✅ |
+| [订单运输模式退役](../../server/backend/shipment-mode-retirement.md) | 四类订单模式控件/载荷、自拼汇总入口退役及费用明细统一标题 | ✅ |
 | [航空直单与结构化正文](../../server/backend/air-waybill-content-and-mode.md) | 模式与可选HAWB、正文数值/纯日期/清空、主单编辑快照及航空审核指纹 | ✅ |
 | [航空制作与PDF](../../server/backend/air-waybill-production.md) | MAWB/HAWB真实主体与保存版本、按需同Blob输出、完整分页及输入保护 | ✅ |
 | [空运进口闭环](../../server/backend/air-import-contract.md) | AI路由/候选/主单类型、重量权限、ETA与服务保存航空基线 | ✅ |
