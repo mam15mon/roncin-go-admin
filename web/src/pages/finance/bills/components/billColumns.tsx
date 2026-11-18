@@ -91,13 +91,6 @@ export function getFinanceBillColumns({
       ),
     },
     {
-      title: '所属公司',
-      dataIndex: 'organizationName',
-      width: 150,
-      search: false,
-      renderText: (value) => value || '-',
-    },
-    {
       title: '建单批次',
       dataIndex: 'batchNo',
       width: 175,

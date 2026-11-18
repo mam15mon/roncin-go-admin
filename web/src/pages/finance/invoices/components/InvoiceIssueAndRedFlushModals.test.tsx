@@ -60,7 +60,7 @@ describe('发票方向感知文案（AC3）', () => {
       );
     }
     render(<RedFlushModalHarness />);
-    expect(screen.getByText('红冲 验收组织 的发票 T-001')).toBeInTheDocument();
+    expect(screen.getByText('红冲发票 T-001')).toBeInTheDocument();
     expect(screen.getByText('红冲日期')).toBeInTheDocument();
   });
 });

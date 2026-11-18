@@ -45,7 +45,6 @@ export type BillCreationWorkbenchProps = {
   open: boolean;
   initialFeeIds?: string[];
   initialOrganizationId?: string;
-  initialOrganizationName?: string;
   sourceLabel?: string;
   mode?: BillCreationMode;
   onClose: () => void;
@@ -86,7 +85,6 @@ export default function BillCreationWorkbench({
   open,
   initialFeeIds = [],
   initialOrganizationId,
-  initialOrganizationName,
   sourceLabel,
   mode = 'NORMAL',
   onClose,
@@ -107,8 +105,7 @@ export default function BillCreationWorkbench({
   const [splitByTaxRate, setSplitByTaxRate] = useState(true);
   const { initialState } = useInitialState();
   const access = useAccess();
-  const currentOrganization = initialState?.currentUser?.currentOrganization;
-  const organizationId = currentOrganization?.id;
+  const organizationId = initialState?.currentUser?.currentOrganization?.id;
   const canOperate =
     Boolean(initialState?.currentUser?.id) &&
     access.canCreateFinanceBills &&
@@ -740,9 +737,6 @@ export default function BillCreationWorkbench({
           selectedIds={selectedIds}
           selectedFeeIds={selectedFeeIds}
           onSelectedFeeIdsChange={setSelectedFeeIds}
-          sourceOrganizationName={
-            initialOrganizationName || currentOrganization?.name
-          }
           organizationId={organizationId}
           canOperate={canOperate && validSource}
         />

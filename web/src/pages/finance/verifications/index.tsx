@@ -113,7 +113,7 @@ export default function FinanceVerificationsPage() {
   const reverse = (r: API.FinanceVerification) => {
     verificationActions.confirm(
       r,
-      `反核销 ${r.organizationName || '所属公司未标识'} 的该批分配？`,
+      `确认反核销 ${r.verificationNo || ''} 的该批分配？`,
       async ({ id, expectedVersion }, reason): Promise<false | undefined> => {
         const writeResponse1 = await settlementServiceReverseVerification(
           { id },
@@ -189,13 +189,6 @@ export default function FinanceVerificationsPage() {
       valueType: 'index',
       width: 55,
       fixed: 'left',
-    },
-    {
-      title: '所属公司',
-      dataIndex: 'organizationName',
-      width: 150,
-      search: false,
-      renderText: (value) => value || '-',
     },
     {
       title: '核销编号',
@@ -514,9 +507,6 @@ export default function FinanceVerificationsPage() {
               column={2}
               style={{ marginBottom: 16 }}
             >
-              <Descriptions.Item label="所属公司">
-                {detail.organizationName || '-'}
-              </Descriptions.Item>
               <Descriptions.Item label="核销状态">
                 <Tag
                   color={

@@ -19,7 +19,6 @@ export const cashflowStates: Record<number, { text: string; color: string }> = {
 };
 
 export const cashflowExportColumns: CsvColumn<API.FinanceCashflow>[] = [
-  { header: '所属公司', value: (row) => row.organizationName },
   {
     header: '方向',
     value: (row) =>

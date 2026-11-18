@@ -130,9 +130,6 @@ export default function InvoiceDetailModal({
           <Descriptions.Item label="结算单位">
             {detail.settlementPartyName}
           </Descriptions.Item>
-          <Descriptions.Item label="所属公司">
-            {detail.organizationName || '-'}
-          </Descriptions.Item>
           <DItem label="发票抬头">{detail.invoiceTitle}</DItem>
           <DItem label="纳税人识别号" span={2}>
             {detail.taxpayerIdentificationNo}

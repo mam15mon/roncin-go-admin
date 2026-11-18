@@ -50,7 +50,6 @@ export default function CommissionDetailDrawer({
   onTransitionAdjustment,
   onCancelAdjustment,
 }: CommissionDetailDrawerProps) {
-  const organizationName = detail?.organizationName || '-';
   const adjustmentColumns = [
     {
       title: '调整编号',
@@ -225,18 +224,6 @@ export default function CommissionDetailDrawer({
             icon={<PlusOutlined />}
             onClick={onOpenAdjustment}
           >
-            {detail && (
-              <Descriptions
-                size="small"
-                bordered
-                column={1}
-                style={{ marginBottom: 16 }}
-              >
-                <Descriptions.Item label="所属公司">
-                  {organizationName}
-                </Descriptions.Item>
-              </Descriptions>
-            )}
             新增提成调整
           </Button>
         ) : null

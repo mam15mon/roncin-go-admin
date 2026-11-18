@@ -67,7 +67,6 @@ describe('fees 台账导出字段', () => {
       feeExportColumns.map((column) => [column.header, column.value(row)]),
     );
     expect(values).toEqual({
-      所属公司: '天津公司',
       结算单位: '客户甲',
       原币币种: 'USD',
       本位币币种: 'CNY',
@@ -102,7 +101,7 @@ describe('fees 台账导出字段', () => {
       已对冲金额: '25.00',
     });
     expect(new Set(feeExportColumns.map((column) => column.header)).size).toBe(
-      33,
+      32,
     );
     const csv = serializeCsv(
       [row, { ...row, currency: 'EUR', baseCurrency: 'HKD' }],

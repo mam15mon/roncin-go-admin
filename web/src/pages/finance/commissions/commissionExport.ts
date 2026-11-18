@@ -41,11 +41,6 @@ export function normalizeCommissionFilters(
 
 const csvColumns: CsvColumn<API.CommissionExportItem>[] = [
   {
-    header: '所属公司',
-    kind: 'text',
-    value: (item) => item.organizationName ?? '',
-  },
-  {
     header: '提成编号',
     kind: 'text',
     value: (item) => item.commissionNo ?? '',

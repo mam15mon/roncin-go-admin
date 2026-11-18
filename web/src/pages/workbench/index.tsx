@@ -1,6 +1,5 @@
-import { ApartmentOutlined } from '@ant-design/icons';
 import { PageContainer, ProCard } from '@ant-design/pro-components';
-import { Alert, Avatar, Button, Skeleton, Space, Tag, Typography } from 'antd';
+import { Alert, Avatar, Button, Skeleton, Space, Typography } from 'antd';
 import React, { useState } from 'react';
 import { Link } from 'react-router';
 import { useInitialState } from '@/app/AppProvider';
@@ -35,7 +34,6 @@ function CompanyWorkbench() {
   const { initialState } = useInitialState();
   const user = initialState?.currentUser;
   const displayName = user?.displayName || user?.username || '用户';
-  const orgName = user?.currentOrganization?.name || '默认组织';
 
   // 请求键：当前工作区组织 ID。组织切换时 hook 重新拉取并丢弃旧组织在途响应。
   const { loading, data, error, reload } = useWorkbenchOverview(
@@ -78,17 +76,6 @@ function CompanyWorkbench() {
               欢迎登录 Roncin 国际货代协同管理平台
             </Text>
           </div>
-        </Space>
-      }
-      extra={
-        <Space size={8}>
-          <Tag
-            icon={<ApartmentOutlined />}
-            color="blue"
-            style={{ padding: '4px 10px', fontSize: 12 }}
-          >
-            当前组织：{orgName}
-          </Tag>
         </Space>
       }
     >

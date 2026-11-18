@@ -26,7 +26,6 @@ export const billExportColumns: CsvColumn<API.FinanceBill>[] = [
     value: (row) => getBillProgressStatus(row)?.text ?? '',
   },
   { header: '账单编号', value: (row) => row.billNo },
-  { header: '所属公司', value: (row) => row.organizationName },
   { header: '建单批次', value: (row) => row.batchNo },
   { header: '结算单位', value: (row) => row.settlementPartyName },
   { header: '对账抬头', value: (row) => row.statementTitle },

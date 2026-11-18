@@ -37,7 +37,6 @@ describe('nettings 台账导出字段', () => {
       nettingExportColumns.map((column) => [column.header, column.value(row)]),
     );
     expect(values).toEqual({
-      所属公司: '天津公司',
       结算单位: '客户甲',
       原币币种: 'USD',
       本位币币种: 'CNY',
@@ -58,7 +57,7 @@ describe('nettings 台账导出字段', () => {
     });
     expect(
       new Set(nettingExportColumns.map((column) => column.header)).size,
-    ).toBe(18);
+    ).toBe(17);
     const csv = serializeCsv(
       [row, { ...row, currency: 'EUR', baseCurrency: 'HKD' }],
       nettingExportColumns,

@@ -237,7 +237,7 @@ describe('提成台账动作', () => {
     return adjustment;
   };
 
-  it('确认内嵌调整显示记录真实公司，提交保留该记录版本', async () => {
+  it('确认内嵌调整显示单号，提交保留该记录版本', async () => {
     const adjustment = await openEmbeddedAdjustment();
     serviceMocks.confirmAdjustment.mockResolvedValue({
       data: { id: adjustment.id },
@@ -247,10 +247,8 @@ describe('提成台账动作', () => {
 
     const dialog = await screen.findByRole('dialog');
     expect(dialog).toHaveTextContent('确认调整 ADJ001？');
-    expect(dialog).toHaveTextContent(
-      `所属公司：${adjustment.organizationName}`,
-    );
-    expect(dialog).not.toHaveTextContent('所属公司未标识');
+    expect(dialog).not.toHaveTextContent('所属公司');
+    expect(dialog).not.toHaveTextContent(adjustment.organizationName);
     expect(dialog).not.toHaveTextContent('融迅天津当前工作台');
     fireEvent.click(within(dialog).getByRole('button', { name: 'OK' }));
     await waitFor(() =>
@@ -262,7 +260,7 @@ describe('提成台账动作', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
   });
 
-  it('取消内嵌调整显示记录真实公司，保留版本与必填取消原因', async () => {
+  it('取消内嵌调整显示单号，保留版本与必填取消原因', async () => {
     const adjustment = await openEmbeddedAdjustment();
     serviceMocks.cancelAdjustment.mockResolvedValue({
       data: { id: adjustment.id },
@@ -271,10 +269,8 @@ describe('提成台账动作', () => {
     fireEvent.click(screen.getByRole('button', { name: '取消内嵌调整' }));
 
     const dialog = await screen.findByRole('dialog');
-    expect(dialog).toHaveTextContent(
-      `取消 ${adjustment.organizationName} 的调整 ADJ001？`,
-    );
-    expect(dialog).not.toHaveTextContent('所属公司未标识');
+    expect(dialog).toHaveTextContent('取消调整 ADJ001？');
+    expect(dialog).not.toHaveTextContent(adjustment.organizationName);
     expect(dialog).not.toHaveTextContent('融迅天津当前工作台');
     const submit = within(dialog).getByRole('button', { name: /确.*认/ });
     fireEvent.click(submit);

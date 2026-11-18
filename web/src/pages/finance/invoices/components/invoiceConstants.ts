@@ -54,15 +54,10 @@ export const invoiceStateText = (
 // 草稿「取消」与已开票「作废」是两个语义不同的终态操作，确认文案不得混用。
 export const invoiceDraftCancelTitle = (
   direction: string | undefined,
-  organizationName?: string,
-): string =>
-  `取消 ${organizationName || '所属公司未标识'} 的${invoiceRecordNoun(direction)}草稿并释放关联账单？`;
+): string => `取消${invoiceRecordNoun(direction)}草稿并释放关联账单？`;
 
-export const invoiceVoidTitle = (
-  direction: string | undefined,
-  organizationName?: string,
-): string =>
-  `作废 ${organizationName || '所属公司未标识'} 的已${invoiceIssueVerb(direction)}发票并释放关联账单？`;
+export const invoiceVoidTitle = (direction: string | undefined): string =>
+  `作废${invoiceRecordNoun(direction)}并释放关联账单？`;
 
 export const invoiceDraftCancelDescription =
   '取消草稿并释放关联账单，取消后不可恢复。';

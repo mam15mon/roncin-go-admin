@@ -145,9 +145,6 @@ export default function BillDetailModal({
           <Descriptions.Item label="方向">
             {detail.direction === 'RECEIVABLE' ? '应收' : '应付'}
           </Descriptions.Item>
-          <Descriptions.Item label="所属公司">
-            {detail.organizationName || '-'}
-          </Descriptions.Item>
           <Descriptions.Item label="结算单位">
             {detail.settlementPartyName}
           </Descriptions.Item>

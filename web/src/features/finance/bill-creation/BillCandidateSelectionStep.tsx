@@ -14,7 +14,6 @@ type BillCandidateSelectionStepProps = {
   selectedIds: string[];
   selectedFeeIds: React.Key[];
   onSelectedFeeIdsChange: React.Dispatch<React.SetStateAction<React.Key[]>>;
-  sourceOrganizationName?: string;
   organizationId?: string;
   canOperate: boolean;
 };
@@ -26,7 +25,6 @@ export default function BillCandidateSelectionStep({
   selectedIds,
   selectedFeeIds,
   onSelectedFeeIdsChange,
-  sourceOrganizationName,
   organizationId,
   canOperate,
 }: BillCandidateSelectionStepProps) {
@@ -43,10 +41,6 @@ export default function BillCandidateSelectionStep({
         title={`已从${sourceLabel || '业务页面'}带入 ${selectedIds.length} 笔未建账费用`}
         description="仅已批准且没有待审核补录的费用可以转账单，生成前会再核对一次。"
       />
-      <div style={{ marginTop: 12 }}>
-        来源公司：
-        {sourceOrganizationName || '-'}
-      </div>
     </Card>
   ) : (
     <ProTable<API.FeeLedgerItem>

@@ -146,7 +146,7 @@ export default function FinanceNettingsPage() {
   const cancelNetting = (record: API.FinanceNetting) => {
     nettingActions.confirm(
       record,
-      `取消 ${record.organizationName || '所属公司未标识'} 的草稿对冲单 ${record.nettingNo || ''}？`,
+      `取消草稿对冲单 ${record.nettingNo || ''}？`,
       async ({ id, expectedVersion }, reason): Promise<false | undefined> => {
         const writeResponse2 = await settlementServiceCancelNetting(
           { id },
@@ -168,7 +168,7 @@ export default function FinanceNettingsPage() {
   const reverseNetting = (record: API.FinanceNetting) => {
     nettingActions.confirm(
       record,
-      `反转 ${record.organizationName || '所属公司未标识'} 的已确认对冲单 ${record.nettingNo || ''}？双方账单未结余额将恢复，已开发票与账单折算快照不受影响。`,
+      `反转已确认对冲单 ${record.nettingNo || ''}？双方账单未结余额将恢复，已开发票与账单折算快照不受影响。`,
       async ({ id, expectedVersion }, reason): Promise<false | undefined> => {
         const writeResponse3 = await settlementServiceReverseNetting(
           { id },
@@ -251,13 +251,6 @@ export default function FinanceNettingsPage() {
       valueType: 'index',
       width: 55,
       fixed: 'left',
-    },
-    {
-      title: '所属公司',
-      dataIndex: 'organizationName',
-      width: 150,
-      search: false,
-      renderText: (value) => value || '-',
     },
     {
       title: '对冲单号',
@@ -567,9 +560,6 @@ export default function FinanceNettingsPage() {
         {detail && (
           <>
             <Descriptions bordered size="small" column={2}>
-              <Descriptions.Item label="所属公司">
-                {detail.organizationName || '-'}
-              </Descriptions.Item>
               <Descriptions.Item label="状态">
                 {nettingStatusTag(detail.status)}
               </Descriptions.Item>

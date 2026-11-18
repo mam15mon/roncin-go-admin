@@ -258,13 +258,6 @@ export default function FinanceInvoicesPage() {
       fixed: 'left',
     },
     {
-      title: '所属公司',
-      dataIndex: 'organizationName',
-      width: 150,
-      search: false,
-      renderText: (value) => value || '-',
-    },
-    {
       title: '关键词',
       dataIndex: 'keyword',
       hideInTable: true,

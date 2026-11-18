@@ -18,7 +18,6 @@ export function nettingStatusText(status?: number): string {
 }
 
 export const nettingExportColumns: CsvColumn<API.FinanceNetting>[] = [
-  { header: '所属公司', value: (row) => row.organizationName },
   { header: '对冲单号', value: (row) => row.nettingNo },
   { header: '状态', value: (row) => nettingStatusText(row.status) },
   { header: '结算单位', value: (row) => row.settlementPartyName },

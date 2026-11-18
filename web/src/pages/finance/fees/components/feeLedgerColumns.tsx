@@ -80,13 +80,6 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
       search: false,
     },
     {
-      title: '所属公司',
-      dataIndex: 'organizationName',
-      width: 150,
-      search: false,
-      renderText: (value) => value || '-',
-    },
-    {
       title: '属性',
       dataIndex: 'direction',
       width: 65,

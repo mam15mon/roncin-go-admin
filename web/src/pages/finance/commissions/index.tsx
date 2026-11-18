@@ -239,7 +239,7 @@ export default function FinanceCommissionsPage() {
     modal
       .confirm({
         title: `${action} ${record.adjustmentNo}？`,
-        content: `所属公司：${record.organizationName || '所属公司未标识'}。${content}`,
+        content,
         onOk: async () => {
           try {
             const body = {
@@ -305,7 +305,7 @@ export default function FinanceCommissionsPage() {
       return;
     adjustmentActions.confirm(
       record,
-      `取消 ${record.organizationName || '所属公司未标识'} 的调整 ${record.adjustmentNo}？`,
+      `取消调整 ${record.adjustmentNo}？`,
       async ({ id, expectedVersion }, reason): Promise<false | undefined> => {
         try {
           const writeResponse3 =
@@ -351,7 +351,7 @@ export default function FinanceCommissionsPage() {
     const action = target === 'CONFIRMED' ? '确认' : '标记已发放';
     modal
       .confirm({
-        title: `${action} ${record.organizationName || '所属公司未标识'} 的提成 ${record.commissionNo}？`,
+        title: `${action}提成 ${record.commissionNo}？`,
         content:
           target === 'CONFIRMED'
             ? '系统会重新核对来源单（核销或对冲）、账单费用、提成规则和客户人员归属；来源发生变化时将拒绝确认。'
@@ -416,7 +416,7 @@ export default function FinanceCommissionsPage() {
       return;
     commissionActions.confirm(
       record,
-      `取消 ${record.organizationName || '所属公司未标识'} 的提成 ${record.commissionNo}？`,
+      `取消提成 ${record.commissionNo}？`,
       async ({ id, expectedVersion }, reason): Promise<false | undefined> => {
         try {
           const writeResponse5 = await settlementServiceCancelCommission(
@@ -444,13 +444,6 @@ export default function FinanceCommissionsPage() {
   };
 
   const columns: ProColumns<API.FinanceCommission>[] = [
-    {
-      title: '所属公司',
-      dataIndex: 'organizationName',
-      width: 150,
-      search: false,
-      renderText: (value) => value || '-',
-    },
     {
       title: '关键词',
       dataIndex: 'keyword',

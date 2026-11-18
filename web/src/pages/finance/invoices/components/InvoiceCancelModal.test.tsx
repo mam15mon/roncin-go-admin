@@ -46,7 +46,7 @@ describe('发票终态确认文案（INV-01）', () => {
       />,
     );
     expect(
-      screen.getByText('取消 验收组织 的开票记录草稿并释放关联账单？'),
+      screen.getByText('取消开票记录草稿并释放关联账单？'),
     ).toBeInTheDocument();
     expect(
       screen.getByText('取消草稿并释放关联账单，取消后不可恢复。'),
@@ -69,7 +69,7 @@ describe('发票终态确认文案（INV-01）', () => {
       />,
     );
     expect(
-      screen.getByText('作废 验收组织 的已开具发票并释放关联账单？'),
+      screen.getByText('作废开票记录并释放关联账单？'),
     ).toBeInTheDocument();
     expect(screen.getByText('线下税务条件确认')).toBeInTheDocument();
     expect(
@@ -90,14 +90,10 @@ describe('发票终态确认文案（INV-01）', () => {
   });
 
   it('作废标题与成功提示保持销项/进项方向语义', () => {
-    expect(invoiceVoidTitle('RECEIVABLE', '验收组织')).toBe(
-      '作废 验收组织 的已开具发票并释放关联账单？',
-    );
-    expect(invoiceVoidTitle('PAYABLE', '验收组织')).toBe(
-      '作废 验收组织 的已收票发票并释放关联账单？',
-    );
+    expect(invoiceVoidTitle('RECEIVABLE')).toBe('作废开票记录并释放关联账单？');
+    expect(invoiceVoidTitle('PAYABLE')).toBe('作废收票记录并释放关联账单？');
     expect(invoiceDraftCancelTitle('PAYABLE')).toBe(
-      '取消 所属公司未标识 的收票记录草稿并释放关联账单？',
+      '取消收票记录草稿并释放关联账单？',
     );
     expect(invoiceCancelSuccessText('RECEIVABLE')).toBe(
       '开票记录草稿已取消，关联账单已释放',

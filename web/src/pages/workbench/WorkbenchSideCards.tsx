@@ -1,5 +1,4 @@
 import {
-  ApartmentOutlined,
   AppstoreOutlined,
   BellOutlined,
   SafetyCertificateOutlined,
@@ -190,7 +189,6 @@ export function TodosCard({
 
 /** 账号边界：登录身份、当前组织与授权范围的固定事实。 */
 export function AccountBoundaryCard({ user }: { user?: API.CurrentUser }) {
-  const orgName = user?.currentOrganization?.name || '默认组织';
   const orgCode = user?.currentOrganization?.code || '-';
   return (
     <ProCard
@@ -212,12 +210,6 @@ export function AccountBoundaryCard({ user }: { user?: API.CurrentUser }) {
         </Descriptions.Item>
         <Descriptions.Item label="显示名称">
           <Text strong>{user?.displayName || '-'}</Text>
-        </Descriptions.Item>
-        <Descriptions.Item label="当前工作区组织">
-          <Space size={6}>
-            <ApartmentOutlined style={{ color: '#1677ff' }} />
-            <Text strong>{orgName}</Text>
-          </Space>
         </Descriptions.Item>
         <Descriptions.Item label="组织统一编码">
           <Text copyable style={{ fontFamily: 'monospace' }}>

@@ -202,7 +202,7 @@ export default function FinanceCashflowsPage() {
   const cancel = (r: API.FinanceCashflow) => {
     cashflowActions.confirm(
       r,
-      `取消 ${r.organizationName || '所属公司未标识'} 的资金流水？`,
+      `取消资金流水 ${r.flowNo || ''}？`,
       async ({ id, expectedVersion }, reason): Promise<false | undefined> => {
         const writeResponse2 = await settlementServiceCancelCashflow(
           { id },
@@ -298,13 +298,6 @@ export default function FinanceCashflowsPage() {
           {r.direction === 'RECEIVABLE' ? '收款' : '付款'}
         </Tag>
       ),
-    },
-    {
-      title: '所属公司',
-      dataIndex: 'organizationName',
-      width: 150,
-      search: false,
-      renderText: (value) => value || '-',
     },
     {
       title: '状态',
@@ -457,7 +450,7 @@ export default function FinanceCashflowsPage() {
         r.status === FinanceCashflowStatus.FINANCE_CASHFLOW_STATUS_DRAFT ? (
           <AsyncPopconfirm
             key="confirm"
-            title={`确认 ${r.organizationName || '所属公司未标识'} 的真实资金流水？`}
+            title={`确认真实资金流水 ${r.flowNo || ''}？`}
             onConfirm={() => confirm(r)}
           >
             <a>

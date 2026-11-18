@@ -432,7 +432,6 @@ export default function FinanceFeeLedgerPage() {
         open={billWorkbenchOpen}
         initialFeeIds={selectedFeeIds}
         initialOrganizationId={selectedBillOrganizationId}
-        initialOrganizationName={currentUser?.currentOrganization?.name}
         sourceLabel={`从费用明细勾选的 ${selectedFeeIds.length} 笔费用`}
         mode={billWorkbenchMode}
         onClose={() => setBillWorkbenchOpen(false)}

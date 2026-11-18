@@ -4,7 +4,6 @@ import { formatDate } from '@/utils/format';
 import { invoiceStateText } from './components/invoiceConstants';
 
 export const invoiceExportColumns: CsvColumn<API.FinanceInvoice>[] = [
-  { header: '所属公司', value: (row) => row.organizationName },
   { header: '记录编号', value: (row) => row.recordNo },
   {
     header: '方向',

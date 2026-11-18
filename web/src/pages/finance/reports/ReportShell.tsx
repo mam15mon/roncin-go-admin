@@ -297,7 +297,7 @@ export default function ReportShell<
   return (
     <FinanceLedgerTemplate<T, Record<string, never>, Accepted<T, S>>
       pageTitle={financeReportCenter.name}
-      pageSubTitle={`${org?.name ?? ''} · ${subtitle}`}
+      pageSubTitle={subtitle}
       pageTabs={{
         tabList: reportTabs,
         tabActiveKey: pageKey,

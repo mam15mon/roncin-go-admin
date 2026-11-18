@@ -40,7 +40,6 @@ describe('bills 台账导出字段', () => {
       billExportColumns.map((column) => [column.header, column.value(row)]),
     );
     expect(values).toEqual({
-      所属公司: '天津公司',
       结算单位: '客户甲',
       原币币种: 'USD',
       本位币币种: 'CNY',
@@ -69,7 +68,7 @@ describe('bills 台账导出字段', () => {
       逾期天数: '0',
     });
     expect(new Set(billExportColumns.map((column) => column.header)).size).toBe(
-      27,
+      26,
     );
     const csv = serializeCsv(
       [row, { ...row, currency: 'EUR', baseCurrency: 'HKD' }],

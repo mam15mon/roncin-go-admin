@@ -8,7 +8,6 @@ export const verificationStatusText = (status?: number) =>
     : '已反核销';
 
 export const verificationExportColumns: CsvColumn<API.FinanceVerification>[] = [
-  { header: '所属公司', value: (row) => row.organizationName },
   { header: '核销编号', value: (row) => row.verificationNo },
   { header: '状态', value: (row) => verificationStatusText(row.status) },
   {

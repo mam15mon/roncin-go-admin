@@ -96,16 +96,11 @@ export default function FinanceFeeDetailPage() {
       {query.isError && (
         <Alert type="error" title="费用台账详情加载失败，请刷新重试" />
       )}
-      <SectionCard title="订单与所属公司">
+      <SectionCard title="订单信息">
         <Descriptions
           size="small"
           column={4}
           items={[
-            {
-              key: 'organization',
-              label: '所属公司',
-              children: detail?.organizationName || '-',
-            },
             {
               key: 'orderNo',
               label: '订单编号',

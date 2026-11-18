@@ -437,7 +437,7 @@ export default function FinanceBillsPage() {
     ];
     billActions.confirm(
       fullBill,
-      `确认取消 ${fullBill.organizationName || '所属公司未标识'} 的整张账单 ${fullBill.billNo || ''}？将释放涉及 ${orderCount} 个订单的 ${activeLines.length} 笔费用${orderNos.length ? `（${orderNos.join('、')}）` : ''}。合并账单内所有关联费用会一并释放；如有发票、核销或对冲，须先按提示逐步回退。`,
+      `确认取消整张账单 ${fullBill.billNo || ''}？将释放涉及 ${orderCount} 个订单的 ${activeLines.length} 笔费用${orderNos.length ? `（${orderNos.join('、')}）` : ''}。合并账单内所有关联费用会一并释放；如有发票、核销或对冲，须先按提示逐步回退。`,
       async ({ id, expectedVersion }, reason): Promise<false | undefined> => {
         const writeResponse2 = await settlementServiceCancelBill(
           { id },

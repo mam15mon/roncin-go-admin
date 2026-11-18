@@ -199,7 +199,7 @@ describe('工作台提成门禁', () => {
     await waitFor(() =>
       expect(screen.getByText('账号与数据边界')).toBeInTheDocument(),
     );
-    expect(screen.getByText('当前组织：上海公司')).toBeInTheDocument();
+    expect(screen.queryByText(/上海公司/)).not.toBeInTheDocument();
     expect(screen.getByText('快捷入口')).toBeInTheDocument();
     expect(screen.queryByText('我的提成')).not.toBeInTheDocument();
     expect(screen.queryByText('我负责的近期订单')).not.toBeInTheDocument();
@@ -555,7 +555,7 @@ describe('工作台财务卡与组织切换', () => {
     await waitFor(() =>
       expect(screen.getByText('SE-CD-001')).toBeInTheDocument(),
     );
-    expect(screen.getByText('当前组织：成都公司')).toBeInTheDocument();
+    expect(screen.queryByText(/成都公司/)).not.toBeInTheDocument();
     expect(screen.queryByText('我的提成')).not.toBeInTheDocument();
     expect(screen.queryByText('99999.00')).not.toBeInTheDocument();
     expect(screen.queryByText('月度申请')).not.toBeInTheDocument();

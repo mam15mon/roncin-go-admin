@@ -60,7 +60,7 @@ beforeEach(() => {
   state.organizationId = 'workspace-A';
 });
 describe('nettings列表当前公司', () => {
-  it('请求固定当前公司，分页搜索传来的外公司值不能覆盖；公司展示列保留', async () => {
+  it('请求固定当前公司，分页搜索传来的外公司值不能覆盖；列表省略所属公司列', async () => {
     renderWithClient(
       <App>
         <FinanceNettingsPage />
@@ -69,7 +69,7 @@ describe('nettings列表当前公司', () => {
     expect(state.ledger?.topBar).toBeUndefined();
     expect(
       state.ledger?.columns.some((column) => column.title === '所属公司'),
-    ).toBe(true);
+    ).toBe(false);
     act(() => state.ledger?.customSearch.props.onSearch({ keyword: '条件' }));
     await state.ledger?.request({
       current: 2,

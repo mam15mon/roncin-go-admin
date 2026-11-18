@@ -25,7 +25,7 @@ export function InvoiceRedFlushModal({
   });
   return (
     <Modal
-      title={`红冲 ${redFlushTarget?.organizationName || '所属公司未标识'} 的发票 ${redFlushTarget?.taxInvoiceNo || ''}`}
+      title={`红冲发票 ${redFlushTarget?.taxInvoiceNo || ''}`}
       open={open}
       confirmLoading={submitting}
       okButtonProps={{ danger: true }}

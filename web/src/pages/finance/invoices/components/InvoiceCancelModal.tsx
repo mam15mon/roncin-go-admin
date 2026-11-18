@@ -40,14 +40,8 @@ export default function InvoiceCancelModal({
     <Modal
       title={
         issued
-          ? invoiceVoidTitle(
-              cancelTarget?.direction,
-              cancelTarget?.organizationName,
-            )
-          : invoiceDraftCancelTitle(
-              cancelTarget?.direction,
-              cancelTarget?.organizationName,
-            )
+          ? invoiceVoidTitle(cancelTarget?.direction)
+          : invoiceDraftCancelTitle(cancelTarget?.direction)
       }
       open={open}
       confirmLoading={submitting}
