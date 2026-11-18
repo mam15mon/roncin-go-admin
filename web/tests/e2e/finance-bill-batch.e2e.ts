@@ -452,7 +452,10 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
     path: testInfo.outputPath('02-bill.png'),
     fullPage: true,
   });
-  await billDrawer.locator('.ant-drawer-close').click();
+  await billDrawer
+    .getByRole('button', { name: '关闭', exact: true })
+    .first()
+    .click();
   await page.reload();
   const billedRow = page.locator(`.ant-table-row[data-row-key="${fee.id}"]`);
   await expect(

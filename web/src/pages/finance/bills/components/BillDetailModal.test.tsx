@@ -2,6 +2,10 @@ import { renderWithApp } from '@root/tests/renderWithApp';
 import { act, fireEvent, screen } from '@testing-library/react';
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
+import {
+  FinanceBillBusinessStatus,
+  FinanceBillStatus,
+} from '@/enums.generated';
 import { partnerServiceListPartnerAccounts } from '@/services/roncin/partnerService';
 import BillDetailModal from './BillDetailModal';
 
@@ -10,6 +14,59 @@ vi.mock('@/services/roncin/partnerService', () => ({
 }));
 
 describe('BillDetailModal 账单详情', () => {
+  it('有效账单状态与列表共用业务投影，取消保留终态，未投影不回退正常', async () => {
+    const detail: API.FinanceBill = {
+      id: 'bill-status',
+      billNo: 'BILL-STATUS',
+      status: FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED,
+      businessStatus:
+        FinanceBillBusinessStatus.FINANCE_BILL_BUSINESS_STATUS_PARTIALLY_INVOICED,
+      lines: [],
+    };
+    const onClose = vi.fn();
+    const view = renderWithApp(
+      <BillDetailModal
+        open
+        loading={false}
+        onClose={onClose}
+        detail={detail}
+      />,
+    );
+    expect(screen.getByText('部分开票', { exact: true })).toBeInTheDocument();
+    expect(screen.queryByText('正常', { exact: true })).not.toBeInTheDocument();
+    view.rerender(
+      <BillDetailModal
+        open
+        loading={false}
+        onClose={onClose}
+        detail={{
+          ...detail,
+          status: FinanceBillStatus.FINANCE_BILL_STATUS_CANCELLED,
+        }}
+      />,
+    );
+    expect(screen.getByText('已取消', { exact: true })).toBeInTheDocument();
+    expect(
+      screen.queryByText('部分开票', { exact: true }),
+    ).not.toBeInTheDocument();
+    view.rerender(
+      <BillDetailModal
+        open
+        loading={false}
+        onClose={onClose}
+        detail={{ ...detail, businessStatus: undefined }}
+      />,
+    );
+    expect(
+      screen.queryByText('已取消', { exact: true }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('部分开票', { exact: true }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('正常', { exact: true })).not.toBeInTheDocument();
+    await act(async () => {});
+  });
+
   it('采纳费用变更响应后显示新的创建日期，首次创建时间不代替业务日期', async () => {
     const detail: API.FinanceBill = {
       id: 'bill-date',

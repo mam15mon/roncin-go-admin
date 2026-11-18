@@ -9,7 +9,10 @@ import {
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { statusTag } from '@/constants/statusMeta';
 import { FinanceBillStatus } from '@/enums.generated';
-import { billStatusMeta } from '@/features/finance/bill-status';
+import {
+  billBusinessStatusMeta,
+  billStatusMeta,
+} from '@/features/finance/bill-status';
 import { formatAmount, trimDecimal } from '@/utils/format';
 import BillFeeMaintenance from './BillFeeMaintenance';
 import BillInvoiceExemptionSection, {
@@ -130,11 +133,9 @@ export default function BillDetailModal({
       descriptions={(detail) => (
         <>
           <Descriptions.Item label="状态">
-            {statusTag(
-              billStatusMeta,
-              detail.status ??
-                FinanceBillStatus.FINANCE_BILL_STATUS_UNSPECIFIED,
-            )}
+            {detail.status === FinanceBillStatus.FINANCE_BILL_STATUS_CANCELLED
+              ? statusTag(billStatusMeta, detail.status)
+              : statusTag(billBusinessStatusMeta, detail.businessStatus ?? 0)}
           </Descriptions.Item>
           <Descriptions.Item label="账单用途">
             {detail.purpose === 'CORRECTION_REVERSAL'
