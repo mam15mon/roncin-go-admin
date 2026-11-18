@@ -203,7 +203,7 @@ func (f *billFeeUpdateFixture) holdBillFeeUpdate(billID uuid.UUID, version uint6
 		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 		defer cancel()
 		h.done <- f.data.WithinTransaction(ctx, func(txCtx context.Context) error {
-			err := f.repo.UpdateFees(txCtx, f.scope, biz.UpdateFinanceBillFeesInput{ID: billID, ExpectedVersion: version, AddFeeIDs: add, RemoveFeeIDs: remove}, func(context.Context, *biz.FinanceBill) error { return nil }, audit)
+			err := f.repo.UpdateFees(txCtx, f.scope, biz.UpdateFinanceBillFeesInput{ID: billID, ExpectedVersion: version, AddFeeIDs: add, RemoveFeeIDs: remove}, audit)
 			h.locked <- err
 			if err != nil {
 				return err

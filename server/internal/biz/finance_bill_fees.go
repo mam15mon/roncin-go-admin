@@ -212,16 +212,7 @@ func (uc *FinanceBillUsecase) UpdateFees(ctx context.Context, organizationIDs []
 	audit.Details["added_fee_ids"] = joinFinanceBillFeeIDs(normalized.AddFeeIDs)
 	audit.Details["removed_fee_ids"] = joinFinanceBillFeeIDs(normalized.RemoveFeeIDs)
 	err = uc.transactor.WithinTransaction(ctx, func(txCtx context.Context) error {
-		return uc.repo.UpdateFees(txCtx, organizationIDs, normalized, func(lockedCtx context.Context, bill *FinanceBill) error {
-			bill.BillDate = uc.businessDate()
-			if bill.PaymentTermsDays != nil {
-				bill.DueDate = normalizedFinanceBillDueDate(bill.BillDate, nil, bill.PaymentTermsDays)
-			}
-			if !validFinanceBillTerms(bill.BillDate, bill.DueDate, bill.PaymentTermsDays) {
-				return errors.BadRequest("FINANCE_BILL_DUE_DATE_BEFORE_CREATION", "到期日早于本次费用变动日期，请先调整到期日后再增减费用")
-			}
-			return uc.applyBillExchangeRate(lockedCtx, bill.OrganizationID, bill)
-		}, audit)
+		return uc.repo.UpdateFees(txCtx, organizationIDs, normalized, audit)
 	})
 	if err != nil {
 		return nil, err

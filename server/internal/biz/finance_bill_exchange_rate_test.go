@@ -138,7 +138,7 @@ func TestApplyBillExchangeRateUsesRoundedRateForBaseAmount(t *testing.T) {
 	}
 }
 
-func TestFinanceBillUpdateUsesTargetOrganizationForExchangeRateAndAudit(t *testing.T) {
+func TestFinanceBillUpdateKeepsExchangeRateAndTargetOrganizationAudit(t *testing.T) {
 	currentOrganizationID := uuid.New()
 	targetOrganizationID := uuid.New()
 	actorID := uuid.New()
@@ -148,8 +148,8 @@ func TestFinanceBillUpdateUsesTargetOrganizationForExchangeRateAndAudit(t *testi
 	billRepo := &financeBillTargetOrganizationRepoStub{bill: &FinanceBill{
 		ID: billID, OrganizationID: targetOrganizationID, Direction: OrderFeeReceivable,
 		Status: FinanceBillConfirmed, SettlementPartyID: partyID, SettlementPartyName: "测试客户",
-		Currency: "USD", BaseCurrency: "CNY", BillDate: "2026-09-09", TotalAmount: decimal.NewFromInt(100), NetAmount: decimal.NewFromInt(100), Version: 2,
-		Lines: []*FinanceBillLine{{ID: uuid.New(), OrderFeeID: feeID, OrderID: orderID, OrderNo: "SE001", FeeCode: "FEE", FeeName: "运费", Quantity: decimal.NewFromInt(1), UnitPrice: decimal.NewFromInt(100), TaxRate: &taxRate, Currency: "USD", TotalAmount: decimal.NewFromInt(100), NetAmount: decimal.NewFromInt(100), TaxAmount: decimal.Zero, Active: true}},
+		Currency: "USD", BaseCurrency: "CNY", ExchangeRate: decimal.RequireFromString("7.2"), ExchangeRateSource: "WEEKLY", ExchangeRateDate: "2026-09-09", BillDate: "2026-09-09", TotalAmount: decimal.NewFromInt(100), NetAmount: decimal.NewFromInt(100), Version: 2,
+		Lines: []*FinanceBillLine{{ID: uuid.New(), OrderFeeID: feeID, OrderID: orderID, OrderNo: "SE001", FeeCode: "FEE", FeeName: "运费", Quantity: decimal.NewFromInt(1), UnitPrice: decimal.NewFromInt(100), TaxRate: &taxRate, Currency: "USD", TotalAmount: decimal.NewFromInt(100), NetAmount: decimal.NewFromInt(100), TaxAmount: decimal.Zero, BaseCurrency: "CNY", Active: true}},
 	}}
 	billRepo.fees = []*FinanceBillableFee{{OrderNo: "SE001", Fee: &OrderFee{ID: feeID, OrderID: orderID, Direction: OrderFeeReceivable, HasActiveBill: true, SettlementPartyID: partyID, SettlementPartyName: "测试客户", FeeCode: "FEE", FeeName: "运费", Quantity: decimal.NewFromInt(1), UnitPrice: decimal.NewFromInt(100), TotalAmount: decimal.NewFromInt(100), NetAmount: decimal.NewFromInt(100), TaxAmount: decimal.Zero, TaxRate: &taxRate, Currency: "USD", ExchangeRate: decimal.RequireFromString("7.10"), BaseCurrency: "CNY", BaseCurrencyAmount: decimal.NewFromInt(710)}}}
 	exchangeRepo := &financeBillTargetExchangeRateRepoStub{resolvedRate: decimal.RequireFromString("7.20")}
@@ -161,11 +161,8 @@ func TestFinanceBillUpdateUsesTargetOrganizationForExchangeRateAndAudit(t *testi
 	if err != nil {
 		t.Fatalf("跨组织账单更新失败: %v", err)
 	}
-	if exchangeRepo.resolvedContextOrganizationID != targetOrganizationID || exchangeRepo.resolvedRateOrganizationID != targetOrganizationID {
-		t.Fatalf("汇率必须按目标账单组织解析，context=%s rate=%s target=%s", exchangeRepo.resolvedContextOrganizationID, exchangeRepo.resolvedRateOrganizationID, targetOrganizationID)
-	}
-	if len(exchangeRepo.resolveDates) != 1 || exchangeRepo.resolveDates[0] != "2026-09-09" {
-		t.Fatalf("账单汇率必须按已存创建日期解析: %v", exchangeRepo.resolveDates)
+	if exchangeRepo.resolvedContextOrganizationID != uuid.Nil || exchangeRepo.resolvedRateOrganizationID != uuid.Nil || len(exchangeRepo.resolveDates) != 0 {
+		t.Fatal("编辑账单不得查询汇率")
 	}
 	if billRepo.updateAudit == nil || billRepo.updateAudit.OrganizationID == nil || *billRepo.updateAudit.OrganizationID != targetOrganizationID {
 		t.Fatalf("更新审计必须记录目标账单组织，audit=%#v target=%s", billRepo.updateAudit, targetOrganizationID)
@@ -179,6 +176,40 @@ func TestFinanceBillUpdateUsesTargetOrganizationForExchangeRateAndAudit(t *testi
 	if billRepo.updateInput.Protected {
 		t.Fatal("未受保护账单不得走受限更新")
 	}
+	for _, tc := range []struct {
+		name         string
+		currency     *string
+		rate         *decimal.Decimal
+		wantCurrency string
+		wantRate     string
+		wantAmount   string
+		wantErr      bool
+	}{
+		{name: "省略配置默认同币种", wantCurrency: "USD", wantRate: "1", wantAmount: "100"},
+		{name: "跨币种预计开票", currency: stringPointer("CNY"), rate: decimalPointer(decimal.RequireFromString("7.5")), wantCurrency: "CNY", wantRate: "7.5", wantAmount: "750"},
+		{name: "无币种不能指定汇率", rate: decimalPointer(decimal.NewFromInt(2)), wantErr: true},
+		{name: "跨币种缺汇率", currency: stringPointer("CNY"), wantErr: true},
+		{name: "同币种汇率必须为一", currency: stringPointer("USD"), rate: decimalPointer(decimal.NewFromInt(2)), wantErr: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			billRepo.updateAudit = nil
+			_, err := usecase.Update(t.Context(), []uuid.UUID{targetOrganizationID}, actorID, UpdateFinanceBillInput{ID: billID, ExpectedVersion: 2, SettlementAccountID: accountID, EstimatedInvoiceCurrency: tc.currency, EstimatedInvoiceRate: tc.rate})
+			if tc.wantErr {
+				if err != ErrFinanceBillInvalidArgument || billRepo.updateAudit != nil {
+					t.Fatalf("非法预计开票必须零写入: %v", err)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			input := billRepo.updateInput
+			if input.EstimatedInvoiceCurrency == nil || *input.EstimatedInvoiceCurrency != tc.wantCurrency || input.EstimatedInvoiceRate == nil || !input.EstimatedInvoiceRate.Equal(decimal.RequireFromString(tc.wantRate)) || input.EstimatedInvoiceAmount == nil || !input.EstimatedInvoiceAmount.Equal(decimal.RequireFromString(tc.wantAmount)) || !input.ExchangeRate.Equal(decimal.RequireFromString("7.2")) || !input.BaseCurrencyAmount.Equal(decimal.NewFromInt(720)) || len(exchangeRepo.resolveDates) != 0 {
+				t.Fatalf("预计开票须独立于账单固定汇率: %#v", input)
+			}
+		})
+	}
+
 }
 
 // 受保护账单（已有发票、核销或已确认对冲）只能改备注、对账标题与到期日，且不重取汇率。

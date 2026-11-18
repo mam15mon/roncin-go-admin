@@ -74,7 +74,7 @@ func TestFinanceBillAutoConfirmPostgres(t *testing.T) {
 			t.Fatalf("受保护更新不得改金额或汇率: %#v", updated)
 		}
 
-		// 撤销对冲后保护解除，可按账单日期重算（同币种汇率为 1）。
+		// 撤销对冲后保护解除，普通编辑仍沿用已存日期与汇率。
 		if _, err := netting.Update().SetStatus(financenettingent.StatusREVERSED).SetReversedAt(time.Now()).Save(ctx); err != nil {
 			t.Fatal(err)
 		}

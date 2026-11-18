@@ -111,7 +111,7 @@ func financeBillableFeeFromEnt(item *ent.OrderFee) (*biz.FinanceBillableFee, err
 //  7. 提成经济重算与审计。
 //
 // 与发票、核销、对冲确认、取消账单、费用汇率联动等写路径一样先锁订单再锁账单，不引入反向等待。
-func (r *financeBillRepo) UpdateFees(ctx context.Context, organizationIDs []uuid.UUID, input biz.UpdateFinanceBillFeesInput, refresh func(context.Context, *biz.FinanceBill) error, audit *biz.AuditEvent) error {
+func (r *financeBillRepo) UpdateFees(ctx context.Context, organizationIDs []uuid.UUID, input biz.UpdateFinanceBillFeesInput, audit *biz.AuditEvent) error {
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		client := tx.Client()
 		head, err := client.FinanceBill.Query().Where(financebillent.IDEQ(input.ID), financeBillOrganizationScopePredicate(organizationIDs)).Only(ctx)
@@ -241,13 +241,6 @@ func (r *financeBillRepo) UpdateFees(ctx context.Context, organizationIDs []uuid
 		}
 		if len(kept) == 0 {
 			return biz.ErrFinanceBillLastFee
-		}
-		if refresh == nil {
-			return biz.ErrFinanceBillInvalidArgument
-		}
-		bill.Lines = kept
-		if err := refresh(ctx, bill); err != nil {
-			return err
 		}
 		if err := biz.RecomputeFinanceBillAmounts(bill, kept); err != nil {
 			return err

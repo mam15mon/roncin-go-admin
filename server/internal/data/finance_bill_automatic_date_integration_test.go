@@ -8,8 +8,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	auditlogent "github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
-	financebilllineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	financeinvoiceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/shopspring/decimal"
 )
@@ -20,72 +18,60 @@ func TestFinanceBillAutomaticDatePostgres(t *testing.T) {
 	today := biz.FinanceBusinessDate(time.Now())
 	yesterday := biz.FinanceBusinessDate(time.Now().AddDate(0, 0, -1))
 
-	t.Run("增减更新自动日期账期汇率且保留首次创建时间", func(t *testing.T) {
+	t.Run("跨日增减保留创建日期账期汇率与首次创建时间", func(t *testing.T) {
 		f := newBillFeeUpdateFixture(t, data)
-		f.createExchangeRateSetting("7.21")
+		setting := f.createExchangeRateSetting("7.2")
 		first := f.fee(billFeeSpec{key: "date-first", currency: "USD", total: "100", rate: "7.2"})
 		tiny := f.fee(billFeeSpec{key: "date-tiny", currency: "USD", total: "1", rate: "7.2"})
 		data.db.OrderFee.UpdateOneID(tiny).SetQuantity("0.0001").SetUnitPrice("0.0001").SetTotalAmount("0.00000001").SetNetAmount("0.00000001").SetBaseCurrencyAmount("0.00000007").ExecX(f.ctx)
 		added := f.fee(billFeeSpec{key: "date-added", currency: "USD", total: "10", rate: "7.2"})
 		bill := f.bill("date", f.usdAccountID, first, tiny)
-		terms := 30
-		oldDue := time.Now().In(biz.ExchangeRateBusinessLocation()).AddDate(0, 0, 29).Format("2006-01-02")
-		old := data.db.FinanceBill.UpdateOneID(bill.ID).SetBillDate(yesterday).SetPaymentTermsDays(terms).SetDueDate(oldDue).SetExchangeRateDate(yesterday).SetExchangeRate("7.2").SetBaseCurrencyAmount("720.00000007").SaveX(f.ctx)
-		data.db.FinanceBillLine.Update().Where(financebilllineent.BillIDEQ(bill.ID)).SetExchangeRate("7.2").ExecX(f.ctx)
-		data.db.FinanceBillLine.Update().Where(financebilllineent.BillIDEQ(bill.ID), financebilllineent.OrderFeeIDEQ(first)).SetBaseCurrencyAmount("720.00000000").ExecX(f.ctx)
-		updated, err := f.update(bill.ID, bill.Version, []uuid.UUID{added}, nil)
-		if err != nil {
-			t.Fatal(err)
-		}
-		wantDue := time.Now().In(biz.ExchangeRateBusinessLocation()).AddDate(0, 0, terms).Format("2006-01-02")
-		if updated.BillDate != today || updated.ExchangeRateDate != today || updated.DueDate == nil || *updated.DueDate != wantDue || !updated.CreatedAt.Equal(old.CreatedAt) || !updated.ExchangeRate.Equal(decimal.RequireFromString("7.21")) {
-			t.Fatalf("增减日期/账期/汇率/原创建时间错误: %#v", updated)
-		}
-		for _, line := range updated.Lines {
-			if line.Active && !line.ExchangeRate.Equal(updated.ExchangeRate) {
-				t.Fatalf("包括折本币金额不变的微额行在内，全部活动行必须使用新汇率: %#v", line)
+		old := data.db.FinanceBill.UpdateOneID(bill.ID).SetBillDate("2026-11-18").SetPaymentTermsDays(30).SetDueDate("2026-12-18").SetExchangeRateDate("2026-11-18").SaveX(f.ctx)
+		// 缺失任何可用汇率后仍可增、减和同时增减；业务日期不再参与维护。
+		data.db.ExchangeRateSetting.UpdateOneID(setting).SetIsActive(false).ExecX(f.ctx)
+		version := bill.Version
+		for _, step := range []struct{ add, remove []uuid.UUID }{
+			{[]uuid.UUID{added}, nil},
+			{nil, []uuid.UUID{added}},
+			{[]uuid.UUID{added}, []uuid.UUID{tiny}},
+		} {
+			updated, err := f.update(bill.ID, version, step.add, step.remove)
+			if err != nil {
+				t.Fatal(err)
 			}
+			if updated.BillDate != old.BillDate || updated.DueDate == nil || *updated.DueDate != "2026-12-18" || updated.PaymentTermsDays == nil || *updated.PaymentTermsDays != 30 || updated.ExchangeRateDate != old.ExchangeRateDate || updated.ExchangeRate.StringFixed(8) != old.ExchangeRate || updated.ExchangeRateSource != string(old.ExchangeRateSource) || updated.ExchangeRateSettingID == nil || *updated.ExchangeRateSettingID != setting || !updated.CreatedAt.Equal(old.CreatedAt) {
+				t.Fatalf("增减不得改变日期、账期与汇率快照: %#v", updated)
+			}
+			sum := decimal.Zero
+			for _, line := range updated.Lines {
+				if line.Active {
+					if !line.ExchangeRate.Equal(updated.ExchangeRate) {
+						t.Fatalf("活动行必须采用原账单汇率: %#v", line)
+					}
+					sum = sum.Add(line.BaseCurrencyAmount)
+				}
+			}
+			if !sum.Equal(updated.BaseCurrencyAmount) {
+				t.Fatal("头行本币合计不一致")
+			}
+			version = updated.Version
 		}
-		f.requireBillConsistent(bill.ID, first, tiny, added)
-		replayed, replayErr := f.usecase.Create(f.ctx, f.organizationID, f.actorID, biz.CreateFinanceBillInput{FeeIDs: []uuid.UUID{first, tiny}, SettlementAccountID: f.usdAccountID, IdempotencyKey: "bill-fee-update-date-" + f.suffix})
-		if replayErr != nil || replayed.ID != bill.ID || replayed.Version != updated.Version {
-			t.Fatalf("费用已增减后原创建请求须通过不可变审计回放原单: %#v %v", replayed, replayErr)
-		}
-		// 移除同样推进旧业务日期，保留首次创建时刻。
-		data.db.FinanceBill.UpdateOneID(bill.ID).SetBillDate(yesterday).ExecX(f.ctx)
-		removed, err := f.update(bill.ID, updated.Version, nil, []uuid.UUID{added})
-		if err != nil || removed.BillDate != today || !removed.CreatedAt.Equal(old.CreatedAt) {
-			t.Fatalf("移除应刷新日期但不改首次创建时间: %#v %v", removed, err)
+		f.requireBillConsistent(bill.ID, first, added)
+		replayed, err := f.usecase.Create(f.ctx, f.organizationID, f.actorID, biz.CreateFinanceBillInput{FeeIDs: []uuid.UUID{first, tiny}, SettlementAccountID: f.usdAccountID, IdempotencyKey: "bill-fee-update-date-" + f.suffix})
+		if err != nil || replayed.ID != bill.ID || replayed.Version != version {
+			t.Fatalf("费用增减后原创建意图仍须回放同一账单: %#v %v", replayed, err)
 		}
 	})
 
-	t.Run("缺汇率或显式到期日早于新日期时整体回滚", func(t *testing.T) {
-		for _, missingRate := range []bool{true, false} {
-			f := newBillFeeUpdateFixture(t, data)
-			setting := f.createExchangeRateSetting("7.2")
-			first := f.fee(billFeeSpec{key: "rollback-first", currency: "USD", total: "100", rate: "7.2"})
-			added := f.fee(billFeeSpec{key: "rollback-added", currency: "USD", total: "10", rate: "7.2"})
-			bill := f.bill("date-rollback", f.usdAccountID, first)
-			update := data.db.FinanceBill.UpdateOneID(bill.ID).SetBillDate(yesterday).SetExchangeRateDate(yesterday)
-			if !missingRate {
-				update.SetDueDate(yesterday)
-			}
-			before := update.SaveX(f.ctx)
-			if missingRate {
-				data.db.ExchangeRateSetting.UpdateOneID(setting).SetIsActive(false).ExecX(f.ctx)
-			}
-			auditCount := data.db.AuditLog.Query().Where(auditlogent.ResourceIDEQ(bill.ID.String()), auditlogent.ActionEQ("finance.bill.fees.update")).CountX(f.ctx)
-			_, err := f.update(bill.ID, bill.Version, []uuid.UUID{added}, nil)
-			if err == nil {
-				t.Fatal("非法新日期/汇率必须拒绝")
-			}
-			after := f.requireBillConsistent(bill.ID, first)
-			if after.Version != before.Version || after.BillDate != yesterday || after.ExchangeRateDate != yesterday || after.TotalAmount != before.TotalAmount || !after.CreatedAt.Equal(before.CreatedAt) {
-				t.Fatalf("失败必须回滚日期、金额和版本: %#v", after)
-			}
-			if got := data.db.AuditLog.Query().Where(auditlogent.ResourceIDEQ(bill.ID.String()), auditlogent.ActionEQ("finance.bill.fees.update")).CountX(f.ctx); got != auditCount {
-				t.Fatal("失败不得写成功审计")
-			}
+	t.Run("已过到期日的账单增减费用不顺延", func(t *testing.T) {
+		f := newBillFeeUpdateFixture(t, data)
+		first := f.fee(billFeeSpec{key: "past-first", total: "100"})
+		added := f.fee(billFeeSpec{key: "past-added", total: "10"})
+		bill := f.bill("past", f.accountID, first)
+		data.db.FinanceBill.UpdateOneID(bill.ID).SetBillDate(yesterday).SetDueDate(yesterday).ExecX(f.ctx)
+		updated, err := f.update(bill.ID, bill.Version, []uuid.UUID{added}, nil)
+		if err != nil || updated.BillDate != yesterday || updated.DueDate == nil || *updated.DueDate != yesterday {
+			t.Fatalf("过期日不影响增减: %#v %v", updated, err)
 		}
 	})
 
@@ -121,4 +107,63 @@ func TestFinanceBillAutomaticDatePostgres(t *testing.T) {
 			t.Fatalf("非金额编辑不推进冻结日: %#v %v", updated, err)
 		}
 	})
+}
+
+func TestFinanceBillUpdateFixedExchangeSnapshotPostgres(t *testing.T) {
+	data, cleanup := getIntegrationData(t)
+	t.Cleanup(cleanup)
+	f := newBillFeeUpdateFixture(t, data)
+	setting := f.createExchangeRateSetting("7.1235")
+	first := f.fee(billFeeSpec{key: "edit-first", currency: "USD", total: "100", rate: "7.1235"})
+	second := f.fee(billFeeSpec{key: "edit-second", currency: "USD", total: "20", rate: "7.1235"})
+	third := f.fee(billFeeSpec{key: "edit-third", currency: "USD", total: "20", rate: "7.1235"})
+	// 微额产生尾差，编辑必须保持每条行的本币快照及行身份。
+	for _, id := range []uuid.UUID{second, third} {
+		data.db.OrderFee.UpdateOneID(id).SetQuantity("0.0002").SetUnitPrice("0.0002").SetTotalAmount("0.00000004").SetNetAmount("0.00000004").SetBaseCurrencyAmount("0.00000028").ExecX(f.ctx)
+	}
+	original := f.bill("edit-fixed", f.usdAccountID, first, second, third)
+	roundedSum := decimal.Zero
+	for _, line := range original.Lines {
+		roundedSum = roundedSum.Add(line.TotalAmount.Mul(original.ExchangeRate).RoundBank(8))
+	}
+	if !original.BaseCurrencyAmount.Sub(roundedSum).Equal(decimal.RequireFromString("0.00000001")) {
+		t.Fatal("夹具必须包含非零尾差，才能验证编辑保留每行本币金额")
+	}
+	current := original
+	due := time.Now().In(biz.ExchangeRateBusinessLocation()).AddDate(0, 0, 30).Format("2006-01-02")
+	note := "汇率停用后只改备注"
+	currency, invoiceRate := "CNY", decimal.RequireFromString("8")
+	for _, action := range []string{"修改汇率后改到期日", "停用汇率后改备注", "指定到期日原样保存", "修改预计开票"} {
+		t.Run(action, func(t *testing.T) {
+			input := biz.UpdateFinanceBillInput{ID: original.ID, ExpectedVersion: current.Version, SettlementAccountID: f.usdAccountID, DueDate: &due}
+			switch action {
+			case "修改汇率后改到期日":
+				data.db.ExchangeRateSetting.UpdateOneID(setting).SetRate("9").ExecX(f.ctx)
+			case "停用汇率后改备注":
+				data.db.ExchangeRateSetting.UpdateOneID(setting).SetIsActive(false).ExecX(f.ctx)
+				input.Note = &note
+			case "修改预计开票":
+				input.EstimatedInvoiceCurrency, input.EstimatedInvoiceRate = &currency, &invoiceRate
+			}
+			updated, err := f.usecase.Update(f.ctx, f.scope, f.actorID, input)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if updated.BillDate != original.BillDate || updated.PaymentTermsDays != nil || updated.ExchangeRateDate != original.ExchangeRateDate || updated.ExchangeRateSource != original.ExchangeRateSource || !updated.ExchangeRate.Equal(original.ExchangeRate) || updated.ExchangeRateSettingID == nil || *updated.ExchangeRateSettingID != setting || !updated.BaseCurrencyAmount.Equal(original.BaseCurrencyAmount) || updated.DueDate == nil || *updated.DueDate != due {
+				t.Fatalf("编辑改变汇率/金额或丢失到期日: %#v", updated)
+			}
+			if len(updated.Lines) != len(original.Lines) {
+				t.Fatal("编辑改变行数")
+			}
+			for i, line := range updated.Lines {
+				if line.ID != original.Lines[i].ID || !line.BaseCurrencyAmount.Equal(original.Lines[i].BaseCurrencyAmount) || !line.ExchangeRate.Equal(original.Lines[i].ExchangeRate) {
+					t.Fatalf("编辑改变行快照: %#v", line)
+				}
+			}
+			if action == "修改预计开票" && (updated.EstimatedInvoiceAmount == nil || !updated.EstimatedInvoiceAmount.Equal(original.TotalAmount.Mul(invoiceRate).RoundBank(8))) {
+				t.Fatal("预计开票金额没有更新")
+			}
+			current = updated
+		})
+	}
 }

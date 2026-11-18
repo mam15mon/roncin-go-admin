@@ -315,7 +315,7 @@ func (uc *FinanceBillUsecase) Update(ctx context.Context, organizationIDs []uuid
 	if err != nil {
 		return nil, err
 	}
-	if existing.Status != FinanceBillConfirmed || existing.Version != input.ExpectedVersion || uc.exchangeRate == nil || uc.transactor == nil {
+	if existing.Status != FinanceBillConfirmed || existing.Version != input.ExpectedVersion || uc.transactor == nil {
 		if existing.Status != FinanceBillConfirmed {
 			return nil, ErrFinanceBillInvalidTransition
 		}
@@ -387,23 +387,25 @@ func (uc *FinanceBillUsecase) Update(ctx context.Context, organizationIDs []uuid
 		if transactionErr = uc.repo.ValidateBillCurrencies(txCtx, currencies); transactionErr != nil {
 			return transactionErr
 		}
-		group := &FinanceBillBatchPreviewGroup{Purpose: current.Purpose, Direction: current.Direction, SettlementPartyID: current.SettlementPartyID, SettlementPartyName: current.SettlementPartyName, Currency: current.Currency, BaseCurrency: current.BaseCurrency, BillDate: input.BillDate, SettlementAccountID: input.SettlementAccountID, Fees: lockedFees, config: FinanceBillBatchPreviewGroupConfig{BillDate: input.BillDate, SettlementAccountID: input.SettlementAccountID, EstimatedInvoiceCurrency: input.EstimatedInvoiceCurrency, EstimatedInvoiceRate: input.EstimatedInvoiceRate}}
-		rebuilt, transactionErr := uc.buildFixedCurrencyFinanceBill(txCtx, current.OrganizationID, group, input.BillDate)
+		// 编辑仅沿用锁内快照，活动行保持读取顺序，避免改变末行尾差归属。
+		rebuilt := *current
+		activeLines := make([]*FinanceBillLine, 0, len(current.Lines))
+		for _, line := range current.Lines {
+			if line.Active {
+				copied := *line
+				activeLines = append(activeLines, &copied)
+			}
+		}
+		if input.EstimatedInvoiceRate != nil && input.EstimatedInvoiceCurrency == nil {
+			return ErrFinanceBillInvalidArgument
+		}
+		currency, rate, _, transactionErr := financeBillEstimatedInvoiceSnapshot(current.Currency, current.TotalAmount, FinanceBillBatchPreviewGroupConfig{EstimatedInvoiceCurrency: input.EstimatedInvoiceCurrency, EstimatedInvoiceRate: input.EstimatedInvoiceRate})
 		if transactionErr != nil {
 			return transactionErr
 		}
-		rebuilt.ID = current.ID
-		rebuilt.SettlementAccountName, rebuilt.SettlementAccountHolder, rebuilt.SettlementBankName = account.SettlementAccountName, account.SettlementAccountHolder, account.SettlementBankName
-		rebuilt.SettlementBankAccount, rebuilt.SettlementAccountCurrency, rebuilt.SettlementSwiftCode = account.SettlementBankAccount, account.SettlementAccountCurrency, account.SettlementSwiftCode
-		lineIDs := make(map[uuid.UUID]uuid.UUID, len(current.Lines))
-		for _, line := range current.Lines {
-			if line.Active {
-				lineIDs[line.OrderFeeID] = line.ID
-			}
-		}
-		for _, line := range rebuilt.Lines {
-			line.ID = lineIDs[line.OrderFeeID]
-			line.BillID = current.ID
+		rebuilt.EstimatedInvoiceCurrency, rebuilt.EstimatedInvoiceRate = &currency, &rate
+		if transactionErr = RecomputeFinanceBillAmounts(&rebuilt, activeLines); transactionErr != nil {
+			return transactionErr
 		}
 		input.ExchangeRate, input.ExchangeRateSource, input.ExchangeRateDate, input.ExchangeRateSettingID = rebuilt.ExchangeRate, rebuilt.ExchangeRateSource, rebuilt.ExchangeRateDate, rebuilt.ExchangeRateSettingID
 		input.BaseCurrencyAmount, input.TotalAmount, input.NetAmount, input.TaxAmount, input.Lines = rebuilt.BaseCurrencyAmount, rebuilt.TotalAmount, rebuilt.NetAmount, rebuilt.TaxAmount, rebuilt.Lines

@@ -71,7 +71,7 @@ func TestFinanceNettingRefreshDraftRatesPostgres(t *testing.T) {
 	if !netting.BaseCurrencyAmount.Equal(decimal.NewFromInt(700)) || !netting.PayableBaseAmount.Equal(decimal.NewFromInt(700)) {
 		t.Fatalf("草稿本币=%v", netting)
 	}
-	// 草稿对冲不构成受保护事实：账单（创建即已确认）仍可改账单日期并重取汇率。
+	// 草稿期间编辑账单仍沿用原汇率，后续确认从账单快照重算。
 	for _, bill := range batch.Bills {
 		if bill.Direction == biz.OrderFeeReceivable {
 			if _, err := uc.Update(ctx, []uuid.UUID{f.organizationID}, f.actorUserID, biz.UpdateFinanceBillInput{ID: bill.ID, ExpectedVersion: bill.Version, BillDate: "2026-09-01", SettlementAccountID: f.usdAccountID}); err != nil {
@@ -96,14 +96,11 @@ func TestFinanceNettingRefreshDraftRatesPostgres(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !confirmed.BaseCurrencyAmount.Equal(decimal.NewFromInt(800)) || !confirmed.PayableBaseAmount.Equal(decimal.NewFromInt(700)) || !confirmed.ExchangeGainLoss.Equal(decimal.NewFromInt(-100)) {
-		t.Fatalf("确认仍使用旧汇率:%v", confirmed)
+	if !confirmed.BaseCurrencyAmount.Equal(decimal.NewFromInt(700)) || !confirmed.PayableBaseAmount.Equal(decimal.NewFromInt(700)) || !confirmed.ExchangeGainLoss.Equal(decimal.Zero) {
+		t.Fatalf("确认未沿用固定账单汇率:%v", confirmed)
 	}
 	for _, allocation := range confirmed.Allocations {
 		want := int64(700)
-		if allocation.Direction == biz.OrderFeeReceivable {
-			want = 800
-		}
 		if !allocation.BaseCurrencyAmount.Equal(decimal.NewFromInt(want)) || !allocation.Active {
 			t.Fatalf("分摊快照未更新:%v", allocation)
 		}

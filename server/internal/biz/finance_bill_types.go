@@ -391,8 +391,8 @@ type FinanceBillRepo interface {
 	// ListBillFeeCandidates 返回可加入账单的未建账费用（同公司、同方向、同结算单位、同币种与本币），服务端关键字过滤分页。
 	ListBillFeeCandidates(ctx context.Context, bill *FinanceBill, filter FinanceBillFeeCandidateFilter) (*FinanceBillCreationCandidateResult, error)
 	// UpdateFees 须在共享事务内调用：按「订单闭包升序 → 账单 → 费用升序 → 账单行」加锁，锁内复核费用锁定事实、
-	// 逐项校验后调用 refresh 在锁内更新自动日期与汇率，再重算金额、写入提成经济重算与审计。
-	UpdateFees(ctx context.Context, organizationIDs []uuid.UUID, input UpdateFinanceBillFeesInput, refresh func(context.Context, *FinanceBill) error, audit *AuditEvent) error
+	// 逐项校验后沿用已存日期与汇率重算金额、写入提成经济重算与审计。
+	UpdateFees(ctx context.Context, organizationIDs []uuid.UUID, input UpdateFinanceBillFeesInput, audit *AuditEvent) error
 	// GetPartnerUnsettledReceivableBaseAmount 返回指定往来户在组织内已确认应收账单的折本币未核销总额
 	// （总额 - 有效核销 - 有效对冲，负值钳零），口径与列表汇总的 unverified_base_amount 一致。
 	GetPartnerUnsettledReceivableBaseAmount(ctx context.Context, organizationID, partnerID uuid.UUID) (decimal.Decimal, error)
