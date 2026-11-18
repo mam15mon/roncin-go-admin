@@ -1,3 +1,4 @@
+import { QuestionCircleOutlined } from '@ant-design/icons';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   Alert,
@@ -11,6 +12,7 @@ import {
   Modal,
   Row,
   Select,
+  Tooltip,
   Typography,
 } from 'antd';
 import Decimal from 'decimal.js';
@@ -411,7 +413,10 @@ export default function BillEditModal({
             }}
           />
           <Col xs={24}>
-            <Form.Item label="账单币种与汇率（固定，不可修改）">
+            <Form.Item
+              label="账单币种与汇率"
+              tooltip="账单币种和汇率已固定，不能修改。"
+            >
               <Typography.Text>
                 账单币种 {editing?.currency || '-'} · 组织本位币{' '}
                 {editing?.baseCurrency || '-'} · 生效汇率{' '}
@@ -430,6 +435,79 @@ export default function BillEditModal({
               style={{ display: 'block', marginBottom: 8 }}
             >
               预计开票（只作预计，不改变账单币种）
+            </Typography.Text>
+          </Col>
+          <Col xs={24} md={12}>
+            <Form.Item name="estimatedInvoiceCurrency" label="预计开票币种">
+              <Select
+                allowClear
+                disabled={fieldsProtected}
+                placeholder="默认使用账单币种"
+                options={currencyOptions}
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24} md={12}>
+            <Form.Item
+              name="estimatedInvoiceRate"
+              label="预计开票汇率"
+              rules={[
+                ({ getFieldValue }) => ({
+                  validator: async (_, rate) => {
+                    const estimatedCurrency = getFieldValue(
+                      'estimatedInvoiceCurrency',
+                    );
+                    const billCurrency = editing?.currency;
+                    const normalizedRate = rate?.trim();
+                    if (!estimatedCurrency) {
+                      if (normalizedRate) {
+                        throw new Error(
+                          '填写预计开票汇率时必须选择预计开票币种',
+                        );
+                      }
+                      return;
+                    }
+                    if (estimatedCurrency !== billCurrency && !normalizedRate) {
+                      throw new Error(
+                        '预计开票币种与账单币种不同时必须填写预计开票汇率',
+                      );
+                    }
+                    if (normalizedRate) {
+                      const num = Number(normalizedRate);
+                      if (Number.isNaN(num) || num <= 0) {
+                        throw new Error('预计开票汇率必须为大于 0 的有效数字');
+                      }
+                    }
+                    if (
+                      estimatedCurrency === billCurrency &&
+                      normalizedRate &&
+                      Number(normalizedRate) !== 1
+                    ) {
+                      throw new Error(
+                        '预计开票币种与账单币种相同时，汇率必须为 1',
+                      );
+                    }
+                  },
+                }),
+              ]}
+            >
+              <Input disabled={fieldsProtected} placeholder="预计汇率" />
+            </Form.Item>
+          </Col>
+          <Col xs={24}>
+            <Form.Item name="note" label="备注">
+              <Input.TextArea rows={2} maxLength={500} showCount />
+            </Form.Item>
+          </Col>
+        </Row>
+      </Form>
+    </Modal>
+  );
+}            <Typography.Text strong style={{ display: 'block', marginBottom: 8 }}>
+              预计开票{' '}
+              <Tooltip title="只用于预计，不改变账单币种。">
+                <QuestionCircleOutlined style={{ color: '#8c8c8c' }} />
+              </Tooltip>
             </Typography.Text>
           </Col>
           <Col xs={24} md={12}>
