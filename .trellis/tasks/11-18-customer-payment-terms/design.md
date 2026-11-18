@@ -35,28 +35,20 @@ index.Fields("partner_role_id").Unique().StorageKey("partner_settlement_rule_rol
 按 `server/migrations/README.md` 的要求，不使用 `IF EXISTS`。顺序如下：
 
 ```sql
--- 0. 额度币种守卫：启用的客户规则中，正额度必须带公司生效本币（沿 parent_id 向上找第一个非空 base_currency）。
---    有异常就整体失败，不做任何修改。口径与 data/finance_bill_credit.go 的 partnerCreditSummaries 一致。
+-- 0. 额度币种守卫：启用的客户规则中，正额度必须是所属公司的本币。
+--    往来单位只属于公司（业务规则），公司必有本币（organizations_base_currency_by_kind 约束），
+--    所以直接取 partners.organization_id 对应公司的 base_currency，不沿上级链查找。
+--    组织本币为空（说明往来单位挂错了组织）同样视为异常。有异常就整体失败，不做任何修改。
 DO $$
 DECLARE bad_count bigint;
 BEGIN
-  WITH RECURSIVE chain AS (
-    SELECT o.id AS org_id, o.parent_id, o.base_currency, 0 AS depth FROM "organizations" o
-    UNION ALL
-    SELECT c.org_id, p.parent_id, p.base_currency, c.depth + 1
-    FROM chain c JOIN "organizations" p ON p.id = c.parent_id
-    WHERE c.base_currency IS NULL
-  ), org_base AS (
-    SELECT DISTINCT ON (org_id) org_id, base_currency
-    FROM chain ORDER BY org_id, (base_currency IS NULL), depth
-  )
   SELECT count(*) INTO bad_count
   FROM "partner_settlement_rules" r
   JOIN "partner_roles" pr ON pr.id = r.partner_role_id
   JOIN "partners" p ON p.id = pr.partner_id
-  LEFT JOIN org_base ob ON ob.org_id = p.organization_id
+  JOIN "organizations" o ON o.id = p.organization_id
   WHERE pr.role_type = 'customer' AND r.is_active AND r.credit_limit_minor > 0
-    AND (ob.base_currency IS NULL OR r.credit_currency IS NULL OR r.credit_currency <> ob.base_currency);
+    AND (o.base_currency IS NULL OR r.credit_currency IS NULL OR r.credit_currency <> o.base_currency);
   IF bad_count > 0 THEN
     RAISE EXCEPTION '收款约定迁移中止：% 条启用的客户结算规则的信用额度缺少币种或不是公司本币，请先在客户档案中修正额度后再迁移', bad_count;
   END IF;
@@ -229,12 +221,8 @@ message PartnerSettlementRuleInput {
   - **守卫失败（两种）：** 启用客户规则的正额度缺币种；币种与公司本币不同
     → 迁移返回错误，`partner_settlement_rules` 的行数与各列取值都和迁移前一致（事务整体回滚）。
   - **守卫不误伤：** 只有停用客户规则或供应商规则币种异常 → 迁移成功，这些行被删除。
-  - **部门继承所属公司本币：** 规则所属组织为部门（`base_currency` 为空），其上级公司为 CNY，额度币种 CNY → 守卫通过。
-    数据必须满足 `organizations` 的现行约束（`20260922100000_system_company_boundaries.sql`：
-    system / company 必须有本币且没有上级；department / team 必须有上级且没有本币）。
-  - **不测「公司及上级都没有本币」：** 现行约束保证公司一定有本币，这种数据在合法库里无法出现。
-    不要为了这个用例在测试里删除或绕过数据库约束。守卫 SQL 里对本币为空的判断仍然保留，
-    它与 Go 侧 `resolveOrganizationBaseCurrency` 遇到无本币时报错的口径一致，只是不单独写测试。
+  - 不测「部门继承本币」和「公司无本币」：往来单位只属于公司，公司必有本币，这两种数据在合法库里都不会出现，
+    不要为此在测试里绕过数据库约束或业务规则构造数据。
   - 空库完整迁移链可以执行。
   涉及 Schema 初始化的测试不能用 `t.Parallel()`；参考 `invoice_number_rule_migration_integration_test.go` 和 `migration_fixture_test.go`
   的「迁移到指定版本 → 构造数据 → 继续迁移」写法。

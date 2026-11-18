@@ -8,29 +8,15 @@
 
 BEGIN;
 
--- 公司生效本币：沿 parent_id 向上找第一个非空 base_currency（与 resolveOrganizationBaseCurrency 一致）。
-CREATE TEMP VIEW pt_org_base AS
-WITH RECURSIVE chain AS (
-  SELECT o.id AS org_id, o.id AS cur_id, o.parent_id, o.base_currency, 0 AS depth
-  FROM organizations o
-  UNION ALL
-  SELECT c.org_id, p.id, p.parent_id, p.base_currency, c.depth + 1
-  FROM chain c JOIN organizations p ON p.id = c.parent_id
-  WHERE c.base_currency IS NULL
-)
-SELECT DISTINCT ON (org_id) org_id, base_currency
-FROM chain
-ORDER BY org_id, (base_currency IS NULL), depth;
-
 CREATE TEMP VIEW pt_rules AS
 SELECT r.id AS rule_id, r.partner_role_id, pr.role_type, r.is_active,
        r.payment_terms_days, r.credit_limit_minor, r.credit_currency, r.updated_at,
        p.id AS partner_id, p.code AS partner_code, p.legal_name, p.organization_id,
-       ob.base_currency AS org_base_currency
+       o.kind AS org_kind, o.base_currency AS org_base_currency
 FROM partner_settlement_rules r
 JOIN partner_roles pr ON pr.id = r.partner_role_id
 JOIN partners p ON p.id = pr.partner_id
-LEFT JOIN pt_org_base ob ON ob.org_id = p.organization_id;
+LEFT JOIN organizations o ON o.id = p.organization_id;
 
 -- A. 总览
 SELECT
@@ -68,7 +54,7 @@ ORDER BY a.legal_name, a.updated_at DESC;
 --    口径与 partnerCreditSummaries 一致：只看启用的客户规则，且额度 > 0。
 SELECT rule_id, partner_code, legal_name, credit_limit_minor, credit_currency, org_base_currency,
        CASE
-         WHEN org_base_currency IS NULL THEN '公司未配置本币'
+         WHEN org_base_currency IS NULL THEN '往来单位不属于公司（组织无本币）'
          WHEN credit_currency IS NULL THEN '缺少额度币种'
          ELSE '额度币种不是公司本币'
        END AS problem
