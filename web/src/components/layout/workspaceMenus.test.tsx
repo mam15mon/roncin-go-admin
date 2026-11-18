@@ -70,7 +70,10 @@ describe('工作区共享导航菜单', () => {
     expect(resolveWorkspaceMenuKey('/admin', '', onlyUsers)).toBeUndefined();
   });
   it('汇率与费用设置遵循各自工作区权限，移动菜单可直达', () => {
-    const keys = ['system.finance.exchange_rate.read', 'system.finance.fee_setting.read'];
+    const keys = [
+      'system.finance.exchange_rate.read',
+      'system.finance.fee_setting.read',
+    ];
     const company = menusFor(keys);
     expect(company.settingsItems).toMatchObject([
       { key: '/finance/exchange-rates', label: '汇率管理' },

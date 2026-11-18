@@ -33,7 +33,11 @@ export function buildWorkspaceMenus(access: AccessState): WorkspaceMenus {
       key: route.path,
       label: route.name,
       icon:
-        route.icon === 'transaction' ? <TransactionOutlined /> : <SettingOutlined />,
+        route.icon === 'transaction' ? (
+          <TransactionOutlined />
+        ) : (
+          <SettingOutlined />
+        ),
     }));
 
   if (access?.canPreviewNotifications) {

@@ -160,11 +160,13 @@ export function AppLayout() {
     workspaceMenus,
   );
   const menuData = useMemo(() => buildMenuData(accessState), [accessState]);
-  const selectedMenuKey =
+  const selectedMenuKeys =
     resolveTabKey(location.pathname) === financeReportCenter.path
-      ? financeReportCenter.path
-      : isMobile
-        ? workspaceSelectedKey
+      ? [financeReportCenter.path]
+      : workspaceSelectedKey
+        ? isMobile
+          ? [workspaceSelectedKey]
+          : []
         : undefined;
 
   // 平移 onPageChange 未登录守卫。
@@ -184,7 +186,7 @@ export function AppLayout() {
       menuDataRender={(items) =>
         isMobile ? [...items, ...supplementalMenus] : items
       }
-      menuProps={selectedMenuKey ? { selectedKeys: [selectedMenuKey] } : undefined}
+      menuProps={selectedMenuKeys && { selectedKeys: selectedMenuKeys }}
       menu={{
         locale: false,
         collapsedWidth: layoutDimensions.collapsedSiderWidth,

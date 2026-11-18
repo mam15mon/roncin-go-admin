@@ -43,6 +43,7 @@ export const HeaderMenus: React.FC<HeaderMenusProps> = ({ className }) => {
   }
 
   const isSettingsActive =
+    settingsItems.some((item) => item.key === selectedKey) ||
     location.pathname === '/master-data' ||
     location.pathname.startsWith('/master-data/') ||
     location.pathname === '/admin' ||

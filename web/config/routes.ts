@@ -1,5 +1,53 @@
 import type { UmiRoute } from '../src/router/routeTypes';
 
+export const financeReportRoutes = [
+  {
+    path: '/finance/reports/profit-analysis',
+    name: '利润分析图',
+    component: './finance/reports/profit-analysis',
+  },
+  {
+    path: '/finance/reports/profit',
+    name: '利润报表',
+    component: './finance/reports/profit',
+  },
+  {
+    path: '/finance/reports/cashflows',
+    name: '实际收付款报表',
+    component: './finance/reports/cashflows',
+  },
+  {
+    path: '/finance/reports/aging',
+    name: '账龄表',
+    component: './finance/reports/aging',
+  },
+] as const;
+
+export const financeReportCenter = {
+  path: '/finance/reports',
+  name: '财务报表',
+  icon: 'orderedList',
+  access: 'canReadFinanceReports',
+  redirect: financeReportRoutes[0].path,
+} as const satisfies UmiRoute;
+
+export const financeSettingRoutes = [
+  {
+    path: '/finance/exchange-rates',
+    name: '汇率管理',
+    icon: 'transaction',
+    access: 'canReadExchangeRates',
+    component: './finance/exchange-rates',
+  },
+  {
+    path: '/finance/fee-settings',
+    name: '费用设置',
+    icon: 'setting',
+    access: 'canReadFeeSettings',
+    component: './finance/fee-settings',
+  },
+] as const satisfies UmiRoute[];
+
 const routes: UmiRoute[] = [
   {
     path: '/login',
@@ -319,53 +367,27 @@ const routes: UmiRoute[] = [
         access: 'canReadFinanceCommissions',
         component: './finance/commissions',
       },
-      {
-        path: '/finance/reports/profit-analysis',
-        organizationSwitch: { keep: true },
-        name: '利润分析图',
-        access: 'canReadFinanceReports',
-        component: './finance/reports/profit-analysis',
-      },
-      {
-        path: '/finance/reports/profit',
-        organizationSwitch: { keep: true },
-        name: '利润报表',
-        access: 'canReadFinanceReports',
-        component: './finance/reports/profit',
-      },
-      {
-        path: '/finance/reports/cashflows',
-        organizationSwitch: { keep: true },
-        name: '实际收付款报表',
-        access: 'canReadFinanceReports',
-        component: './finance/reports/cashflows',
-      },
-      {
-        path: '/finance/reports/aging',
-        organizationSwitch: { keep: true },
-        name: '账龄表',
-        access: 'canReadFinanceReports',
-        component: './finance/reports/aging',
-      },
-      {
-        path: '/finance/exchange-rates',
-        organizationSwitch: { keep: true },
-        name: '汇率管理',
-        access: 'canReadExchangeRates',
-        component: './finance/exchange-rates',
-      },
-      {
-        path: '/finance/fee-settings',
-        organizationSwitch: { keep: true },
-        name: '费用设置',
-        access: 'canReadFeeSettings',
-        component: './finance/fee-settings',
-      },
     ],
   },
+  financeReportCenter,
+  ...financeReportRoutes.map(
+    (route): UmiRoute => ({
+      ...route,
+      organizationSwitch: { keep: true },
+      access: financeReportCenter.access,
+      hideInMenu: true,
+    }),
+  ),
+  ...financeSettingRoutes.map(
+    (route): UmiRoute => ({
+      ...route,
+      organizationSwitch: { keep: true },
+      hideInMenu: true,
+    }),
+  ),
   {
     path: '/settings',
-    redirect: '/finance/fee-settings',
+    redirect: financeSettingRoutes[1].path,
   },
   {
     // 员工本人专属冲减来源落地页：不挂在 /finance 下，避免被组织级财务

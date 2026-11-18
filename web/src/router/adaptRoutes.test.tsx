@@ -98,7 +98,10 @@ describe('adaptRoutes 路由适配', () => {
       { path: '/finance/reports', name: '财务报表' },
     ]);
     expect(
-      menus(['system.finance.exchange_rate.read', 'system.finance.fee_setting.read']),
+      menus([
+        'system.finance.exchange_rate.read',
+        'system.finance.fee_setting.read',
+      ]),
     ).toEqual([]);
     expect(
       menus(['system.finance.fee.read', 'system.finance.netting.read']),

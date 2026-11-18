@@ -139,6 +139,17 @@ describe('组织切换功能落点', () => {
     });
   });
 
+  it('切换组织时保留可访问的具体报表并清除原筛选', () => {
+    const url = '/finance/reports/aging?page=3#old';
+    expect(
+      destination(url, capabilities(['system.finance.report.read'])),
+    ).toEqual({ path: '/finance/reports/aging', accessDenied: false });
+    expect(destination(url, companyAccess)).toEqual({
+      path: '/welcome',
+      accessDenied: true,
+    });
+  });
+
   it('企业资源的地址、影像等功能子页签保持，但清除旧资源参数', () => {
     const state = capabilities(['business.enterprise_resource.read']);
     expect(

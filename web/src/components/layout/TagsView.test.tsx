@@ -462,6 +462,22 @@ describe('TagsView Component', () => {
     expect(mockPush).toHaveBeenCalledWith('/settings?tab=security#logs');
   });
 
+  it('四张报表共用一个财务报表页签，返回时恢复最后打开的报表', () => {
+    mockPathname = '/finance/reports';
+    const { rerender } = render(<TagsView />);
+    for (const report of ['profit-analysis', 'profit', 'cashflows', 'aging']) {
+      mockPathname = `/finance/reports/${report}`;
+      rerender(<TagsView />);
+      expect(screen.getAllByRole('tab')).toHaveLength(2);
+      expect(screen.getByText('财务报表')).toBeInTheDocument();
+    }
+
+    mockPathname = '/welcome';
+    rerender(<TagsView />);
+    fireEvent.click(screen.getByText('财务报表'));
+    expect(mockPush).toHaveBeenCalledWith('/finance/reports/aging');
+  });
+
   it('动态标题更新只影响对应订单页签', () => {
     mockPathname = '/orders/sea-export/SE001';
     const { rerender } = render(<TagsView />);
