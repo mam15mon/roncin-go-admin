@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { AccountBoundaryCard, TodosCard } from './WorkbenchSideCards';
 
 describe('工作台账号与角色摘要', () => {
-  it('保留角色名称与当前组织，不显示已退役的数据范围', () => {
+  it('展示角色和组织编码，省略重复的当前公司名与数据范围', () => {
     renderWithApp(
       <AccountBoundaryCard
         user={{
@@ -19,7 +19,7 @@ describe('工作台账号与角色摘要', () => {
       />,
     );
 
-    expect(screen.getByText('上海公司')).toBeInTheDocument();
+    expect(screen.queryByText('上海公司')).not.toBeInTheDocument();
     expect(screen.getByText('已分配角色')).toBeInTheDocument();
     expect(screen.getByText('操作员')).toBeInTheDocument();
     expect(screen.getByText('reviewer')).toBeInTheDocument();
