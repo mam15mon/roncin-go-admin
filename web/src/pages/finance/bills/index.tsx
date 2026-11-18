@@ -21,7 +21,11 @@ import {
 } from '@/components/ui/filter-settings';
 import { useListQueryState } from '@/components/ui/list-query-state';
 import { FinanceBillStatus } from '@/enums.generated';
-import { BillCreationWorkbench } from '@/features/finance/bill-creation';
+import {
+  BillCreationWorkbench,
+  billDuePayload,
+  initialBillDueSettings,
+} from '@/features/finance/bill-creation';
 import {
   billBusinessStatusMeta,
   billInvoiceProgressMeta,
@@ -315,7 +319,7 @@ export default function FinanceBillsPage() {
     setEditing(bill);
     form.setFieldsValue({
       statementTitle: bill.statementTitle,
-      paymentTermsDays: bill.paymentTermsDays,
+      ...initialBillDueSettings(bill),
       note: bill.note,
       settlementAccountId: bill.settlementAccountId,
       estimatedInvoiceCurrency: bill.estimatedInvoiceCurrency || bill.currency,
@@ -388,7 +392,7 @@ export default function FinanceBillsPage() {
           id: editing.id,
           expectedVersion: editing.version,
           statementTitle: values.statementTitle.trim(),
-          paymentTermsDays: values.paymentTermsDays,
+          ...billDuePayload(values),
           note: values.note?.trim() || undefined,
           settlementAccountId: values.settlementAccountId,
           estimatedInvoiceCurrency:

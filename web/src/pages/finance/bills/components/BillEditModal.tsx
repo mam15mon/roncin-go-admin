@@ -8,7 +8,6 @@ import {
   Form,
   type FormInstance,
   Input,
-  InputNumber,
   Modal,
   Row,
   Select,
@@ -21,7 +20,11 @@ import { useAccess } from '@/app/access';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { QuickCreateSelectFooter } from '@/components/ui';
 import { FinanceBillStatus, PartnerRoleType } from '@/enums.generated';
-import { BillTermsCreditWarnings } from '@/features/finance/bill-creation';
+import {
+  BillDueSettings,
+  BillTermsCreditWarnings,
+  billDueResult,
+} from '@/features/finance/bill-creation';
 import {
   billFeeLockFactLabels,
   isBillFieldProtected,
@@ -79,7 +82,17 @@ export default function BillEditModal({
   const protectedFactText = billFeeLockFactLabels(editing)
     .filter((label) => label !== '草稿对冲')
     .join('、');
-  const paymentTermsDays = Form.useWatch('paymentTermsDays', form);
+  const dueMode = Form.useWatch('dueMode', { form, preserve: true });
+  const paymentTermsDays = Form.useWatch('paymentTermsDays', {
+    form,
+    preserve: true,
+  });
+  const dueDate = Form.useWatch('dueDate', { form, preserve: true });
+  const { effectiveDueDate } = billDueResult(editing?.billDate, {
+    dueMode,
+    paymentTermsDays,
+    dueDate,
+  });
   const { changed } = useBillChangeNotice({
     billId: editing?.id,
     version: editing?.version,
@@ -316,7 +329,8 @@ export default function BillEditModal({
         <BillTermsCreditWarnings
           direction={editing?.direction}
           isCasual={counterparty?.isCasual}
-          paymentTermsDays={paymentTermsDays}
+          billDate={editing?.billDate}
+          effectiveDueDate={effectiveDueDate}
           creditLimitAmount={counterparty?.creditLimitAmount}
           creditCurrency={counterparty?.creditCurrency}
           currentUnsettledAmount={counterparty?.unsettledBaseAmount}
@@ -337,26 +351,23 @@ export default function BillEditModal({
               <Input maxLength={200} />
             </Form.Item>
           </Col>
-          <Col xs={12} md={6}>
+          <Col xs={12} md={12}>
             <Form.Item
               label="创建日期"
-              tooltip="由系统维护。未开票时增减费用会更新创建日期，开票后固定。"
+              tooltip="建账时由系统记录，之后不再变化"
             >
               <span style={{ lineHeight: '32px' }}>
                 {editing?.billDate || '-'}
               </span>
             </Form.Item>
           </Col>
-          <Col xs={12} md={6}>
-            <Form.Item name="paymentTermsDays" label="账期（天，可选）">
-              <InputNumber
-                min={0}
-                max={3650}
-                precision={0}
-                disabled={fieldsProtected}
-                style={{ width: '100%' }}
-              />
-            </Form.Item>
+          <Col xs={24}>
+            <BillDueSettings
+              key={editing?.id}
+              billDate={editing?.billDate}
+              fieldsProtected={fieldsProtected}
+              hasPaymentTerms={editing?.paymentTermsDays != null}
+            />
           </Col>
           <Col xs={24}>
             <Form.Item

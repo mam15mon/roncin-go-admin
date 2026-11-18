@@ -8,6 +8,7 @@ import FinanceBillsPage from './index';
 const state = vi.hoisted(() => ({
   openEdit: undefined as undefined | ((bill: API.FinanceBill) => void),
   reload: vi.fn(),
+  dueDate: undefined as string | undefined,
 }));
 vi.mock('@/app/AppProvider', () => ({
   useInitialState: () => ({
@@ -35,6 +36,7 @@ vi.mock('@/components/ui', () => ({
             version: '1',
             statementTitle: '原抬头',
             billDate: '2026-10-12',
+            dueDate: state.dueDate,
           })
         }
       >
@@ -44,7 +46,8 @@ vi.mock('@/components/ui', () => ({
   },
   SearchFilterTemplate: () => null,
 }));
-vi.mock('@/features/finance/bill-creation', () => ({
+vi.mock('@/features/finance/bill-creation', async (original) => ({
+  ...(await original<typeof import('@/features/finance/bill-creation')>()),
   BillCreationWorkbench: () => null,
 }));
 vi.mock('@/features/master-data/currencies', () => ({
@@ -71,6 +74,15 @@ vi.mock('./components/BillEditModal', () => ({
         <Form.Item name="statementTitle" label="抬头">
           <Input />
         </Form.Item>
+        <Form.Item name="dueMode" hidden>
+          <Input />
+        </Form.Item>
+        <Form.Item name="dueDate" hidden>
+          <span />
+        </Form.Item>
+        <Form.Item name="paymentTermsDays" hidden>
+          <Input />
+        </Form.Item>
         <button type="button" onClick={() => void p.onOk()}>
           提交账单
         </button>
@@ -82,9 +94,33 @@ vi.mock('@/services/roncin/settlementService', () => ({
 }));
 beforeEach(() => {
   vi.clearAllMocks();
+  state.dueDate = undefined;
   vi.mocked(settlementServiceUpdateBill).mockReset();
 });
 describe('账单编辑失败判定', () => {
+  it('指定到期日且无账期时不修改保存也保留原到期日', async () => {
+    state.dueDate = '2026-12-03';
+    vi.mocked(settlementServiceUpdateBill).mockResolvedValue({
+      data: { id: 'bill' },
+    });
+    render(
+      <App>
+        <FinanceBillsPage />
+      </App>,
+    );
+    fireEvent.click(screen.getByText('编辑账单'));
+    fireEvent.click(screen.getByText('提交账单'));
+    await waitFor(() =>
+      expect(settlementServiceUpdateBill).toHaveBeenCalledTimes(1),
+    );
+    const payload = vi.mocked(settlementServiceUpdateBill).mock.calls[0][1];
+    expect(payload).toHaveProperty('dueDate', '2026-12-03');
+    expect(payload).not.toHaveProperty('paymentTermsDays');
+    await waitFor(() =>
+      expect(screen.queryByText('提交账单')).not.toBeInTheDocument(),
+    );
+  });
+
   it('reject、undefined、缺ID均保持编辑；实体响应成功才关闭并刷新', async () => {
     vi.mocked(settlementServiceUpdateBill)
       .mockRejectedValueOnce(new Error('模拟失败'))

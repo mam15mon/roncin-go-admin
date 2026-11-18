@@ -1,6 +1,7 @@
 import type { Dayjs } from 'dayjs';
 import Decimal from 'decimal.js';
 import { financeErrorReasons } from '@/errorReasons.generated';
+import type { BillDueSettingsValue } from './billDueSettings';
 
 export type BillInvoiceDraft = {
   invoiceProfileId?: string;
@@ -29,9 +30,8 @@ export type BillVerificationDraft = {
     bankReferenceNo?: string;
   };
 };
-export type GroupFormValue = {
+export type GroupFormValue = BillDueSettingsValue & {
   statementTitle: string;
-  paymentTermsDays?: number;
   note?: string;
   settlementAccountId?: string;
   estimatedInvoiceCurrency?: string;

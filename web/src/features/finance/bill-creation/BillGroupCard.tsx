@@ -6,7 +6,6 @@ import {
   Col,
   Form,
   Input,
-  InputNumber,
   Row,
   Select,
   Space,
@@ -14,7 +13,6 @@ import {
   Typography,
 } from 'antd';
 import type { NamePath } from 'antd/es/form/interface';
-import dayjs from 'dayjs';
 import React from 'react';
 import { useAccess } from '@/app/access';
 import { ResponsiveProTable as ProTable, SectionCard } from '@/components/ui';
@@ -22,8 +20,10 @@ import { useColumnSettings } from '@/components/ui/column-settings';
 import { InvoiceRegistrationEditor } from '@/features/finance/invoice-registration';
 import { currencyOptionsQueryOptions } from '@/features/master-data/currencies';
 import { formatAmount } from '@/utils/format';
+import BillDueSettings from './BillDueSettings';
 import BillTermsCreditWarnings from './BillTermsCreditWarnings';
 import BillVerificationFields from './BillVerificationFields';
+import { billDueResult } from './billDueSettings';
 import SettlementAccountSelect from './SettlementAccountSelect';
 
 const { Text } = Typography;
@@ -53,14 +53,23 @@ export default function BillGroupCard({
   });
   const currencyOptions = currenciesQuery.data ?? [];
 
+  const dueMode = Form.useWatch(['groups', groupKey, 'dueMode'], {
+    form,
+    preserve: true,
+  });
   const paymentTermsDays = Form.useWatch(
     ['groups', groupKey, 'paymentTermsDays'],
-    form,
+    { form, preserve: true },
   );
-  const derivedDueDate =
-    group.billDate && typeof paymentTermsDays === 'number'
-      ? dayjs(group.billDate).add(paymentTermsDays, 'day').format('YYYY-MM-DD')
-      : undefined;
+  const dueDate = Form.useWatch(['groups', groupKey, 'dueDate'], {
+    form,
+    preserve: true,
+  });
+  const { effectiveDueDate } = billDueResult(group.billDate, {
+    dueMode,
+    paymentTermsDays,
+    dueDate,
+  });
 
   const feeColumnSettings = useColumnSettings<ProColumns<API.FeeLedgerItem>>({
     tableKey: 'finance:bill-group-fees',
@@ -103,7 +112,8 @@ export default function BillGroupCard({
       <BillTermsCreditWarnings
         direction={group.direction}
         isCasual={group.isCasual}
-        paymentTermsDays={paymentTermsDays}
+        billDate={group.billDate}
+        effectiveDueDate={effectiveDueDate}
         creditLimitAmount={group.creditLimitAmount}
         creditCurrency={group.creditCurrency}
         currentUnsettledAmount={group.currentUnsettledAmount}
@@ -112,7 +122,7 @@ export default function BillGroupCard({
         billCurrency={group.currency}
       />
       <Row gutter={16} style={{ marginBottom: 8 }}>
-        <Col xs={24} md={10}>
+        <Col xs={24} md={12}>
           <Form.Item
             name={['groups', groupKey, 'statementTitle'] as NamePath}
             label="对账抬头"
@@ -124,44 +134,22 @@ export default function BillGroupCard({
             <Input placeholder="默认使用结算单位名称，可编辑" />
           </Form.Item>
         </Col>
-        <Col xs={24} md={5}>
-          <Form.Item
-            label="创建日期"
-            tooltip="由系统维护。未开票时增减费用会更新创建日期，开票后固定。"
-          >
+        <Col xs={24} md={6}>
+          <Form.Item label="创建日期" tooltip="建账时由系统记录，之后不再变化">
             <Text>{group.billDate || '-'}</Text>
           </Form.Item>
         </Col>
-        <Col xs={24} md={4}>
+        <Col xs={24} md={6}>
           <Form.Item label="账单币种">
             <Input disabled value={group.currency || '-'} />
           </Form.Item>
         </Col>
-        <Col xs={24} md={5}>
-          <Form.Item
-            name={['groups', groupKey, 'paymentTermsDays'] as NamePath}
-            label="账期（天）"
-            extra={
-              group.isCasual && group.direction === 'RECEIVABLE' ? (
-                <Text type="warning" style={{ fontSize: 12 }}>
-                  建议现结
-                  {derivedDueDate ? ` (到期: ${derivedDueDate})` : ''}
-                </Text>
-              ) : derivedDueDate ? (
-                <Text type="secondary" style={{ fontSize: 12 }}>
-                  到期: {derivedDueDate}
-                </Text>
-              ) : undefined
-            }
-          >
-            <InputNumber
-              min={0}
-              max={3650}
-              precision={0}
-              placeholder="天数"
-              style={{ width: '100%' }}
-            />
-          </Form.Item>
+        <Col xs={24} md={12}>
+          <BillDueSettings
+            billDate={group.billDate}
+            namePrefix={['groups', groupKey]}
+            termsRequired={group.defaultPaymentTermsDays != null}
+          />
         </Col>
         <Col xs={24} md={12}>
           <SettlementAccountSelect

@@ -14,6 +14,7 @@ import {
   getAnyDirtyTabKey,
 } from '@/components/layout/tabCloseGuard';
 import { FinanceBillFeeLockFact } from '@/enums.generated';
+import { initialBillDueSettings } from '@/features/finance/bill-creation';
 import type { BillFormValues } from './billConstants';
 
 const mocks = vi.hoisted(() => ({ accounts: vi.fn() }));
@@ -63,6 +64,7 @@ function EditHarness({ editing }: { editing?: API.FinanceBill }) {
   useEffect(() => {
     form.setFieldsValue({
       statementTitle: editing?.statementTitle || '',
+      ...initialBillDueSettings(editing ?? {}),
       settlementAccountId: editing?.settlementAccountId || '',
       estimatedInvoiceCurrency:
         editing?.estimatedInvoiceCurrency || editing?.currency || '',
@@ -321,6 +323,7 @@ describe('BillEditModal 受保护字段', () => {
       <EditHarness
         editing={{
           id: 'bill-protected',
+          paymentTermsDays: 30,
           billNo: 'BILL-P',
           currency: 'CNY',
           settlementAccountId: 'account-old',
@@ -339,7 +342,7 @@ describe('BillEditModal 受保护字段', () => {
         'account-old',
       ),
     );
-    expect(screen.getByLabelText('账期（天，可选）')).toBeDisabled();
+    expect(screen.getByRole('button', { name: '调整到期日' })).toBeDisabled();
     expect(screen.getByLabelText('预计开票汇率')).toBeDisabled();
     expect(screen.getByLabelText('对账抬头')).not.toBeDisabled();
     expect(screen.getByLabelText('备注')).not.toBeDisabled();
@@ -364,7 +367,8 @@ describe('BillEditModal 受保护字段', () => {
     expect(
       screen.queryByText(/只能修改对账抬头和备注/),
     ).not.toBeInTheDocument();
-    expect(screen.getByLabelText('账期（天，可选）')).not.toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: '调整到期日' }));
+    expect(screen.getByLabelText('账期（天）')).not.toBeDisabled();
     expect(screen.getByLabelText('预计开票汇率')).not.toBeDisabled();
   });
 });

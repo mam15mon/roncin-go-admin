@@ -5,6 +5,13 @@
 
 export type { BillCreationWorkbenchProps } from './BillCreationWorkbench';
 export { default as BillCreationWorkbench } from './BillCreationWorkbench';
+export { default as BillDueSettings } from './BillDueSettings';
 /** 账单条款/信用预警同时服务建账工作台与账单页草稿编辑弹窗，随本能力公开。 */
 export { default as BillTermsCreditWarnings } from './BillTermsCreditWarnings';
+export type { BillDueMode, BillDueSettingsValue } from './billDueSettings';
+export {
+  billDuePayload,
+  billDueResult,
+  initialBillDueSettings,
+} from './billDueSettings';
 export type { BillCreationMode } from './billWorkbenchHelpers';

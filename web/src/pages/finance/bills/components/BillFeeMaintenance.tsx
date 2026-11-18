@@ -8,6 +8,7 @@ import {
   Modal,
   type TableColumnsType,
   Tooltip,
+  Typography,
 } from 'antd';
 import React, { useState } from 'react';
 import { AsyncPopconfirm, ResponsiveTable as Table } from '@/components/ui';
@@ -258,6 +259,12 @@ export default function BillFeeMaintenance({
         )}
         {toolbarExtra}
       </Flex>
+      <Typography.Text
+        type="secondary"
+        style={{ display: 'block', marginBottom: 8 }}
+      >
+        增减费用不会改变到期日和账单汇率
+      </Typography.Text>
       <Table<API.FinanceBillLine>
         rowKey="id"
         size="small"

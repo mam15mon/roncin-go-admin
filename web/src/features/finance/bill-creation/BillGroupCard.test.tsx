@@ -28,6 +28,7 @@ describe('BillGroupCard', () => {
   it('散客应收组展示散客Tag，账期>0时展示黄色警示且不阻断', async () => {
     const casualGroup = {
       groupKey: 'casual-1',
+      billDate: '2026-11-18',
       direction: 'RECEIVABLE',
       settlementPartyId: 'party-casual',
       settlementPartyName: '散客货主',
@@ -73,13 +74,14 @@ describe('BillGroupCard', () => {
     ).not.toBeInTheDocument();
 
     // 修改账期为 30 天
+    fireEvent.click(screen.getByRole('button', { name: '调整到期日' }));
     const input = screen.getByLabelText('账期（天）');
     fireEvent.change(input, { target: { value: '30' } });
 
     // 出现黄色预警
     expect(
       await screen.findByText(
-        '该客户为单次合作散客，建议现结；当前已设置 30 天账期，请注意资金回款风险',
+        '该客户为单次合作散客，建议现结；当前到期日为 2026-12-18（账单日后 30 天），请注意资金回款风险',
       ),
     ).toBeInTheDocument();
   });
@@ -184,6 +186,7 @@ describe('BillGroupCard', () => {
     ).toBeInTheDocument();
 
     // 预警为软提示：账期与提交入口不被禁用
+    fireEvent.click(screen.getByRole('button', { name: '调整到期日' }));
     expect(screen.getByLabelText('账期（天）')).toBeEnabled();
 
     // 等待挂载触发的结算账户候选、币种选项异步请求在 act 内收敛。

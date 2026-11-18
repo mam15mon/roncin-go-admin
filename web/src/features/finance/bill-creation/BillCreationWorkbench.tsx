@@ -25,6 +25,7 @@ import BillCreationResultTable from './BillCreationResultTable';
 import BillGroupConfigurationStep from './BillGroupConfigurationStep';
 import BillSplitStrategyCards from './BillSplitStrategyCards';
 import BillWorkbenchFooter from './BillWorkbenchFooter';
+import { billDuePayload, initialBillDueSettings } from './billDueSettings';
 import {
   type BillBatchOutcome,
   type BillCreationMode,
@@ -502,7 +503,7 @@ export default function BillCreationWorkbench({
           groupToken: group.groupToken,
           feeIds,
           statementTitle: value.statementTitle.trim(),
-          paymentTermsDays: value.paymentTermsDays,
+          ...billDuePayload(value),
           note: value.note?.trim() || undefined,
           settlementAccountId: value.settlementAccountId || '',
           estimatedInvoiceCurrency: value.estimatedInvoiceCurrency || undefined,
@@ -626,11 +627,9 @@ export default function BillCreationWorkbench({
         | undefined;
       nextGroups[group.groupKey] = existing || {
         statementTitle: group.settlementPartyName || '',
-        paymentTermsDays:
-          group.defaultPaymentTermsDays !== undefined &&
-          group.defaultPaymentTermsDays !== null
-            ? group.defaultPaymentTermsDays
-            : undefined,
+        ...initialBillDueSettings({
+          paymentTermsDays: group.defaultPaymentTermsDays,
+        }),
         note: undefined,
         settlementAccountId: undefined,
         estimatedInvoiceCurrency:
@@ -643,13 +642,12 @@ export default function BillCreationWorkbench({
       if (existing) {
         nextGroups[group.groupKey] = {
           ...existing,
+          dueMode: existing.dueMode ?? 'terms',
+          dueDate: existing.dueDate,
           paymentTermsDays:
             existing.paymentTermsDays !== undefined
               ? existing.paymentTermsDays
-              : group.defaultPaymentTermsDays !== undefined &&
-                  group.defaultPaymentTermsDays !== null
-                ? group.defaultPaymentTermsDays
-                : undefined,
+              : (group.defaultPaymentTermsDays ?? undefined),
           estimatedInvoiceCurrency:
             existing.estimatedInvoiceCurrency !== undefined
               ? existing.estimatedInvoiceCurrency

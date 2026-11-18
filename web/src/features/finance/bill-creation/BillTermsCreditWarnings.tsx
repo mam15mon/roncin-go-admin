@@ -1,11 +1,13 @@
 import { Alert } from 'antd';
+import dayjs from 'dayjs';
 import React from 'react';
 import { formatAmount } from '@/utils/format';
 
 export type BillTermsCreditWarningsProps = {
   direction?: string;
   isCasual?: boolean;
-  paymentTermsDays?: number | null;
+  billDate?: string;
+  effectiveDueDate?: string;
   /** 信用额度比对信息（折本位币口径），来自服务端预览或伙伴主档结算规则。 */
   creditLimitAmount?: string;
   creditCurrency?: string;
@@ -24,7 +26,8 @@ export type BillTermsCreditWarningsProps = {
 export default function BillTermsCreditWarnings({
   direction,
   isCasual,
-  paymentTermsDays,
+  billDate,
+  effectiveDueDate,
   creditLimitAmount,
   creditCurrency,
   currentUnsettledAmount,
@@ -35,8 +38,10 @@ export default function BillTermsCreditWarnings({
   const hasCasualTermsWarning =
     isCasual === true &&
     direction === 'RECEIVABLE' &&
-    typeof paymentTermsDays === 'number' &&
-    paymentTermsDays > 0;
+    Boolean(billDate && effectiveDueDate && effectiveDueDate > billDate);
+  const daysAfterBillDate = hasCasualTermsWarning
+    ? dayjs(effectiveDueDate).diff(dayjs(billDate), 'day')
+    : 0;
 
   return (
     <>
@@ -45,7 +50,7 @@ export default function BillTermsCreditWarnings({
           type="warning"
           showIcon
           style={{ marginBottom: 16 }}
-          description={`该客户为单次合作散客，建议现结；当前已设置 ${paymentTermsDays} 天账期，请注意资金回款风险`}
+          description={`该客户为单次合作散客，建议现结；当前到期日为 ${effectiveDueDate}（账单日后 ${daysAfterBillDate} 天），请注意资金回款风险`}
         />
       ) : null}
       {isCreditExceeded ? (
