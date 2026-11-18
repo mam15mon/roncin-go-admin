@@ -195,13 +195,14 @@ export default function BillFeeMaintenance({
     : lineColumns;
 
   const candidateColumns: TableColumnsType<API.FeeLedgerItem> = [
-    { title: '订单编号', dataIndex: 'orderNo', width: 150 },
-    { title: '费用代码', dataIndex: 'feeCode', width: 110 },
+    { title: '订单编号', dataIndex: 'orderNo', width: 130 },
+    { title: '费用代码', dataIndex: 'feeCode', width: 90 },
     { title: '费用名称', dataIndex: 'feeName', width: 140 },
     {
       title: '含税金额',
       key: 'totalAmount',
       align: 'right',
+      width: 150,
       render: (_, row) => `${formatAmount(row.totalAmount)} ${row.currency}`,
     },
     {

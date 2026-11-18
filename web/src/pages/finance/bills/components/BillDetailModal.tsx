@@ -49,20 +49,21 @@ export default function BillDetailModal({
   onRegistrationUpdated,
 }: BillDetailModalProps) {
   const lineColumns: TableColumnsType<API.FinanceBillLine> = [
-    { title: '订单编号', dataIndex: 'orderNo', width: 150 },
-    { title: '费用代码', dataIndex: 'feeCode', width: 100 },
-    { title: '费用名称', dataIndex: 'feeName', width: 130 },
+    { title: '订单编号', dataIndex: 'orderNo', width: 130 },
+    { title: '费用代码', dataIndex: 'feeCode', width: 90 },
+    { title: '费用名称', dataIndex: 'feeName', ellipsis: true },
     {
       title: '税率',
       dataIndex: 'taxRate',
       align: 'right',
-      width: 80,
+      width: 70,
       render: (value) => (value == null ? '-' : `${Number(value)}%`),
     },
     {
       title: '不含税金额',
       dataIndex: 'netAmount',
       align: 'right',
+      width: 120,
       render: (val, row) =>
         val ? `${formatAmount(val)} ${row.currency}` : '-',
     },
@@ -70,12 +71,14 @@ export default function BillDetailModal({
       title: '税额',
       dataIndex: 'taxAmount',
       align: 'right',
+      width: 100,
       render: (val, row) =>
         val ? `${formatAmount(val)} ${row.currency}` : '-',
     },
     {
       title: '含税金额',
       dataIndex: 'totalAmount',
+      width: 130,
       render: (_, row) => (
         <strong>
           {formatAmount(row.totalAmount)} {row.currency}
@@ -87,17 +90,20 @@ export default function BillDetailModal({
       title: '已登记金额',
       key: 'invoicedAmount',
       align: 'right',
+      width: 110,
       render: (_, row) => formatAmount(row.invoicedAmount ?? '0'),
     },
     {
       title: '可登记余额',
       key: 'invoiceableAmount',
       align: 'right',
+      width: 110,
       render: (_, row) => formatAmount(row.invoiceableAmount),
     },
     {
       title: '费用折本币',
       key: 'baseCurrencyAmount',
+      width: 140,
       render: (_, row) =>
         `${formatAmount(row.baseCurrencyAmount)} ${row.baseCurrency}`,
       align: 'right',

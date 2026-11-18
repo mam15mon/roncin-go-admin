@@ -65,12 +65,13 @@ export default function BillInvoiceRegistrationSection({
             columnTitle: '分配追溯',
           }}
           columns={[
-            { title: '记录编号', dataIndex: 'recordNo' },
-            { title: '发票号码', dataIndex: 'taxInvoiceNo' },
-            { title: '发票日期', dataIndex: 'invoiceDate' },
+            { title: '记录编号', dataIndex: 'recordNo', width: 170 },
+            { title: '发票号码', dataIndex: 'taxInvoiceNo', width: 150 },
+            { title: '发票日期', dataIndex: 'invoiceDate', width: 110 },
             {
               title: '本账单分配',
               key: 'billAmount',
+              width: 150,
               render: (_, invoice) => {
                 const links =
                   invoice.billLinks?.filter(
@@ -92,6 +93,7 @@ export default function BillInvoiceRegistrationSection({
             {
               title: '有效情况',
               key: 'active',
+              width: 130,
               render: (_, invoice) =>
                 invoice.billLinks?.some(
                   (link) => link.billId === bill.id && link.active,
