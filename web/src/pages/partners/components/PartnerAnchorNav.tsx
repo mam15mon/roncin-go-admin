@@ -34,7 +34,7 @@ export default function PartnerAnchorNav({
       onCollapsedChange={onCollapsedChange}
       items={[
         { key: 'basic', title: '基础信息' },
-        ...(showSettlement ? [{ key: 'settlement', title: '财务结算' }] : []),
+        ...(showSettlement ? [{ key: 'settlement', title: '收款约定' }] : []),
         ...(partnerId && canReadAccounts
           ? [{ key: 'accounts', title: '账户信息' }]
           : []),

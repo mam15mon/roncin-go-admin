@@ -44,7 +44,7 @@
 | [Billing Unit Quantity Rule](./billing-unit-quantity-rule.md) | 计费单位整数/小数规则、初始化与费用更新语义 | ✅ |
 | [Order Fee Quantity Preview](./order-fee-quantity-preview.md) | 公共单位补齐、计划/实际数量来源、十进制预览与确认带入 | ✅ |
 | [Organization Shared Masterdata](./organization-shared-masterdata.md) | 公共主数据、系统费用模板与公司独立配置、工作台维护权及迁移约束 | ✅ |
-| [信用额度本币口径](./partner-credit-currency.md) | 额度与结算币种分离、全部写入口及信用聚合校验 | ✅ |
+| [信用额度本币口径](./partner-credit-currency.md) | 客户收款约定、写入与信用摘要的公司本币校验 | ✅ |
 | [客商聚合子资源一致性](./partner-aggregate-consistency.md) | 内嵌规则独立权限、七入口读裁剪、普通保存与默认抬头版本 | ✅ |
 | [Partner Casual Contract](./partner-casual-contract.md) | 散客往来单位跨层契约：伙伴级标识、账期零底线、出款账户刚性 | ✅ |
 | [Partner Role Blacklist](./partner-role-blacklist.md) | 角色级黑名单、订单新增关联门禁与身份专用写入 | ✅ |

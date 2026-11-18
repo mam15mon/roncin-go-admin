@@ -16,7 +16,7 @@
 3. 改 Proto（design §2），执行 `make -C server api`，再执行 `pnpm run generate:web-client`；检查生成差异。
 4. 改 Biz、Data、Service（design §3），包括 `finance_bill_credit.go` 的信用汇总、`savePartnerRoleSettlementRules`、开发种子。
 5. 如果改了 `internal/access/manifest.go` 的权限名称或描述，执行 `pnpm run generate:permission-keys`。
-6. **在隔离库验证迁移：** 写迁移集成测试（design §6「迁移集成测试」的全部用例，包括三种守卫失败和守卫不误伤），
+6. **在隔离库验证迁移：** 写迁移集成测试（design §6「迁移集成测试」的全部用例，包括两种守卫失败和守卫不误伤），
    在独立的 PostgreSQL 上跑通。这些测试在 `internal/data` 包里，所以要等第 4 步完成、包能编译后再写。
    迁移执行器会把整个文件放在一个事务里执行（`internal/platform/migration/runner.go`），守卫失败时整份迁移都会回滚。
    同时补写、更新其余后端测试（design §6 后端部分）。

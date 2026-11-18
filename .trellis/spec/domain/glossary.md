@@ -58,7 +58,7 @@
 | --- | --- | --- |
 | 往来单位档案 | `Partner` / `...Profile` | 客户/供应商/承运人等外部主体 |
 | 信用 | `PartnerCredit` | 应收账期与信用额度，建账时校验 |
-| 结算规则 | `PartnerSettlementRule` | 币种/账期等结算约定 |
+| 收款约定 | `PartnerSettlementRule` | 每个客户角色至多一条，含公司本币信用额度及默认收款期限。NULL 为未约定，0 为现结，正数为建账后 N 天 |
 | 常用单证预设 | `PartnerShippingPreset` | 客商关联的收发通知人、英文品名、HS 编码与唛头；由企业资源及其客商关联投影，不是独立旧预设表 |
 | 角色黑名单 | `partner_role.go` | 限制某些合作角色 |
 

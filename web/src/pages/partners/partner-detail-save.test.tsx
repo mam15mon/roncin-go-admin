@@ -101,10 +101,10 @@ vi.mock('./components/ContactsSection', () => ({
 vi.mock('./components/SettlementSection', () => ({
   default: () => (
     <>
-      <Form.Item name="creditLimit" label="信用额度测试">
+      <Form.Item name="paymentTermsMode" hidden>
         <Input />
       </Form.Item>
-      <Form.Item name="settlementCurrency" label="结算币种测试">
+      <Form.Item name="creditLimit" label="信用额度测试">
         <Input />
       </Form.Item>
     </>
@@ -329,60 +329,47 @@ describe('客商保存与失败恢复', () => {
   });
 });
 
-it.each(['CNY', 'USD'])(
-  '主档普通保存保留%s本币额度且不绑定结算币种',
-  async (baseCurrency) => {
-    state.baseCurrency = baseCurrency;
-    state.manageSettlement = true;
-    const settlementCurrency = baseCurrency === 'CNY' ? 'USD' : 'CNY';
-    vi.mocked(partnerServiceListPartnerSettlementRules).mockResolvedValue({
-      data: [
-        {
-          id: 'rule',
-          statementMode: 1,
-          settlementMethod: 1,
-          settlementCurrency,
-          creditLimitMinor: '100001',
-          creditCurrency: baseCurrency,
-          isActive: baseCurrency === 'CNY' ? true : undefined,
-        },
-      ],
-    });
-    vi.mocked(partnerServiceUpdatePartner).mockResolvedValue({
-      data: { id: ID },
-    });
-    renderPage(true);
-    await waitFor(() =>
-      expect(screen.getByLabelText('信用额度测试')).toHaveValue('1000.01'),
-    );
-    await save();
-    await waitFor(() =>
-      expect(partnerServiceUpdatePartner).toHaveBeenCalledWith(
-        { id: ID },
-        expect.objectContaining({
-          roles: [
-            expect.objectContaining({
-              settlementRule: expect.objectContaining({
-                settlementCurrency,
-                creditLimitMinor: '100001',
-                creditCurrency: baseCurrency,
-                isActive: baseCurrency === 'CNY',
-              }),
+it.each(['CNY', 'USD'])('主档普通保存保留%s本币额度', async (baseCurrency) => {
+  state.baseCurrency = baseCurrency;
+  state.manageSettlement = true;
+  vi.mocked(partnerServiceListPartnerSettlementRules).mockResolvedValue({
+    data: [
+      {
+        id: 'rule',
+        creditLimitMinor: '100001',
+        creditCurrency: baseCurrency,
+      },
+    ],
+  });
+  vi.mocked(partnerServiceUpdatePartner).mockResolvedValue({
+    data: { id: ID },
+  });
+  renderPage(true);
+  await waitFor(() =>
+    expect(screen.getByLabelText('信用额度测试')).toHaveValue('1000.01'),
+  );
+  await save();
+  await waitFor(() =>
+    expect(partnerServiceUpdatePartner).toHaveBeenCalledWith(
+      { id: ID },
+      expect.objectContaining({
+        roles: [
+          expect.objectContaining({
+            settlementRule: expect.objectContaining({
+              creditLimitMinor: '100001',
+              creditCurrency: baseCurrency,
             }),
-          ],
-        }),
-      ),
-    );
-  },
-);
+          }),
+        ],
+      }),
+    ),
+  );
+});
 
-it('规则首次失败和后台失败均阻止嵌套保存，重试成功回填原额度和停用状态且保留名称输入', async () => {
+it('规则首次失败和后台失败均阻止嵌套保存，重试成功回填原额度且保留名称输入', async () => {
   state.manageSettlement = true;
   const rule = {
     id: 'rule',
-    statementMode: 1,
-    settlementMethod: 1,
-    settlementCurrency: 'USD',
     creditLimitMinor: '100001',
     creditCurrency: 'CNY',
   };
@@ -394,7 +381,7 @@ it('规则首次失败和后台失败均阻止嵌套保存，重试成功回填�
     data: { id: ID },
   });
   const { queryClient } = renderPage(true);
-  await screen.findByText('结算规则加载失败，原资料和输入已保留，请重试后保存');
+  await screen.findByText('收款约定加载失败，原资料和输入已保留，请重试后保存');
   await waitFor(() =>
     expect(screen.getByLabelText('公司抬头')).toHaveValue('原名称'),
   );
@@ -404,14 +391,14 @@ it('规则首次失败和后台失败均阻止嵌套保存，重试成功回填�
   await save();
   expect(partnerServiceUpdatePartner).not.toHaveBeenCalled();
   expect(isTabDirty('/partners/customers')).toBe(true);
-  fireEvent.click(screen.getByRole('button', { name: '重新加载结算规则' }));
+  fireEvent.click(screen.getByRole('button', { name: '重新加载收款约定' }));
   await waitFor(() =>
     expect(partnerServiceListPartnerSettlementRules).toHaveBeenCalledTimes(2),
   );
-  await screen.findByText('结算规则加载失败，原资料和输入已保留，请重试后保存');
+  await screen.findByText('收款约定加载失败，原资料和输入已保留，请重试后保存');
   await save();
   expect(partnerServiceUpdatePartner).not.toHaveBeenCalled();
-  fireEvent.click(screen.getByRole('button', { name: '重新加载结算规则' }));
+  fireEvent.click(screen.getByRole('button', { name: '重新加载收款约定' }));
   await waitFor(() =>
     expect(screen.getByLabelText('信用额度测试')).toHaveValue('1000.01'),
   );
@@ -425,10 +412,10 @@ it('规则首次失败和后台失败均阻止嵌套保存，重试成功回填�
       queryKey: ['partner-detail', 'settlement-rule'],
     });
   });
-  await screen.findByText('结算规则加载失败，原资料和输入已保留，请重试后保存');
+  await screen.findByText('收款约定加载失败，原资料和输入已保留，请重试后保存');
   await save();
   expect(partnerServiceUpdatePartner).not.toHaveBeenCalled();
-  fireEvent.click(screen.getByRole('button', { name: '重新加载结算规则' }));
+  fireEvent.click(screen.getByRole('button', { name: '重新加载收款约定' }));
   await waitFor(() =>
     expect(screen.getByLabelText('信用额度测试')).toHaveValue('1000.01'),
   );
@@ -443,8 +430,6 @@ it('规则首次失败和后台失败均阻止嵌套保存，重试成功回填�
             settlementRule: expect.objectContaining({
               creditLimitMinor: '100001',
               creditCurrency: 'CNY',
-              settlementCurrency: 'USD',
-              isActive: false,
             }),
           }),
         ],

@@ -25,11 +25,7 @@ import {
   PartnerBusinessType,
   PartnerCustomerType,
   PartnerRoleType,
-  PartnerSettlementBase,
-  PartnerSettlementMethod,
-  PartnerStatementMode,
 } from '@/enums.generated';
-import { currencyOptionsQueryOptions } from '@/features/master-data/currencies';
 import { formatPersonnelLabel } from '@/features/personnel';
 import { history } from '@/router/history';
 import { adminServiceListUsers } from '@/services/roncin/adminService';
@@ -47,7 +43,11 @@ import AccountsSection from './components/AccountsSection';
 import BasicInfoSection from './components/BasicInfoSection';
 import type { ContactItem } from './components/ContactCardList';
 import ContactsSection from './components/ContactsSection';
-import { creditLimitFields, hasInvalidCreditCurrency } from './creditLimit';
+import {
+  paymentTermsFromForm,
+  paymentTermsToForm,
+} from './components/PaymentTermsFields';
+import { hasInvalidCreditCurrency } from './creditLimit';
 
 /** 识别 antd 表单校验失败异常（validateFields 抛出的 ValidateErrorEntity）。 */
 function isFormValidationError(
@@ -167,7 +167,9 @@ export default function PartnerDetailPage() {
 
   const isInvalidId = !isCreate && Boolean(rawId) && !hasValidUuid;
 
-  const canReadSettlementRules = Boolean(access.canReadPartnerSettlementRules);
+  const isCustomer = roleType === PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER;
+  const canReadSettlementRules =
+    isCustomer && Boolean(access.canReadPartnerSettlementRules);
   const canReadContracts = Boolean(
     access.canReadPartnerContracts || access.canManagePartners,
   );
@@ -205,7 +207,7 @@ export default function PartnerDetailPage() {
   });
   const partner = partnerDetailQuery.data ?? undefined;
 
-  // 结算规则失败不清空已有输入；嵌套保存必须取得明确的成功结果。
+  // 收款约定失败不清空已有输入；嵌套保存必须取得明确的成功结果。
   const settlementRuleQuery = useQuery({
     queryKey: ['partner-detail', 'settlement-rule', { partnerId, roleType }],
     enabled: Boolean(partnerId) && canReadSettlementRules,
@@ -217,9 +219,9 @@ export default function PartnerDetailPage() {
         partnerId,
         roleType,
       });
-      ensureListResponse(res, '加载结算规则失败，请重试后保存');
+      ensureListResponse(res, '加载收款约定失败，请重试后保存');
       if (res.success === false)
-        throw new Error('加载结算规则失败，请重试后保存');
+        throw new Error('加载收款约定失败，请重试后保存');
       return unwrapList(res)[0] ?? null;
     },
     meta: { silent: true },
@@ -241,10 +243,6 @@ export default function PartnerDetailPage() {
     },
     meta: { silent: true },
   });
-  const currencyOptionsQuery = useQuery({
-    ...currencyOptionsQueryOptions(),
-    meta: { silent: true },
-  });
   const assignmentOptionsQuery = useQuery({
     queryKey: ['partner-detail', 'options', 'assignments'],
     queryFn: async () => {
@@ -257,18 +255,14 @@ export default function PartnerDetailPage() {
   });
   const users = usersQuery.data ?? [];
   const assignmentOptions = assignmentOptionsQuery.data ?? [];
-  const currencyOptions = currencyOptionsQuery.data ?? [];
 
   const failedOptionLabels = [
     usersQuery.isError ? '用户' : '',
-    currencyOptionsQuery.isError ? '币种' : '',
     assignmentOptionsQuery.isError ? '人员归属' : '',
   ].filter(Boolean);
   const failedOptionSummary = failedOptionLabels.join('、');
   const optionsSettled =
-    !usersQuery.isPending &&
-    !currencyOptionsQuery.isPending &&
-    !assignmentOptionsQuery.isPending;
+    !usersQuery.isPending && !assignmentOptionsQuery.isPending;
   useEffect(() => {
     if (optionsSettled && failedOptionSummary) {
       message.warning(`${failedOptionSummary}选项加载失败`);
@@ -286,12 +280,14 @@ export default function PartnerDetailPage() {
       : Boolean(access.canUpdatePartners || access.canManagePartners));
 
   const canWriteSettlementRules =
+    isCustomer &&
     canOperate &&
     Boolean(
       access.canCreatePartnerSettlementRules ||
         access.canUpdatePartnerSettlementRules,
     );
   const canSaveSettlement =
+    isCustomer &&
     canOperate &&
     (isCreate
       ? Boolean(access.canCreatePartnerSettlementRules)
@@ -335,18 +331,12 @@ export default function PartnerDetailPage() {
       customerTypes: [PartnerCustomerType.PARTNER_CUSTOMER_TYPE_DIRECT],
       developmentMethod: '自主开发',
       businessTypes: [PartnerBusinessType.PARTNER_BUSINESS_TYPE_SE],
-      statementMode: PartnerStatementMode.PARTNER_STATEMENT_MODE_SINGLE,
-      settlementMethod:
-        PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_BY_TICKET,
-      settlementBase: PartnerSettlementBase.PARTNER_SETTLEMENT_BASE_BILL_DATE,
-      settlementDay: 25,
-      settlementCurrency: 'CNY',
-      creditDays: 30,
+      ...paymentTermsToForm(),
       legalName: prefillLegalName,
     });
   }, [partnerId, prefillLegalName, roleLabel, roleType]);
 
-  // 档案与结算规则分别完成首次回填，规则重试不得覆盖已编辑的档案资料。
+  // 档案与收款约定分别完成首次回填，规则重试不得覆盖已编辑的档案资料。
   useEffect(() => {
     if (
       !partnerId ||
@@ -446,21 +436,9 @@ export default function PartnerDetailPage() {
       initializedSettlementRef.current === identity
     )
       return;
-    const rule = settlementRuleQuery.data;
-    formRef.current?.setFieldsValue({
-      statementMode: rule?.statementMode ?? 1,
-      settlementMethod: rule?.settlementMethod ?? 1,
-      settlementBase: rule?.settlementBase ?? 1,
-      settlementDay: rule?.settlementDay ?? 25,
-      settlementCurrency: rule?.settlementCurrency ?? 'CNY',
-      creditDays: rule?.settlementCycleDays ?? 30,
-      creditLimit:
-        rule?.creditLimitMinor != null &&
-        !hasInvalidCreditCurrency(rule, baseCurrency)
-          ? Number(rule.creditLimitMinor) / 100
-          : undefined,
-      paymentTermsDays: rule?.paymentTermsDays,
-    });
+    formRef.current?.setFieldsValue(
+      paymentTermsToForm(settlementRuleQuery.data, baseCurrency),
+    );
     initializedSettlementRef.current = identity;
   }, [
     partnerId,
@@ -529,7 +507,7 @@ export default function PartnerDetailPage() {
         settlementRuleQuery.isFetching ||
         initializedSettlementRef.current !== identity)
     ) {
-      message.error('结算规则尚未成功加载，请重试后保存');
+      message.error('收款约定尚未成功加载，请重试后保存');
       return false;
     }
 
@@ -610,35 +588,9 @@ export default function PartnerDetailPage() {
         }),
       );
 
-      // Settlement Rule Payload
-      const settlementMethod = Number(values.settlementMethod || 1);
-      // 票结/预付不适用结算日、账期与结算基准，后端要求这三项不下发
-      const isTermFree =
-        settlementMethod ===
-          PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_BY_TICKET ||
-        settlementMethod ===
-          PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_PREPAID;
-
-      const settlementRuleInput: API.PartnerSettlementRuleInput | undefined =
-        canSaveSettlement
-          ? {
-              statementMode: Number(values.statementMode || 1),
-              settlementMethod,
-              ...(isTermFree
-                ? {}
-                : {
-                    settlementDay: Number(values.settlementDay || 25),
-                    settlementBase: Number(values.settlementBase || 1),
-                    settlementCycleDays: Number(values.creditDays || 30),
-                  }),
-              settlementCurrency: values.settlementCurrency || 'CNY',
-              ...creditLimitFields(values.creditLimit, baseCurrency),
-              paymentTermsDays: values.paymentTermsDays,
-              isActive: settlementRuleQuery.data
-                ? (settlementRuleQuery.data.isActive ?? false)
-                : true,
-            }
-          : undefined;
+      const settlementRuleInput = canSaveSettlement
+        ? paymentTermsFromForm(values, baseCurrency)
+        : undefined;
 
       const selectedRoleTypes: number[] = values.roleTypes || [roleType];
       const roleInputs: API.PartnerRoleInput[] = selectedRoleTypes.map(
@@ -646,7 +598,8 @@ export default function PartnerDetailPage() {
           type,
           enabled: true,
           settlementRule:
-            canSaveSettlement && type === roleType
+            canSaveSettlement &&
+            type === PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER
               ? settlementRuleInput
               : undefined,
         }),
@@ -891,7 +844,7 @@ export default function PartnerDetailPage() {
             creatorMeta={creatorMeta}
           />
 
-          {/* Section 2: 财务结算规则 */}
+          {/* Section 2: 收款约定 */}
           {showSettlement && (
             <>
               {!isCreate && settlementRuleQuery.isError && (
@@ -901,15 +854,15 @@ export default function PartnerDetailPage() {
                   style={{ marginBottom: 12 }}
                   title={
                     canWriteSettlementRules
-                      ? '结算规则加载失败，原资料和输入已保留，请重试后保存'
-                      : '结算规则加载失败，可重试查看；普通档案资料仍可保存'
+                      ? '收款约定加载失败，原资料和输入已保留，请重试后保存'
+                      : '收款约定加载失败，可重试查看；普通档案资料仍可保存'
                   }
                   action={
                     <Button
                       loading={settlementRuleQuery.isFetching}
                       onClick={() => void settlementRuleQuery.refetch()}
                     >
-                      重新加载结算规则
+                      重新加载收款约定
                     </Button>
                   }
                 />
@@ -922,7 +875,7 @@ export default function PartnerDetailPage() {
                   type="warning"
                   showIcon
                   style={{ marginBottom: 12 }}
-                  title={`原信用额度为 ${formatAmount(Number(settlementRuleQuery.data?.creditLimitMinor) / 100)} ${settlementRuleQuery.data?.creditCurrency || '币种缺失'}，${canSaveSettlement ? `请重新填写 ${baseCurrency || '公司本币'} 额度` : '请由有结算规则编辑权限的人员维护'}`}
+                  title={`原信用额度为 ${formatAmount(Number(settlementRuleQuery.data?.creditLimitMinor) / 100)} ${settlementRuleQuery.data?.creditCurrency || '币种缺失'}，${canSaveSettlement ? `请重新填写 ${baseCurrency || '公司本币'} 额度` : '请由有收款约定编辑权限的人员维护'}`}
                 />
               )}
               {(isCreate ||
@@ -933,8 +886,6 @@ export default function PartnerDetailPage() {
                   onCollapseChange={(collapsed) =>
                     toggleSection('settlement', collapsed)
                   }
-                  currencyOptions={currencyOptions}
-                  roleLabel={roleLabel}
                   baseCurrency={baseCurrency}
                   disabled={!canSaveSettlement}
                   requireCreditLimit={

@@ -6,6 +6,7 @@ import {
 } from '@ant-design/icons';
 import { Drawer, Space, Tabs, Tag } from 'antd';
 import React from 'react';
+import { PartnerRoleType } from '@/enums.generated';
 import AccountsPanel from './components/secondary/AccountsPanel';
 import AttachmentsPanel from './components/secondary/AttachmentsPanel';
 import ContractsPanel from './components/secondary/ContractsPanel';
@@ -98,23 +99,30 @@ export default function PartnerSecondary({
               <ContractsPanel partner={partner} canManage={canManage} />
             ),
           },
-          {
-            key: 'settlement-rules',
-            label: (
-              <Space size={4}>
-                <AuditOutlined />
-                <span>结算规则</span>
-              </Space>
-            ),
-            children: (
-              <SettlementRulesPanel
-                partner={partner}
-                canRead={canReadSettlementRules}
-                canCreate={canCreateSettlementRules}
-                canUpdate={canUpdateSettlementRules}
-              />
-            ),
-          },
+          ...(partner?.roles?.some(
+            (role) => role.type === PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
+          )
+            ? [
+                {
+                  key: 'settlement-rules',
+                  label: (
+                    <Space size={4}>
+                      <AuditOutlined />
+                      <span>收款约定</span>
+                    </Space>
+                  ),
+                  children: (
+                    <SettlementRulesPanel
+                      key={partner?.id}
+                      partner={partner}
+                      canRead={canReadSettlementRules}
+                      canCreate={canCreateSettlementRules}
+                      canUpdate={canUpdateSettlementRules}
+                    />
+                  ),
+                },
+              ]
+            : []),
           {
             key: 'attachments',
             label: (

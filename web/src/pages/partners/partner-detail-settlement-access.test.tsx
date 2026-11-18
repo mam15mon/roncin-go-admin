@@ -146,7 +146,7 @@ beforeEach(() => {
   vi.mocked(partnerServiceUpdatePartner).mockReset();
 });
 
-describe('主档结算规则独立权限', () => {
+describe('主档收款约定独立权限', () => {
   it('新建无规则创建权限时隐藏分节且不构造规则载荷', async () => {
     vi.mocked(partnerServiceCreatePartner).mockResolvedValue({
       data: { id: ID },
@@ -155,7 +155,7 @@ describe('主档结算规则独立权限', () => {
     fireEvent.change(await screen.findByLabelText('公司抬头'), {
       target: { value: '普通新客户' },
     });
-    expect(screen.queryByText('财务结算规则')).not.toBeInTheDocument();
+    expect(screen.queryByText('收款约定')).not.toBeInTheDocument();
     await save();
     await waitFor(() => expect(partnerServiceCreatePartner).toHaveBeenCalled());
     expect(
@@ -177,7 +177,7 @@ describe('主档结算规则独立权限', () => {
     });
     renderPage(true);
     await screen.findByText(
-      '结算规则加载失败，可重试查看；普通档案资料仍可保存',
+      '收款约定加载失败，可重试查看；普通档案资料仍可保存',
     );
     await save();
     await waitFor(() => expect(partnerServiceUpdatePartner).toHaveBeenCalled());
@@ -197,7 +197,7 @@ describe('主档结算规则独立权限', () => {
     await waitFor(() =>
       expect(screen.getByLabelText('公司抬头')).toHaveValue('原名称'),
     );
-    expect(screen.queryByText('财务结算规则')).not.toBeInTheDocument();
+    expect(screen.queryByText('收款约定')).not.toBeInTheDocument();
     expect(partnerServiceListPartnerSettlementRules).not.toHaveBeenCalled();
     fireEvent.change(screen.getByLabelText('公司抬头'), {
       target: { value: '只改普通名称' },
@@ -217,9 +217,6 @@ describe('主档结算规则独立权限', () => {
       data: [
         {
           id: 'rule',
-          statementMode: 1,
-          settlementMethod: 1,
-          settlementCurrency: 'USD',
           creditLimitMinor: '10000',
           creditCurrency: 'USD',
         },
@@ -229,9 +226,9 @@ describe('主档结算规则独立权限', () => {
       data: { id: ID },
     });
     renderPage(true);
-    const credit = await screen.findByLabelText('信用额度(CNY)');
+    const credit = await screen.findByLabelText('信用额度（CNY）');
     expect(credit).toBeDisabled();
-    expect(screen.getByLabelText('默认账期(天)')).toBeDisabled();
+    expect(screen.getByRole('radio', { name: '未约定' })).toBeDisabled();
     await save();
     await waitFor(() => expect(partnerServiceUpdatePartner).toHaveBeenCalled());
     expect(
@@ -253,9 +250,6 @@ describe('主档结算规则独立权限', () => {
           ? [
               {
                 id: 'rule',
-                statementMode: 1,
-                settlementMethod: 1,
-                settlementCurrency: 'CNY',
               },
             ]
           : [],
@@ -264,7 +258,7 @@ describe('主档结算规则独立权限', () => {
         data: { id: ID },
       });
       renderPage(true);
-      const credit = await screen.findByLabelText('信用额度(CNY)');
+      const credit = await screen.findByLabelText('信用额度（CNY）');
       if (hasRule) expect(credit).toBeDisabled();
       else expect(credit).toBeEnabled();
       await save();
@@ -280,3 +274,32 @@ describe('主档结算规则独立权限', () => {
     },
   );
 });
+
+it.each(['suppliers', 'foreign-agents'])(
+  '%s 档案即使有收款约定全部权限也不查询、不展示且不提交约定',
+  async (segment) => {
+    state.id = ID;
+    state.pathname = `/partners/${segment}/${ID}`;
+    state.canReadRule = true;
+    state.canCreateRule = true;
+    state.canUpdateRule = true;
+    vi.mocked(partnerServiceUpdatePartner).mockResolvedValue({
+      data: { id: ID },
+    });
+    renderPage();
+    await waitFor(() =>
+      expect(screen.getByLabelText('公司抬头')).toHaveValue('原名称'),
+    );
+    expect(screen.queryByText('收款约定')).not.toBeInTheDocument();
+    expect(partnerServiceListPartnerSettlementRules).not.toHaveBeenCalled();
+    fireEvent.click(screen.getAllByRole('button', { name: /保存.*档案/ })[0]);
+    await waitFor(() => expect(partnerServiceUpdatePartner).toHaveBeenCalled());
+    expect(
+      vi
+        .mocked(partnerServiceUpdatePartner)
+        .mock.calls[0][1].roles?.every(
+          (role) => role.settlementRule === undefined,
+        ),
+    ).toBe(true);
+  },
+);
