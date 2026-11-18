@@ -205,7 +205,7 @@ type unsettledReceivablePartyRow struct {
 }
 
 // partnerCreditSummaries 汇总客户信用额度判定数据：
-//   - 额度与默认账期来自客户角色的激活结算规则（多个激活规则取最大值，不收窄商业弹性）；
+//   - 额度与默认账期来自客户角色唯一的收款约定；
 //   - 未核销应收总额复用未结清口径（billUnsettledPredicate，带符号：总额 - 有效核销 - 有效对冲，
 //     负数更正账单的负余额参与抵减），折本币后汇总；汇总结果为负时按零计（信用占用不为负）。
 func partnerCreditSummaries(ctx context.Context, client *ent.Client, organizationID uuid.UUID, partnerIDs []uuid.UUID) (map[uuid.UUID]*biz.PartnerCreditSummary, error) {
@@ -214,7 +214,6 @@ func partnerCreditSummaries(ctx context.Context, client *ent.Client, organizatio
 	}
 	ruleItems, err := client.PartnerSettlementRule.Query().
 		Where(
-			partnersettlementruleent.IsActiveEQ(true),
 			partnersettlementruleent.HasPartnerRoleWith(
 				partnerroleent.RoleTypeEQ(partnerroleent.RoleTypeCustomer),
 				partnerroleent.HasPartnerWith(partnerent.OrganizationIDEQ(organizationID), partnerent.IDIn(partnerIDs...)),
@@ -247,16 +246,11 @@ func partnerCreditSummaries(ctx context.Context, client *ent.Client, organizatio
 		}
 		partnerID := item.Edges.PartnerRole.PartnerID
 		summary := summaries[partnerID]
-		if item.PaymentTermsDays != nil && (summary.DefaultPaymentTermsDays == nil || *item.PaymentTermsDays > *summary.DefaultPaymentTermsDays) {
-			value := *item.PaymentTermsDays
-			summary.DefaultPaymentTermsDays = &value
-		}
+		summary.DefaultPaymentTermsDays = item.PaymentTermsDays
 		if item.CreditLimitMinor != nil && *item.CreditLimitMinor > 0 {
 			limit := decimal.NewFromInt(*item.CreditLimitMinor).Div(decimal.NewFromInt(100))
-			if summary.CreditLimitBase == nil || limit.GreaterThan(*summary.CreditLimitBase) {
-				summary.CreditLimitBase = &limit
-				summary.CreditCurrency = item.CreditCurrency
-			}
+			summary.CreditLimitBase = &limit
+			summary.CreditCurrency = item.CreditCurrency
 		}
 	}
 	unsettledPredicates := []predicate.FinanceBill{

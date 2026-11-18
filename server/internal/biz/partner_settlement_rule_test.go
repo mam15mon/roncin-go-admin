@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/google/uuid"
@@ -34,109 +35,73 @@ func (s *partnerSettlementRuleRepoStub) Update(_ context.Context, _, _ uuid.UUID
 func TestPartnerSettlementRuleNormalizesAndAudits(t *testing.T) {
 	repo := &partnerSettlementRuleRepoStub{}
 	usecase := NewPartnerSettlementRuleUsecase(repo)
-	base := PartnerSettlementBillDate
-	day := 15
-
-	created, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), uuid.New(), PartnerRoleCustomer, &PartnerSettlementRule{
-		StatementMode: PartnerStatementSingle, SettlementMethod: PartnerSettlementMonthly,
-		SettlementDay: &day, SettlementBase: &base, SettlementCurrency: " cny ", IsActive: true,
-	})
-	if err != nil {
-		t.Fatalf("Create() error = %v", err)
+	currency, amount, days := " cny ", int64(100000), 30
+	created, err := usecase.Create(t.Context(), uuid.New(), uuid.New(), uuid.New(), PartnerRoleCustomer, &PartnerSettlementRule{CreditLimitMinor: &amount, CreditCurrency: &currency, PaymentTermsDays: &days})
+	if err != nil || created.CreditCurrency == nil || *created.CreditCurrency != "CNY" || created.PaymentTermsDays == nil || *created.PaymentTermsDays != days || repo.audit == nil || repo.audit.Action != "partner.settlement_rule.create" {
+		t.Fatalf("规范化或创建审计错误: %#v, %#v, %v", created, repo.audit, err)
 	}
-	if created.SettlementCurrency != "CNY" || created.SettlementDay == nil || *created.SettlementDay != 15 || repo.audit == nil || repo.audit.Action != "partner.settlement_rule.create" {
-		t.Fatalf("created rule = %#v, audit = %#v", created, repo.audit)
+	updated, err := usecase.Update(t.Context(), uuid.New(), uuid.New(), uuid.New(), created.ID, PartnerRoleCustomer, &PartnerSettlementRule{})
+	if err != nil || updated.PaymentTermsDays != nil || updated.CreditLimitMinor != nil || updated.CreditCurrency != nil || repo.audit.Action != "partner.settlement_rule.update" {
+		t.Fatalf("未约定应保留空值并写更新审计: %#v %v", updated, err)
 	}
 }
 
-func TestPartnerSettlementRuleRejectsInconsistentSchedule(t *testing.T) {
-	usecase := NewPartnerSettlementRuleUsecase(&partnerSettlementRuleRepoStub{})
-	day := 1
-	base := PartnerSettlementBillDate
-	cases := []PartnerSettlementRule{
-		{StatementMode: PartnerStatementSingle, SettlementMethod: PartnerSettlementByTicket, SettlementDay: &day, SettlementCurrency: "CNY"},
-		{StatementMode: PartnerStatementSingle, SettlementMethod: PartnerSettlementMonthly, SettlementCurrency: "CNY"},
-		{StatementMode: PartnerStatementSingle, SettlementMethod: PartnerSettlementMonthly, SettlementDay: &day, SettlementBase: &base, SettlementCurrency: "CNY"},
-	}
-	if _, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), uuid.New(), PartnerRoleCustomer, &cases[0]); err != ErrPartnerSettlementRuleInvalidArgument {
-		t.Fatalf("by-ticket schedule error = %v", err)
-	}
-	if _, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), uuid.New(), PartnerRoleCustomer, &cases[1]); err != ErrPartnerSettlementRuleInvalidArgument {
-		t.Fatalf("missing base error = %v", err)
-	}
-	if _, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), uuid.New(), PartnerRoleCustomer, &cases[2]); err != nil {
-		t.Fatalf("valid monthly schedule error = %v", err)
+func TestPartnerSettlementRuleRejectsNonCustomerBeforeRepository(t *testing.T) {
+	for _, role := range []PartnerRoleType{PartnerRoleSupplier, PartnerRoleForeignAgent} {
+		t.Run(string(role), func(t *testing.T) {
+			repo := &partnerSettlementRuleRepoStub{}
+			usecase := NewPartnerSettlementRuleUsecase(repo)
+			if _, err := usecase.Create(t.Context(), uuid.New(), uuid.New(), uuid.New(), role, &PartnerSettlementRule{}); err != ErrPartnerSettlementRuleInvalidArgument {
+				t.Fatalf("非客户创建必须拒绝: %v", err)
+			}
+			if _, err := usecase.Update(t.Context(), uuid.New(), uuid.New(), uuid.New(), uuid.New(), role, &PartnerSettlementRule{}); err != ErrPartnerSettlementRuleInvalidArgument {
+				t.Fatalf("非客户更新必须拒绝: %v", err)
+			}
+			if repo.created != nil || repo.updated != nil || repo.audit != nil {
+				t.Fatal("非客户不得调用仓储或写审计")
+			}
+		})
 	}
 }
 
 func TestPartnerSettlementRuleValidatesCreditLimitCurrencyPair(t *testing.T) {
-	usecase := NewPartnerSettlementRuleUsecase(&partnerSettlementRuleRepoStub{})
-	creditLimit := int64(100000)
-	creditCurrency := " usd "
-	input := PartnerSettlementRule{
-		StatementMode: PartnerStatementSingle, SettlementMethod: PartnerSettlementByTicket,
-		SettlementCurrency: "cny", CreditLimitMinor: &creditLimit, CreditCurrency: &creditCurrency,
-	}
-	created, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), uuid.New(), PartnerRoleCustomer, &input)
-	if err != nil {
-		t.Fatalf("Create() error = %v", err)
-	}
-	if created.CreditCurrency == nil || *created.CreditCurrency != "USD" || created.CreditLimitMinor == nil || *created.CreditLimitMinor != creditLimit {
-		t.Fatalf("normalized credit rule = %#v", created)
-	}
-
-	missingCurrency := input
-	missingCurrency.CreditCurrency = nil
-	if _, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), uuid.New(), PartnerRoleCustomer, &missingCurrency); err != ErrPartnerSettlementRuleInvalidArgument {
-		t.Fatalf("missing credit currency error = %v", err)
-	}
-
-	negativeLimit := int64(-1)
-	invalidLimit := input
-	invalidLimit.CreditLimitMinor = &negativeLimit
-	if _, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), uuid.New(), PartnerRoleCustomer, &invalidLimit); err != ErrPartnerSettlementRuleInvalidArgument {
-		t.Fatalf("negative credit limit error = %v", err)
+	for _, tc := range []struct {
+		name  string
+		input PartnerSettlementRule
+		valid bool
+	}{
+		{"未设置", PartnerSettlementRule{}, true},
+		{"零额度本币", PartnerSettlementRule{CreditLimitMinor: new(int64(0)), CreditCurrency: new("CNY")}, true},
+		{"正额度本币", PartnerSettlementRule{CreditLimitMinor: new(int64(100)), CreditCurrency: new("USD")}, true},
+		{"额度缺币种", PartnerSettlementRule{CreditLimitMinor: new(int64(100))}, false},
+		{"币种缺额度", PartnerSettlementRule{CreditCurrency: new("CNY")}, false},
+		{"币种长度非法", PartnerSettlementRule{CreditLimitMinor: new(int64(100)), CreditCurrency: new("CN")}, false},
+		{"负额度", PartnerSettlementRule{CreditLimitMinor: new(int64(-1)), CreditCurrency: new("CNY")}, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := normalizePartnerSettlementRule(&tc.input)
+			if (err == nil) != tc.valid {
+				t.Fatalf("valid=%v err=%v", tc.valid, err)
+			}
+		})
 	}
 }
 
 func TestPartnerSettlementRuleValidatesPaymentTermsDays(t *testing.T) {
-	usecase := NewPartnerSettlementRuleUsecase(&partnerSettlementRuleRepoStub{})
-	zero, thirty, negative, overLimit := 0, 30, -1, 3651
-
-	valid, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), uuid.New(), PartnerRoleCustomer, &PartnerSettlementRule{
-		StatementMode: PartnerStatementSingle, SettlementMethod: PartnerSettlementByTicket,
-		SettlementCurrency: "CNY", PaymentTermsDays: &thirty,
-	})
-	if err != nil {
-		t.Fatalf("Create() error = %v", err)
+	for _, days := range []int{-1, 0, 30, 3650, 3651} {
+		t.Run(fmt.Sprint(days), func(t *testing.T) {
+			got, err := normalizePartnerSettlementRule(&PartnerSettlementRule{PaymentTermsDays: &days})
+			valid := days >= 0 && days <= 3650
+			if (err == nil) != valid {
+				t.Fatalf("账期%d合法性错误: %v", days, err)
+			}
+			if valid && (got.PaymentTermsDays == nil || *got.PaymentTermsDays != days) {
+				t.Fatalf("账期存在性或取值丢失: %#v", got)
+			}
+		})
 	}
-	if valid.PaymentTermsDays == nil || *valid.PaymentTermsDays != thirty {
-		t.Fatalf("payment terms days 应被透传: %#v", valid)
-	}
-
-	zeroDays, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), uuid.New(), PartnerRoleCustomer, &PartnerSettlementRule{
-		StatementMode: PartnerStatementSingle, SettlementMethod: PartnerSettlementByTicket,
-		SettlementCurrency: "CNY", PaymentTermsDays: &zero,
-	})
-	if err != nil || zeroDays.PaymentTermsDays == nil || *zeroDays.PaymentTermsDays != 0 {
-		t.Fatalf("0 天账期应合法: rule=%#v err=%v", zeroDays, err)
-	}
-
-	for _, paymentTermsDays := range []*int{&negative, &overLimit} {
-		if _, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), uuid.New(), PartnerRoleCustomer, &PartnerSettlementRule{
-			StatementMode: PartnerStatementSingle, SettlementMethod: PartnerSettlementByTicket,
-			SettlementCurrency: "CNY", PaymentTermsDays: paymentTermsDays,
-		}); err != ErrPartnerSettlementRuleInvalidArgument {
-			t.Fatalf("账期 %d 天应返回参数错误, got %v", *paymentTermsDays, err)
-		}
-	}
-
-	updated, err := usecase.Update(context.Background(), uuid.New(), uuid.New(), uuid.New(), uuid.New(), PartnerRoleCustomer, &PartnerSettlementRule{
-		StatementMode: PartnerStatementSingle, SettlementMethod: PartnerSettlementByTicket,
-		SettlementCurrency: "CNY", PaymentTermsDays: nil,
-	})
-	if err != nil || updated.PaymentTermsDays != nil {
-		t.Fatalf("清空账期应保存为 NULL: rule=%#v err=%v", updated, err)
+	if got, err := normalizePartnerSettlementRule(&PartnerSettlementRule{}); err != nil || got.PaymentTermsDays != nil {
+		t.Fatalf("未约定不得变为现结: %#v %v", got, err)
 	}
 }
 

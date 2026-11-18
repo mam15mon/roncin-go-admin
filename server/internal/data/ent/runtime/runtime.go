@@ -7940,31 +7940,12 @@ func init() {
 	partnersettlementrule.DefaultUpdatedAt = partnersettlementruleDescUpdatedAt.Default.(func() time.Time)
 	// partnersettlementrule.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	partnersettlementrule.UpdateDefaultUpdatedAt = partnersettlementruleDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// partnersettlementruleDescSettlementCurrency is the schema descriptor for settlement_currency field.
-	partnersettlementruleDescSettlementCurrency := partnersettlementruleFields[6].Descriptor()
-	// partnersettlementrule.SettlementCurrencyValidator is a validator for the "settlement_currency" field. It is called by the builders before save.
-	partnersettlementrule.SettlementCurrencyValidator = func() func(string) error {
-		validators := partnersettlementruleDescSettlementCurrency.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-			validators[2].(func(string) error),
-		}
-		return func(settlement_currency string) error {
-			for _, fn := range fns {
-				if err := fn(settlement_currency); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
 	// partnersettlementruleDescCreditLimitMinor is the schema descriptor for credit_limit_minor field.
-	partnersettlementruleDescCreditLimitMinor := partnersettlementruleFields[7].Descriptor()
+	partnersettlementruleDescCreditLimitMinor := partnersettlementruleFields[1].Descriptor()
 	// partnersettlementrule.CreditLimitMinorValidator is a validator for the "credit_limit_minor" field. It is called by the builders before save.
 	partnersettlementrule.CreditLimitMinorValidator = partnersettlementruleDescCreditLimitMinor.Validators[0].(func(int64) error)
 	// partnersettlementruleDescCreditCurrency is the schema descriptor for credit_currency field.
-	partnersettlementruleDescCreditCurrency := partnersettlementruleFields[8].Descriptor()
+	partnersettlementruleDescCreditCurrency := partnersettlementruleFields[2].Descriptor()
 	// partnersettlementrule.CreditCurrencyValidator is a validator for the "credit_currency" field. It is called by the builders before save.
 	partnersettlementrule.CreditCurrencyValidator = func() func(string) error {
 		validators := partnersettlementruleDescCreditCurrency.Validators
@@ -7982,7 +7963,7 @@ func init() {
 		}
 	}()
 	// partnersettlementruleDescPaymentTermsDays is the schema descriptor for payment_terms_days field.
-	partnersettlementruleDescPaymentTermsDays := partnersettlementruleFields[9].Descriptor()
+	partnersettlementruleDescPaymentTermsDays := partnersettlementruleFields[3].Descriptor()
 	// partnersettlementrule.PaymentTermsDaysValidator is a validator for the "payment_terms_days" field. It is called by the builders before save.
 	partnersettlementrule.PaymentTermsDaysValidator = func() func(int) error {
 		validators := partnersettlementruleDescPaymentTermsDays.Validators
@@ -7999,10 +7980,6 @@ func init() {
 			return nil
 		}
 	}()
-	// partnersettlementruleDescIsActive is the schema descriptor for is_active field.
-	partnersettlementruleDescIsActive := partnersettlementruleFields[10].Descriptor()
-	// partnersettlementrule.DefaultIsActive holds the default value on creation for the is_active field.
-	partnersettlementrule.DefaultIsActive = partnersettlementruleDescIsActive.Default.(bool)
 	// partnersettlementruleDescID is the schema descriptor for id field.
 	partnersettlementruleDescID := partnersettlementruleMixinFields0[0].Descriptor()
 	// partnersettlementrule.DefaultID holds the default value on creation for the id field.

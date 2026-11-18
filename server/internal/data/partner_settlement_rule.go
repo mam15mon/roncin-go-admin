@@ -6,7 +6,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
-	currencyent "github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
 	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	partnerroleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
@@ -58,15 +57,11 @@ func (r *partnerSettlementRuleRepo) List(ctx context.Context, organizationID, pa
 }
 
 func (r *partnerSettlementRuleRepo) Create(ctx context.Context, organizationID, partnerID uuid.UUID, roleType biz.PartnerRoleType, input *biz.PartnerSettlementRule, audit *biz.AuditEvent) (*biz.PartnerSettlementRule, error) {
+	if roleType != biz.PartnerRoleCustomer {
+		return nil, biz.ErrPartnerSettlementRuleInvalidArgument
+	}
 	role, err := r.role(ctx, organizationID, partnerID, roleType)
 	if err != nil {
-		return nil, err
-	}
-	client, err := r.data.client(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if err := validateSettlementCurrencies(ctx, client.Currency.Query(), input); err != nil {
 		return nil, err
 	}
 	var created *ent.PartnerSettlementRule
@@ -77,7 +72,7 @@ func (r *partnerSettlementRuleRepo) Create(ctx context.Context, organizationID, 
 		var saveErr error
 		created, saveErr = createPartnerSettlementRule(ctx, tx.PartnerSettlementRule.Create().SetPartnerRoleID(role.ID), input)
 		if saveErr != nil {
-			return mapEntConstraint(saveErr, "partner_settlement_rule_key", biz.ErrPartnerSettlementRuleExists)
+			return mapEntConstraint(saveErr, "partner_settlement_rule_role_key", biz.ErrPartnerSettlementRuleExists)
 		}
 		audit.Details["rule.id"] = created.ID.String()
 		return writeAudit(ctx, tx.AuditLog, audit)
@@ -89,15 +84,11 @@ func (r *partnerSettlementRuleRepo) Create(ctx context.Context, organizationID, 
 }
 
 func (r *partnerSettlementRuleRepo) Update(ctx context.Context, organizationID, partnerID uuid.UUID, roleType biz.PartnerRoleType, id uuid.UUID, input *biz.PartnerSettlementRule, audit *biz.AuditEvent) (*biz.PartnerSettlementRule, error) {
+	if roleType != biz.PartnerRoleCustomer {
+		return nil, biz.ErrPartnerSettlementRuleInvalidArgument
+	}
 	role, err := r.role(ctx, organizationID, partnerID, roleType)
 	if err != nil {
-		return nil, err
-	}
-	client, err := r.data.client(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if err := validateSettlementCurrencies(ctx, client.Currency.Query(), input); err != nil {
 		return nil, err
 	}
 	var updated *ent.PartnerSettlementRule
@@ -111,7 +102,7 @@ func (r *partnerSettlementRuleRepo) Update(ctx context.Context, organizationID, 
 		if saveErr != nil {
 			return mapEntConstraint(
 				mapEntError(saveErr, biz.ErrPartnerSettlementRuleNotFound, nil),
-				"partner_settlement_rule_key",
+				"partner_settlement_rule_role_key",
 				biz.ErrPartnerSettlementRuleExists,
 			)
 		}
@@ -124,19 +115,6 @@ func (r *partnerSettlementRuleRepo) Update(ctx context.Context, organizationID, 
 }
 
 func createPartnerSettlementRule(ctx context.Context, builder *ent.PartnerSettlementRuleCreate, input *biz.PartnerSettlementRule) (*ent.PartnerSettlementRule, error) {
-	builder.SetStatementMode(partnerfilterent.StatementMode(input.StatementMode)).
-		SetSettlementMethod(partnerfilterent.SettlementMethod(input.SettlementMethod)).
-		SetSettlementCurrency(input.SettlementCurrency).
-		SetIsActive(input.IsActive)
-	if input.SettlementDay != nil {
-		builder.SetSettlementDay(*input.SettlementDay)
-	}
-	if input.SettlementCycleDays != nil {
-		builder.SetSettlementCycleDays(*input.SettlementCycleDays)
-	}
-	if input.SettlementBase != nil {
-		builder.SetSettlementBase(partnerfilterent.SettlementBase(*input.SettlementBase))
-	}
 	if input.CreditLimitMinor != nil {
 		builder.SetCreditLimitMinor(*input.CreditLimitMinor).SetCreditCurrency(*input.CreditCurrency)
 	}
@@ -147,25 +125,6 @@ func createPartnerSettlementRule(ctx context.Context, builder *ent.PartnerSettle
 }
 
 func updatePartnerSettlementRule(ctx context.Context, update *ent.PartnerSettlementRuleUpdateOne, input *biz.PartnerSettlementRule) (*ent.PartnerSettlementRule, error) {
-	update.SetStatementMode(partnerfilterent.StatementMode(input.StatementMode)).
-		SetSettlementMethod(partnerfilterent.SettlementMethod(input.SettlementMethod)).
-		SetSettlementCurrency(input.SettlementCurrency).
-		SetIsActive(input.IsActive)
-	if input.SettlementDay == nil {
-		update.ClearSettlementDay()
-	} else {
-		update.SetSettlementDay(*input.SettlementDay)
-	}
-	if input.SettlementCycleDays == nil {
-		update.ClearSettlementCycleDays()
-	} else {
-		update.SetSettlementCycleDays(*input.SettlementCycleDays)
-	}
-	if input.SettlementBase == nil {
-		update.ClearSettlementBase()
-	} else {
-		update.SetSettlementBase(partnerfilterent.SettlementBase(*input.SettlementBase))
-	}
 	if input.CreditLimitMinor == nil {
 		update.ClearCreditLimitMinor().ClearCreditCurrency()
 	} else {
@@ -182,20 +141,6 @@ func updatePartnerSettlementRule(ctx context.Context, update *ent.PartnerSettlem
 func partnerSettlementRuleToBiz(item *ent.PartnerSettlementRule) *biz.PartnerSettlementRule {
 	result := &biz.PartnerSettlementRule{
 		ID: item.ID, PartnerRoleID: item.PartnerRoleID,
-		StatementMode: biz.PartnerStatementMode(item.StatementMode), SettlementMethod: biz.PartnerSettlementMethod(item.SettlementMethod),
-		SettlementCurrency: item.SettlementCurrency, IsActive: item.IsActive,
-	}
-	if item.SettlementDay != nil {
-		value := *item.SettlementDay
-		result.SettlementDay = &value
-	}
-	if item.SettlementCycleDays != nil {
-		value := *item.SettlementCycleDays
-		result.SettlementCycleDays = &value
-	}
-	if item.SettlementBase != nil {
-		value := biz.PartnerSettlementBase(*item.SettlementBase)
-		result.SettlementBase = &value
 	}
 	result.CreditLimitMinor = item.CreditLimitMinor
 	result.CreditCurrency = item.CreditCurrency
@@ -203,22 +148,7 @@ func partnerSettlementRuleToBiz(item *ent.PartnerSettlementRule) *biz.PartnerSet
 	return result
 }
 
-func validateSettlementCurrencies(ctx context.Context, query *ent.CurrencyQuery, input *biz.PartnerSettlementRule) error {
-	codes := []string{input.SettlementCurrency}
-	if input.CreditCurrency != nil && *input.CreditCurrency != input.SettlementCurrency {
-		codes = append(codes, *input.CreditCurrency)
-	}
-	count, err := query.Where(currencyent.CodeIn(codes...), currencyent.EnabledEQ(true)).Count(ctx)
-	if err != nil {
-		return err
-	}
-	if count != len(codes) {
-		return biz.ErrPartnerSettlementRuleInvalidArgument
-	}
-	return nil
-}
-
-// 额度始终按归属公司本币维护，结算币种可以独立选择；读取旧配置也不得重标金额。
+// 额度始终按归属公司本币维护，读取配置也不得重标金额。
 func validatePartnerCreditCurrency(ctx context.Context, client *ent.Client, organizationID uuid.UUID, amount *int64, currency *string) error {
 	if amount == nil {
 		return nil

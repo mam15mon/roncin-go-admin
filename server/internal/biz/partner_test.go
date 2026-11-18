@@ -426,8 +426,7 @@ func TestPartnerNormalizesRoleSettlementRule(t *testing.T) {
 		Roles: []*PartnerRole{{
 			Type: PartnerRoleCustomer, Enabled: true,
 			SettlementRule: &PartnerSettlementRule{
-				StatementMode: PartnerStatementSingle, SettlementMethod: PartnerSettlementByTicket,
-				SettlementCurrency: " cny ", CreditLimitMinor: &creditLimit, CreditCurrency: &creditCurrency, IsActive: true,
+				CreditLimitMinor: &creditLimit, CreditCurrency: &creditCurrency,
 			},
 		}},
 	}, PartnerSettlementRuleWriteAccess{Create: true, Update: true})
@@ -435,14 +434,14 @@ func TestPartnerNormalizesRoleSettlementRule(t *testing.T) {
 		t.Fatalf("Create() error = %v", err)
 	}
 	rule := created.Roles[0].SettlementRule
-	if rule == nil || rule.SettlementCurrency != "CNY" || rule.CreditCurrency == nil || *rule.CreditCurrency != "CNY" {
+	if rule == nil || rule.CreditCurrency == nil || *rule.CreditCurrency != "CNY" {
 		t.Fatalf("normalized settlement rule = %#v", rule)
 	}
 
-	created.Roles[0].SettlementRule.SettlementMethod = PartnerSettlementMonthly
+	created.Roles[0].Type = PartnerRoleSupplier
 	created.Assignments = nil
 	if _, err := usecase.Create(context.Background(), organizationID, actorID, created, PartnerSettlementRuleWriteAccess{Create: true, Update: true}); err != ErrPartnerSettlementRuleInvalidArgument {
-		t.Fatalf("monthly rule without settlement base error = %v, want ErrPartnerSettlementRuleInvalidArgument", err)
+		t.Fatalf("非客户内嵌规则必须拒绝 = %v, want ErrPartnerSettlementRuleInvalidArgument", err)
 	}
 }
 

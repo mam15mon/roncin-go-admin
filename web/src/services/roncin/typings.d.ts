@@ -6912,13 +6912,6 @@ declare namespace API {
   type PartnerSettlementRule = {
     id?: string;
     partnerRoleId?: string;
-    statementMode?: number;
-    settlementMethod?: number;
-    settlementDay?: number;
-    settlementCycleDays?: number;
-    settlementBase?: number;
-    settlementCurrency?: string;
-    isActive?: boolean;
     createdAt?: string;
     updatedAt?: string;
     creditLimitMinor?: string;
@@ -6927,13 +6920,6 @@ declare namespace API {
   };
 
   type PartnerSettlementRuleInput = {
-    statementMode: number;
-    settlementMethod: number;
-    settlementDay?: number;
-    settlementCycleDays?: number;
-    settlementBase?: number;
-    settlementCurrency: string;
-    isActive?: boolean;
     creditLimitMinor?: string;
     creditCurrency?: string;
     paymentTermsDays?: number;

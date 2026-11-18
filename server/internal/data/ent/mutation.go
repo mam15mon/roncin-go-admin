@@ -139790,31 +139790,22 @@ func (m *PartnerRoleMutation) ResetEdge(name string) error {
 // PartnerSettlementRuleMutation represents an operation that mutates the PartnerSettlementRule nodes in the graph.
 type PartnerSettlementRuleMutation struct {
 	config
-	op                       Op
-	typ                      string
-	id                       *uuid.UUID
-	created_at               *time.Time
-	updated_at               *time.Time
-	statement_mode           *partnersettlementrule.StatementMode
-	settlement_method        *partnersettlementrule.SettlementMethod
-	settlement_day           *int
-	addsettlement_day        *int
-	settlement_cycle_days    *int
-	addsettlement_cycle_days *int
-	settlement_base          *partnersettlementrule.SettlementBase
-	settlement_currency      *string
-	credit_limit_minor       *int64
-	addcredit_limit_minor    *int64
-	credit_currency          *string
-	payment_terms_days       *int
-	addpayment_terms_days    *int
-	is_active                *bool
-	clearedFields            map[string]struct{}
-	partner_role             *uuid.UUID
-	clearedpartner_role      bool
-	done                     bool
-	oldValue                 func(context.Context) (*PartnerSettlementRule, error)
-	predicates               []predicate.PartnerSettlementRule
+	op                    Op
+	typ                   string
+	id                    *uuid.UUID
+	created_at            *time.Time
+	updated_at            *time.Time
+	credit_limit_minor    *int64
+	addcredit_limit_minor *int64
+	credit_currency       *string
+	payment_terms_days    *int
+	addpayment_terms_days *int
+	clearedFields         map[string]struct{}
+	partner_role          *uuid.UUID
+	clearedpartner_role   bool
+	done                  bool
+	oldValue              func(context.Context) (*PartnerSettlementRule, error)
+	predicates            []predicate.PartnerSettlementRule
 }
 
 var _ ent.Mutation = (*PartnerSettlementRuleMutation)(nil)
@@ -140029,303 +140020,6 @@ func (m *PartnerSettlementRuleMutation) ResetPartnerRoleID() {
 	m.partner_role = nil
 }
 
-// SetStatementMode sets the "statement_mode" field.
-func (m *PartnerSettlementRuleMutation) SetStatementMode(pm partnersettlementrule.StatementMode) {
-	m.statement_mode = &pm
-}
-
-// StatementMode returns the value of the "statement_mode" field in the mutation.
-func (m *PartnerSettlementRuleMutation) StatementMode() (r partnersettlementrule.StatementMode, exists bool) {
-	v := m.statement_mode
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldStatementMode returns the old "statement_mode" field's value of the PartnerSettlementRule entity.
-// If the PartnerSettlementRule object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PartnerSettlementRuleMutation) OldStatementMode(ctx context.Context) (v partnersettlementrule.StatementMode, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStatementMode is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStatementMode requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStatementMode: %w", err)
-	}
-	return oldValue.StatementMode, nil
-}
-
-// ResetStatementMode resets all changes to the "statement_mode" field.
-func (m *PartnerSettlementRuleMutation) ResetStatementMode() {
-	m.statement_mode = nil
-}
-
-// SetSettlementMethod sets the "settlement_method" field.
-func (m *PartnerSettlementRuleMutation) SetSettlementMethod(pm partnersettlementrule.SettlementMethod) {
-	m.settlement_method = &pm
-}
-
-// SettlementMethod returns the value of the "settlement_method" field in the mutation.
-func (m *PartnerSettlementRuleMutation) SettlementMethod() (r partnersettlementrule.SettlementMethod, exists bool) {
-	v := m.settlement_method
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldSettlementMethod returns the old "settlement_method" field's value of the PartnerSettlementRule entity.
-// If the PartnerSettlementRule object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PartnerSettlementRuleMutation) OldSettlementMethod(ctx context.Context) (v partnersettlementrule.SettlementMethod, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSettlementMethod is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSettlementMethod requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSettlementMethod: %w", err)
-	}
-	return oldValue.SettlementMethod, nil
-}
-
-// ResetSettlementMethod resets all changes to the "settlement_method" field.
-func (m *PartnerSettlementRuleMutation) ResetSettlementMethod() {
-	m.settlement_method = nil
-}
-
-// SetSettlementDay sets the "settlement_day" field.
-func (m *PartnerSettlementRuleMutation) SetSettlementDay(i int) {
-	m.settlement_day = &i
-	m.addsettlement_day = nil
-}
-
-// SettlementDay returns the value of the "settlement_day" field in the mutation.
-func (m *PartnerSettlementRuleMutation) SettlementDay() (r int, exists bool) {
-	v := m.settlement_day
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldSettlementDay returns the old "settlement_day" field's value of the PartnerSettlementRule entity.
-// If the PartnerSettlementRule object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PartnerSettlementRuleMutation) OldSettlementDay(ctx context.Context) (v *int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSettlementDay is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSettlementDay requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSettlementDay: %w", err)
-	}
-	return oldValue.SettlementDay, nil
-}
-
-// AddSettlementDay adds i to the "settlement_day" field.
-func (m *PartnerSettlementRuleMutation) AddSettlementDay(i int) {
-	if m.addsettlement_day != nil {
-		*m.addsettlement_day += i
-	} else {
-		m.addsettlement_day = &i
-	}
-}
-
-// AddedSettlementDay returns the value that was added to the "settlement_day" field in this mutation.
-func (m *PartnerSettlementRuleMutation) AddedSettlementDay() (r int, exists bool) {
-	v := m.addsettlement_day
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ClearSettlementDay clears the value of the "settlement_day" field.
-func (m *PartnerSettlementRuleMutation) ClearSettlementDay() {
-	m.settlement_day = nil
-	m.addsettlement_day = nil
-	m.clearedFields[partnersettlementrule.FieldSettlementDay] = struct{}{}
-}
-
-// SettlementDayCleared returns if the "settlement_day" field was cleared in this mutation.
-func (m *PartnerSettlementRuleMutation) SettlementDayCleared() bool {
-	_, ok := m.clearedFields[partnersettlementrule.FieldSettlementDay]
-	return ok
-}
-
-// ResetSettlementDay resets all changes to the "settlement_day" field.
-func (m *PartnerSettlementRuleMutation) ResetSettlementDay() {
-	m.settlement_day = nil
-	m.addsettlement_day = nil
-	delete(m.clearedFields, partnersettlementrule.FieldSettlementDay)
-}
-
-// SetSettlementCycleDays sets the "settlement_cycle_days" field.
-func (m *PartnerSettlementRuleMutation) SetSettlementCycleDays(i int) {
-	m.settlement_cycle_days = &i
-	m.addsettlement_cycle_days = nil
-}
-
-// SettlementCycleDays returns the value of the "settlement_cycle_days" field in the mutation.
-func (m *PartnerSettlementRuleMutation) SettlementCycleDays() (r int, exists bool) {
-	v := m.settlement_cycle_days
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldSettlementCycleDays returns the old "settlement_cycle_days" field's value of the PartnerSettlementRule entity.
-// If the PartnerSettlementRule object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PartnerSettlementRuleMutation) OldSettlementCycleDays(ctx context.Context) (v *int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSettlementCycleDays is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSettlementCycleDays requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSettlementCycleDays: %w", err)
-	}
-	return oldValue.SettlementCycleDays, nil
-}
-
-// AddSettlementCycleDays adds i to the "settlement_cycle_days" field.
-func (m *PartnerSettlementRuleMutation) AddSettlementCycleDays(i int) {
-	if m.addsettlement_cycle_days != nil {
-		*m.addsettlement_cycle_days += i
-	} else {
-		m.addsettlement_cycle_days = &i
-	}
-}
-
-// AddedSettlementCycleDays returns the value that was added to the "settlement_cycle_days" field in this mutation.
-func (m *PartnerSettlementRuleMutation) AddedSettlementCycleDays() (r int, exists bool) {
-	v := m.addsettlement_cycle_days
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ClearSettlementCycleDays clears the value of the "settlement_cycle_days" field.
-func (m *PartnerSettlementRuleMutation) ClearSettlementCycleDays() {
-	m.settlement_cycle_days = nil
-	m.addsettlement_cycle_days = nil
-	m.clearedFields[partnersettlementrule.FieldSettlementCycleDays] = struct{}{}
-}
-
-// SettlementCycleDaysCleared returns if the "settlement_cycle_days" field was cleared in this mutation.
-func (m *PartnerSettlementRuleMutation) SettlementCycleDaysCleared() bool {
-	_, ok := m.clearedFields[partnersettlementrule.FieldSettlementCycleDays]
-	return ok
-}
-
-// ResetSettlementCycleDays resets all changes to the "settlement_cycle_days" field.
-func (m *PartnerSettlementRuleMutation) ResetSettlementCycleDays() {
-	m.settlement_cycle_days = nil
-	m.addsettlement_cycle_days = nil
-	delete(m.clearedFields, partnersettlementrule.FieldSettlementCycleDays)
-}
-
-// SetSettlementBase sets the "settlement_base" field.
-func (m *PartnerSettlementRuleMutation) SetSettlementBase(pb partnersettlementrule.SettlementBase) {
-	m.settlement_base = &pb
-}
-
-// SettlementBase returns the value of the "settlement_base" field in the mutation.
-func (m *PartnerSettlementRuleMutation) SettlementBase() (r partnersettlementrule.SettlementBase, exists bool) {
-	v := m.settlement_base
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldSettlementBase returns the old "settlement_base" field's value of the PartnerSettlementRule entity.
-// If the PartnerSettlementRule object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PartnerSettlementRuleMutation) OldSettlementBase(ctx context.Context) (v *partnersettlementrule.SettlementBase, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSettlementBase is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSettlementBase requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSettlementBase: %w", err)
-	}
-	return oldValue.SettlementBase, nil
-}
-
-// ClearSettlementBase clears the value of the "settlement_base" field.
-func (m *PartnerSettlementRuleMutation) ClearSettlementBase() {
-	m.settlement_base = nil
-	m.clearedFields[partnersettlementrule.FieldSettlementBase] = struct{}{}
-}
-
-// SettlementBaseCleared returns if the "settlement_base" field was cleared in this mutation.
-func (m *PartnerSettlementRuleMutation) SettlementBaseCleared() bool {
-	_, ok := m.clearedFields[partnersettlementrule.FieldSettlementBase]
-	return ok
-}
-
-// ResetSettlementBase resets all changes to the "settlement_base" field.
-func (m *PartnerSettlementRuleMutation) ResetSettlementBase() {
-	m.settlement_base = nil
-	delete(m.clearedFields, partnersettlementrule.FieldSettlementBase)
-}
-
-// SetSettlementCurrency sets the "settlement_currency" field.
-func (m *PartnerSettlementRuleMutation) SetSettlementCurrency(s string) {
-	m.settlement_currency = &s
-}
-
-// SettlementCurrency returns the value of the "settlement_currency" field in the mutation.
-func (m *PartnerSettlementRuleMutation) SettlementCurrency() (r string, exists bool) {
-	v := m.settlement_currency
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldSettlementCurrency returns the old "settlement_currency" field's value of the PartnerSettlementRule entity.
-// If the PartnerSettlementRule object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PartnerSettlementRuleMutation) OldSettlementCurrency(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSettlementCurrency is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSettlementCurrency requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSettlementCurrency: %w", err)
-	}
-	return oldValue.SettlementCurrency, nil
-}
-
-// ResetSettlementCurrency resets all changes to the "settlement_currency" field.
-func (m *PartnerSettlementRuleMutation) ResetSettlementCurrency() {
-	m.settlement_currency = nil
-}
-
 // SetCreditLimitMinor sets the "credit_limit_minor" field.
 func (m *PartnerSettlementRuleMutation) SetCreditLimitMinor(i int64) {
 	m.credit_limit_minor = &i
@@ -140515,42 +140209,6 @@ func (m *PartnerSettlementRuleMutation) ResetPaymentTermsDays() {
 	delete(m.clearedFields, partnersettlementrule.FieldPaymentTermsDays)
 }
 
-// SetIsActive sets the "is_active" field.
-func (m *PartnerSettlementRuleMutation) SetIsActive(b bool) {
-	m.is_active = &b
-}
-
-// IsActive returns the value of the "is_active" field in the mutation.
-func (m *PartnerSettlementRuleMutation) IsActive() (r bool, exists bool) {
-	v := m.is_active
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldIsActive returns the old "is_active" field's value of the PartnerSettlementRule entity.
-// If the PartnerSettlementRule object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PartnerSettlementRuleMutation) OldIsActive(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldIsActive is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldIsActive requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIsActive: %w", err)
-	}
-	return oldValue.IsActive, nil
-}
-
-// ResetIsActive resets all changes to the "is_active" field.
-func (m *PartnerSettlementRuleMutation) ResetIsActive() {
-	m.is_active = nil
-}
-
 // ClearPartnerRole clears the "partner_role" edge to the PartnerRole entity.
 func (m *PartnerSettlementRuleMutation) ClearPartnerRole() {
 	m.clearedpartner_role = true
@@ -140612,7 +140270,7 @@ func (m *PartnerSettlementRuleMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PartnerSettlementRuleMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 6)
 	if m.created_at != nil {
 		fields = append(fields, partnersettlementrule.FieldCreatedAt)
 	}
@@ -140622,24 +140280,6 @@ func (m *PartnerSettlementRuleMutation) Fields() []string {
 	if m.partner_role != nil {
 		fields = append(fields, partnersettlementrule.FieldPartnerRoleID)
 	}
-	if m.statement_mode != nil {
-		fields = append(fields, partnersettlementrule.FieldStatementMode)
-	}
-	if m.settlement_method != nil {
-		fields = append(fields, partnersettlementrule.FieldSettlementMethod)
-	}
-	if m.settlement_day != nil {
-		fields = append(fields, partnersettlementrule.FieldSettlementDay)
-	}
-	if m.settlement_cycle_days != nil {
-		fields = append(fields, partnersettlementrule.FieldSettlementCycleDays)
-	}
-	if m.settlement_base != nil {
-		fields = append(fields, partnersettlementrule.FieldSettlementBase)
-	}
-	if m.settlement_currency != nil {
-		fields = append(fields, partnersettlementrule.FieldSettlementCurrency)
-	}
 	if m.credit_limit_minor != nil {
 		fields = append(fields, partnersettlementrule.FieldCreditLimitMinor)
 	}
@@ -140648,9 +140288,6 @@ func (m *PartnerSettlementRuleMutation) Fields() []string {
 	}
 	if m.payment_terms_days != nil {
 		fields = append(fields, partnersettlementrule.FieldPaymentTermsDays)
-	}
-	if m.is_active != nil {
-		fields = append(fields, partnersettlementrule.FieldIsActive)
 	}
 	return fields
 }
@@ -140666,26 +140303,12 @@ func (m *PartnerSettlementRuleMutation) Field(name string) (ent.Value, bool) {
 		return m.UpdatedAt()
 	case partnersettlementrule.FieldPartnerRoleID:
 		return m.PartnerRoleID()
-	case partnersettlementrule.FieldStatementMode:
-		return m.StatementMode()
-	case partnersettlementrule.FieldSettlementMethod:
-		return m.SettlementMethod()
-	case partnersettlementrule.FieldSettlementDay:
-		return m.SettlementDay()
-	case partnersettlementrule.FieldSettlementCycleDays:
-		return m.SettlementCycleDays()
-	case partnersettlementrule.FieldSettlementBase:
-		return m.SettlementBase()
-	case partnersettlementrule.FieldSettlementCurrency:
-		return m.SettlementCurrency()
 	case partnersettlementrule.FieldCreditLimitMinor:
 		return m.CreditLimitMinor()
 	case partnersettlementrule.FieldCreditCurrency:
 		return m.CreditCurrency()
 	case partnersettlementrule.FieldPaymentTermsDays:
 		return m.PaymentTermsDays()
-	case partnersettlementrule.FieldIsActive:
-		return m.IsActive()
 	}
 	return nil, false
 }
@@ -140701,26 +140324,12 @@ func (m *PartnerSettlementRuleMutation) OldField(ctx context.Context, name strin
 		return m.OldUpdatedAt(ctx)
 	case partnersettlementrule.FieldPartnerRoleID:
 		return m.OldPartnerRoleID(ctx)
-	case partnersettlementrule.FieldStatementMode:
-		return m.OldStatementMode(ctx)
-	case partnersettlementrule.FieldSettlementMethod:
-		return m.OldSettlementMethod(ctx)
-	case partnersettlementrule.FieldSettlementDay:
-		return m.OldSettlementDay(ctx)
-	case partnersettlementrule.FieldSettlementCycleDays:
-		return m.OldSettlementCycleDays(ctx)
-	case partnersettlementrule.FieldSettlementBase:
-		return m.OldSettlementBase(ctx)
-	case partnersettlementrule.FieldSettlementCurrency:
-		return m.OldSettlementCurrency(ctx)
 	case partnersettlementrule.FieldCreditLimitMinor:
 		return m.OldCreditLimitMinor(ctx)
 	case partnersettlementrule.FieldCreditCurrency:
 		return m.OldCreditCurrency(ctx)
 	case partnersettlementrule.FieldPaymentTermsDays:
 		return m.OldPaymentTermsDays(ctx)
-	case partnersettlementrule.FieldIsActive:
-		return m.OldIsActive(ctx)
 	}
 	return nil, fmt.Errorf("unknown PartnerSettlementRule field %s", name)
 }
@@ -140751,48 +140360,6 @@ func (m *PartnerSettlementRuleMutation) SetField(name string, value ent.Value) e
 		}
 		m.SetPartnerRoleID(v)
 		return nil
-	case partnersettlementrule.FieldStatementMode:
-		v, ok := value.(partnersettlementrule.StatementMode)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStatementMode(v)
-		return nil
-	case partnersettlementrule.FieldSettlementMethod:
-		v, ok := value.(partnersettlementrule.SettlementMethod)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetSettlementMethod(v)
-		return nil
-	case partnersettlementrule.FieldSettlementDay:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetSettlementDay(v)
-		return nil
-	case partnersettlementrule.FieldSettlementCycleDays:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetSettlementCycleDays(v)
-		return nil
-	case partnersettlementrule.FieldSettlementBase:
-		v, ok := value.(partnersettlementrule.SettlementBase)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetSettlementBase(v)
-		return nil
-	case partnersettlementrule.FieldSettlementCurrency:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetSettlementCurrency(v)
-		return nil
 	case partnersettlementrule.FieldCreditLimitMinor:
 		v, ok := value.(int64)
 		if !ok {
@@ -140814,13 +140381,6 @@ func (m *PartnerSettlementRuleMutation) SetField(name string, value ent.Value) e
 		}
 		m.SetPaymentTermsDays(v)
 		return nil
-	case partnersettlementrule.FieldIsActive:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetIsActive(v)
-		return nil
 	}
 	return fmt.Errorf("unknown PartnerSettlementRule field %s", name)
 }
@@ -140829,12 +140389,6 @@ func (m *PartnerSettlementRuleMutation) SetField(name string, value ent.Value) e
 // this mutation.
 func (m *PartnerSettlementRuleMutation) AddedFields() []string {
 	var fields []string
-	if m.addsettlement_day != nil {
-		fields = append(fields, partnersettlementrule.FieldSettlementDay)
-	}
-	if m.addsettlement_cycle_days != nil {
-		fields = append(fields, partnersettlementrule.FieldSettlementCycleDays)
-	}
 	if m.addcredit_limit_minor != nil {
 		fields = append(fields, partnersettlementrule.FieldCreditLimitMinor)
 	}
@@ -140849,10 +140403,6 @@ func (m *PartnerSettlementRuleMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *PartnerSettlementRuleMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case partnersettlementrule.FieldSettlementDay:
-		return m.AddedSettlementDay()
-	case partnersettlementrule.FieldSettlementCycleDays:
-		return m.AddedSettlementCycleDays()
 	case partnersettlementrule.FieldCreditLimitMinor:
 		return m.AddedCreditLimitMinor()
 	case partnersettlementrule.FieldPaymentTermsDays:
@@ -140866,20 +140416,6 @@ func (m *PartnerSettlementRuleMutation) AddedField(name string) (ent.Value, bool
 // type.
 func (m *PartnerSettlementRuleMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case partnersettlementrule.FieldSettlementDay:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddSettlementDay(v)
-		return nil
-	case partnersettlementrule.FieldSettlementCycleDays:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddSettlementCycleDays(v)
-		return nil
 	case partnersettlementrule.FieldCreditLimitMinor:
 		v, ok := value.(int64)
 		if !ok {
@@ -140902,15 +140438,6 @@ func (m *PartnerSettlementRuleMutation) AddField(name string, value ent.Value) e
 // mutation.
 func (m *PartnerSettlementRuleMutation) ClearedFields() []string {
 	var fields []string
-	if m.FieldCleared(partnersettlementrule.FieldSettlementDay) {
-		fields = append(fields, partnersettlementrule.FieldSettlementDay)
-	}
-	if m.FieldCleared(partnersettlementrule.FieldSettlementCycleDays) {
-		fields = append(fields, partnersettlementrule.FieldSettlementCycleDays)
-	}
-	if m.FieldCleared(partnersettlementrule.FieldSettlementBase) {
-		fields = append(fields, partnersettlementrule.FieldSettlementBase)
-	}
 	if m.FieldCleared(partnersettlementrule.FieldCreditLimitMinor) {
 		fields = append(fields, partnersettlementrule.FieldCreditLimitMinor)
 	}
@@ -140934,15 +140461,6 @@ func (m *PartnerSettlementRuleMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *PartnerSettlementRuleMutation) ClearField(name string) error {
 	switch name {
-	case partnersettlementrule.FieldSettlementDay:
-		m.ClearSettlementDay()
-		return nil
-	case partnersettlementrule.FieldSettlementCycleDays:
-		m.ClearSettlementCycleDays()
-		return nil
-	case partnersettlementrule.FieldSettlementBase:
-		m.ClearSettlementBase()
-		return nil
 	case partnersettlementrule.FieldCreditLimitMinor:
 		m.ClearCreditLimitMinor()
 		return nil
@@ -140969,24 +140487,6 @@ func (m *PartnerSettlementRuleMutation) ResetField(name string) error {
 	case partnersettlementrule.FieldPartnerRoleID:
 		m.ResetPartnerRoleID()
 		return nil
-	case partnersettlementrule.FieldStatementMode:
-		m.ResetStatementMode()
-		return nil
-	case partnersettlementrule.FieldSettlementMethod:
-		m.ResetSettlementMethod()
-		return nil
-	case partnersettlementrule.FieldSettlementDay:
-		m.ResetSettlementDay()
-		return nil
-	case partnersettlementrule.FieldSettlementCycleDays:
-		m.ResetSettlementCycleDays()
-		return nil
-	case partnersettlementrule.FieldSettlementBase:
-		m.ResetSettlementBase()
-		return nil
-	case partnersettlementrule.FieldSettlementCurrency:
-		m.ResetSettlementCurrency()
-		return nil
 	case partnersettlementrule.FieldCreditLimitMinor:
 		m.ResetCreditLimitMinor()
 		return nil
@@ -140995,9 +140495,6 @@ func (m *PartnerSettlementRuleMutation) ResetField(name string) error {
 		return nil
 	case partnersettlementrule.FieldPaymentTermsDays:
 		m.ResetPaymentTermsDays()
-		return nil
-	case partnersettlementrule.FieldIsActive:
-		m.ResetIsActive()
 		return nil
 	}
 	return fmt.Errorf("unknown PartnerSettlementRule field %s", name)

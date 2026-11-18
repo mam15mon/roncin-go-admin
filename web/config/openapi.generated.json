@@ -39246,32 +39246,6 @@
           "partnerRoleId": {
             "type": "string"
           },
-          "statementMode": {
-            "type": "integer",
-            "format": "enum"
-          },
-          "settlementMethod": {
-            "type": "integer",
-            "format": "enum"
-          },
-          "settlementDay": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "settlementCycleDays": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "settlementBase": {
-            "type": "integer",
-            "format": "enum"
-          },
-          "settlementCurrency": {
-            "type": "string"
-          },
-          "isActive": {
-            "type": "boolean"
-          },
           "createdAt": {
             "type": "string"
           },
@@ -39291,39 +39265,8 @@
         }
       },
       "partner.v1.PartnerSettlementRuleInput": {
-        "required": [
-          "statementMode",
-          "settlementMethod",
-          "settlementCurrency"
-        ],
         "type": "object",
         "properties": {
-          "statementMode": {
-            "type": "integer",
-            "format": "enum"
-          },
-          "settlementMethod": {
-            "type": "integer",
-            "format": "enum"
-          },
-          "settlementDay": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "settlementCycleDays": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "settlementBase": {
-            "type": "integer",
-            "format": "enum"
-          },
-          "settlementCurrency": {
-            "type": "string"
-          },
-          "isActive": {
-            "type": "boolean"
-          },
           "creditLimitMinor": {
             "type": "string"
           },

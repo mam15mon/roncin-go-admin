@@ -657,26 +657,22 @@ func seedPartners(ctx context.Context, sc *seedContext) error {
 			pr = created
 		}
 
-		// 结算规则
-		srExists, _ := tx.PartnerSettlementRule.Query().Where(partnersettlementruleent.PartnerRoleIDEQ(pr.ID)).Exist(ctx)
-		if !srExists {
-			method := partnersettlementruleent.SettlementMethodMonthly
-			limit := int64(50000000) // 50万
-			days := 30
-			if !s.isCust {
-				limit = 0
-				days = 15
+		// 只为客户角色补齐收款约定，已有管理员设置保持原样。
+		if s.isCust {
+			srExists, err := tx.PartnerSettlementRule.Query().Where(partnersettlementruleent.PartnerRoleIDEQ(pr.ID)).Exist(ctx)
+			if err != nil {
+				return fmt.Errorf("查询客户收款约定 %s: %w", s.code, err)
 			}
-			_, _ = tx.PartnerSettlementRule.Create().
-				SetPartnerRoleID(pr.ID).
-				SetStatementMode(partnersettlementruleent.StatementModeSingle).
-				SetSettlementMethod(method).
-				SetSettlementCurrency("CNY").
-				SetCreditLimitMinor(limit).
-				SetNillableCreditCurrency(co.BaseCurrency).
-				SetPaymentTermsDays(days).
-				SetIsActive(true).
-				Save(ctx)
+			if !srExists {
+				if _, err := tx.PartnerSettlementRule.Create().
+					SetPartnerRoleID(pr.ID).
+					SetCreditLimitMinor(50000000).
+					SetNillableCreditCurrency(co.BaseCurrency).
+					SetPaymentTermsDays(30).
+					Save(ctx); err != nil {
+					return fmt.Errorf("创建客户收款约定 %s: %w", s.code, err)
+				}
+			}
 		}
 
 		// 银行结算账户

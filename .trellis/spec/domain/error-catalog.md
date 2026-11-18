@@ -10,7 +10,7 @@
 - 「中文消息」列为定义处的静态消息；同一错误码多处定义时逐行列出全部消息。含 `%s` 的为动态模板（`fmt.Sprintf` 或字符串拼接），完全动态（变量传参）时记为「（动态消息）」。
 - 「关联 proto ErrorReason」列仅在错误码经 `reasonFromProto(...)` 关联 `server/api/**/error_reason.proto` 枚举时填写。
 - 分组按定义文件所属业务域（同一错误码出现在多个业务域时在各域分别列出），组内按错误码排序；「定义位置」为 `server/internal/biz/` 下的文件名。
-- 当前共 416 个唯一错误码，419 条目录记录。
+- 当前共 417 个唯一错误码，420 条目录记录。
 
 ## 汇总
 
@@ -18,7 +18,7 @@
 | --- | --- |
 | 订单 | 123 |
 | 单证 | 29 |
-| 财务 | 94 |
+| 财务 | 95 |
 | 提成 | 40 |
 | 往来单位 | 35 |
 | 权限 | 49 |
@@ -233,7 +233,7 @@
 | FINANCE_BILL_LAST_FEE | 409 Conflict | 账单至少保留一条费用；如需释放全部费用，请取消账单 | finance_bill_fees.go | ERROR_REASON_FINANCE_BILL_LAST_FEE |
 | FINANCE_BILL_NOT_FOUND | 404 Not Found | 账单不存在 | finance_bill.go | — |
 | FINANCE_BILL_PREVIEW_STALE | 409 Conflict | 费用或拆单结果已变化，请重新预览 | finance_bill.go | ERROR_REASON_FINANCE_BILL_PREVIEW_STALE |
-| FINANCE_BILL_PROTECTED_FIELDS | 409 Conflict | 账单已登记发票、核销或对冲，只能修改备注、对账标题和到期日；如需调整账单日期、账户、账期或预计开票，请先撤销相关财务记录 | finance_bill.go | — |
+| FINANCE_BILL_PROTECTED_FIELDS | 409 Conflict | 账单已登记发票、核销或对冲，只能修改备注、对账标题和到期日；如需调整账户、账期或预计开票，请先撤销相关财务记录 | finance_bill.go | — |
 | FINANCE_BILL_SETTLEMENT_ACCOUNT_INVALID | 400 Bad Request | 结算账户与账单结算单位、方向、币种或启用状态不匹配 | finance_bill.go | ERROR_REASON_FINANCE_BILL_SETTLEMENT_ACCOUNT_INVALID |
 | FINANCE_BILL_VERSION_CONFLICT | 409 Conflict | 账单已被其他操作人修改，请刷新后重试 | finance_bill.go | — |
 | FINANCE_CASHFLOW_CASUAL_SUPPLIER_ACCOUNT_REQUIRED | 400 Bad Request | 向散客供应商出款时，对方收款账户为必填项 | finance_cashflow.go | — |
@@ -279,6 +279,7 @@
 | FINANCE_VERIFICATION_BALANCE | 409 Conflict | 核销金额超过资金或账单未核销余额 | finance_verification.go | — |
 | FINANCE_VERIFICATION_IDEMPOTENCY | 409 Conflict | 幂等键已用于不同的核销请求 | finance_verification.go | — |
 | FINANCE_VERIFICATION_INVALID | 400 Bad Request | 核销参数不合法 | finance_verification.go | — |
+| FINANCE_VERIFICATION_INVOICE_REQUIRED | 409 Conflict | 账单尚未开票，请先登记发票后核销 | finance_verification.go | — |
 | FINANCE_VERIFICATION_MISMATCH | 400 Bad Request | 核销双方方向、结算单位或币种不一致 | finance_verification.go | — |
 | FINANCE_VERIFICATION_NOT_FOUND | 404 Not Found | 核销记录不存在 | finance_verification.go | — |
 | FINANCE_VERIFICATION_TRANSITION | 409 Conflict | 当前核销状态不允许该操作 | finance_verification.go | — |
@@ -349,7 +350,7 @@
 | PARTNER_CONTRACT_NOT_FOUND | 404 Not Found | 合同不存在 | partner_contract.go | — |
 | PARTNER_CONTRACT_NO_EXISTS | 409 Conflict | 合同编号已存在 | partner_contract.go | — |
 | PARTNER_CONTRACT_STATUS_CONFLICT | 409 Conflict | 合同状态不允许该变更 | partner_contract.go | — |
-| PARTNER_CREDIT_CURRENCY_MISMATCH | 400 Bad Request | 信用额度必须使用所属公司本币，请在往来单位结算规则中重新填写本币额度 | partner_settlement_rule.go | — |
+| PARTNER_CREDIT_CURRENCY_MISMATCH | 400 Bad Request | 信用额度必须使用所属公司本币，请在客户收款约定中重新填写本币额度 | partner_settlement_rule.go | — |
 | PARTNER_CREDIT_LIMIT_EXCEEDED | 400 Bad Request | 该客户应收未核销总额已超出信用额度，系统已限制选择 | partner_credit.go | ERROR_REASON_PARTNER_CREDIT_LIMIT_EXCEEDED |
 | PARTNER_INVALID_ARGUMENT | 400 Bad Request | 往来单位字段不合法<br>往来单位导入参数不合法 | partner.go | — |
 | PARTNER_INVALID_ROLE | 400 Bad Request | 往来单位角色不合法 | partner.go | — |
@@ -362,9 +363,9 @@
 | PARTNER_NOT_FOUND | 404 Not Found | 往来单位不存在 | partner.go | — |
 | PARTNER_PRIMARY_CONTACT_CONFLICT | 400 Bad Request | 只能设置一个主联系人 | partner.go | — |
 | PARTNER_ROLE_REQUIRED | 400 Bad Request | 往来单位至少需要一个有效角色 | partner.go | — |
-| PARTNER_SETTLEMENT_RULE_EXISTS | 409 Conflict | 结算规则已存在 | partner_settlement_rule.go | — |
-| PARTNER_SETTLEMENT_RULE_INVALID_ARGUMENT | 400 Bad Request | 结算规则字段不合法 | partner_settlement_rule.go | — |
-| PARTNER_SETTLEMENT_RULE_NOT_FOUND | 404 Not Found | 结算规则不存在 | partner_settlement_rule.go | — |
+| PARTNER_SETTLEMENT_RULE_EXISTS | 409 Conflict | 收款约定已存在 | partner_settlement_rule.go | — |
+| PARTNER_SETTLEMENT_RULE_INVALID_ARGUMENT | 400 Bad Request | 收款约定字段不合法 | partner_settlement_rule.go | — |
+| PARTNER_SETTLEMENT_RULE_NOT_FOUND | 404 Not Found | 收款约定不存在 | partner_settlement_rule.go | — |
 | PARTNER_SHIPPING_PRESET_INVALID_ARGUMENT | 400 Bad Request | 常用单证预设字段不合法 | partner_shipping_preset.go | — |
 | PARTNER_SHIPPING_PRESET_NOT_FOUND | 404 Not Found | 常用单证预设不存在 | partner_shipping_preset.go | — |
 | PARTNER_SUPPLIER_ROLE_REQUIRED | 400 Bad Request | 往来单位没有供应商角色 | partner.go | — |

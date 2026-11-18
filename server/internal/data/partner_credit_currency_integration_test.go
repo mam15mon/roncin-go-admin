@@ -39,7 +39,7 @@ func TestPartnerCreditCurrencyPostgres(t *testing.T) {
 				settlementCurrency = "CNY"
 			}
 			amount := int64(100000)
-			input := &biz.PartnerSettlementRule{StatementMode: biz.PartnerStatementSingle, SettlementMethod: biz.PartnerSettlementByTicket, SettlementCurrency: settlementCurrency, CreditLimitMinor: &amount, CreditCurrency: &baseCurrency, IsActive: true}
+			input := &biz.PartnerSettlementRule{CreditLimitMinor: &amount, CreditCurrency: &baseCurrency}
 			audit := func() *biz.AuditEvent {
 				return &biz.AuditEvent{OrganizationID: &f.organizationID, Action: "partner.settlement_rule.update", ResourceType: "partner", ResourceID: partnerID.String(), Result: "success", Details: map[string]string{}}
 			}
@@ -54,7 +54,7 @@ func TestPartnerCreditCurrencyPostgres(t *testing.T) {
 			}
 			created, err := repo.Create(ctx, f.organizationID, partnerID, biz.PartnerRoleCustomer, input, audit())
 			if err != nil {
-				t.Fatalf("外币结算可配本币额度: %v", err)
+				t.Fatalf("客户可配所属公司本币额度: %v", err)
 			}
 			if _, err := repo.Update(ctx, f.organizationID, partnerID, biz.PartnerRoleCustomer, created.ID, &invalid, audit()); err != biz.ErrPartnerCreditCurrencyMismatch {
 				t.Fatalf("外币额度更新必须拒绝: %v", err)
@@ -100,21 +100,23 @@ func TestPartnerCreditCurrencyPostgres(t *testing.T) {
 			if err != nil || !biz.PartnerCreditExceeded(summaries[partnerID]) {
 				t.Fatalf("本币欠款2000超过本币额度1000: %+v %v", summaries, err)
 			}
-			// 小额异常规则也必须报错，不能仅检查最终最大额度。
-			small := int64(100)
-			f.newSettlementRule(roleID, partnersettlementruleent.SettlementMethodPrepaid, &small, &settlementCurrency, nil, true)
-			if _, err := f.repo.GetPartnerCreditSummaries(ctx, f.organizationID, []uuid.UUID{partnerID}); err != biz.ErrPartnerCreditCurrencyMismatch {
-				t.Fatalf("异常币种配置不可参与比较或被忽略: %v", err)
-			}
-			if items, err := repo.List(ctx, f.organizationID, partnerID, biz.PartnerRoleCustomer); err != nil || len(items) != 2 {
-				t.Fatalf("管理入口仍可读取原配置人工修正: count=%d err=%v", len(items), err)
-			}
-			if _, err := data.db.PartnerSettlementRule.Update().Where(partnersettlementruleent.PartnerRoleIDEQ(roleID), partnersettlementruleent.SettlementMethodEQ(partnersettlementruleent.SettlementMethodPrepaid)).ClearCreditCurrency().Save(ctx); err != nil {
+			// 唯一约定的异常币种必须显式报错，维护入口仍可读取原值。
+			if err := data.db.PartnerSettlementRule.UpdateOneID(created.ID).SetCreditCurrency(settlementCurrency).Exec(ctx); err != nil {
 				t.Fatal(err)
 			}
 			if _, err := f.repo.GetPartnerCreditSummaries(ctx, f.organizationID, []uuid.UUID{partnerID}); err != biz.ErrPartnerCreditCurrencyMismatch {
-				t.Fatalf("正额度缺币种不可解释成本币: %v", err)
+				t.Fatalf("异常币种不可参与比较: %v", err)
 			}
+			if items, err := repo.List(ctx, f.organizationID, partnerID, biz.PartnerRoleCustomer); err != nil || len(items) != 1 || items[0].CreditCurrency == nil || *items[0].CreditCurrency != settlementCurrency {
+				t.Fatalf("管理入口须保留异常原值: %+v %v", items, err)
+			}
+			if err := data.db.PartnerSettlementRule.UpdateOneID(created.ID).ClearCreditCurrency().Exec(ctx); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := f.repo.GetPartnerCreditSummaries(ctx, f.organizationID, []uuid.UUID{partnerID}); err != biz.ErrPartnerCreditCurrencyMismatch {
+				t.Fatalf("正额度缺币种不得解释成本币: %v", err)
+			}
+
 		})
 	}
 }

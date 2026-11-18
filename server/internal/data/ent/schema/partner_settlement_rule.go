@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// PartnerSettlementRule 定义角色级结算与信用规则。
+// PartnerSettlementRule 定义客户角色唯一的收款期限与本币信用额度。
 type PartnerSettlementRule struct{ ent.Schema }
 
 func (PartnerSettlementRule) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} }
@@ -16,17 +16,10 @@ func (PartnerSettlementRule) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{},
 func (PartnerSettlementRule) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("partner_role_id", uuid.Nil),
-		field.Enum("statement_mode").Values("single", "multi"),
-		field.Enum("settlement_method").Values("by_ticket", "monthly", "weekly", "semi_monthly", "bi_monthly", "quarterly", "days_45", "prepaid"),
-		field.Int("settlement_day").Optional().Nillable(),
-		field.Int("settlement_cycle_days").Optional().Nillable(),
-		field.Enum("settlement_base").Values("bill_date", "sailing_date", "arrival_date").Optional().Nillable(),
-		field.String("settlement_currency").NotEmpty().MinLen(3).MaxLen(3),
 		field.Int64("credit_limit_minor").Optional().Nillable().Min(0),
 		field.String("credit_currency").Optional().Nillable().MinLen(3).MaxLen(3),
-		// 默认信用账期天数（账单日 + N 天），NULL 表示未配置，由财务手工录入。
-		field.Int("payment_terms_days").Optional().Nillable().Min(0).Max(3650).Comment("默认信用账期天数"),
-		field.Bool("is_active").Default(true),
+		// NULL 表示未约定，0 表示现结，正数表示建账后 N 天。
+		field.Int("payment_terms_days").Optional().Nillable().Min(0).Max(3650).Comment("收款期限天数"),
 	}
 }
 
@@ -36,7 +29,6 @@ func (PartnerSettlementRule) Edges() []ent.Edge {
 
 func (PartnerSettlementRule) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("partner_role_id", "statement_mode", "settlement_method").Unique().StorageKey("partner_settlement_rule_key"),
-		index.Fields("partner_role_id", "is_active"),
+		index.Fields("partner_role_id").Unique().StorageKey("partner_settlement_rule_role_key"),
 	}
 }

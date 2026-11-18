@@ -9,70 +9,19 @@ import (
 )
 
 var (
-	ErrPartnerSettlementRuleNotFound        = errors.NotFound("PARTNER_SETTLEMENT_RULE_NOT_FOUND", "结算规则不存在")
-	ErrPartnerSettlementRuleExists          = errors.Conflict("PARTNER_SETTLEMENT_RULE_EXISTS", "结算规则已存在")
-	ErrPartnerSettlementRuleInvalidArgument = errors.BadRequest("PARTNER_SETTLEMENT_RULE_INVALID_ARGUMENT", "结算规则字段不合法")
-	ErrPartnerCreditCurrencyMismatch        = errors.BadRequest("PARTNER_CREDIT_CURRENCY_MISMATCH", "信用额度必须使用所属公司本币，请在往来单位结算规则中重新填写本币额度")
+	ErrPartnerSettlementRuleNotFound        = errors.NotFound("PARTNER_SETTLEMENT_RULE_NOT_FOUND", "收款约定不存在")
+	ErrPartnerSettlementRuleExists          = errors.Conflict("PARTNER_SETTLEMENT_RULE_EXISTS", "收款约定已存在")
+	ErrPartnerSettlementRuleInvalidArgument = errors.BadRequest("PARTNER_SETTLEMENT_RULE_INVALID_ARGUMENT", "收款约定字段不合法")
+	ErrPartnerCreditCurrencyMismatch        = errors.BadRequest("PARTNER_CREDIT_CURRENCY_MISMATCH", "信用额度必须使用所属公司本币，请在客户收款约定中重新填写本币额度")
 )
 
-type PartnerStatementMode string
-
-const (
-	PartnerStatementSingle PartnerStatementMode = "single"
-	PartnerStatementMulti  PartnerStatementMode = "multi"
-)
-
-func (m PartnerStatementMode) Valid() bool {
-	return m == PartnerStatementSingle || m == PartnerStatementMulti
-}
-
-type PartnerSettlementMethod string
-
-const (
-	PartnerSettlementByTicket    PartnerSettlementMethod = "by_ticket"
-	PartnerSettlementMonthly     PartnerSettlementMethod = "monthly"
-	PartnerSettlementWeekly      PartnerSettlementMethod = "weekly"
-	PartnerSettlementSemiMonthly PartnerSettlementMethod = "semi_monthly"
-	PartnerSettlementBiMonthly   PartnerSettlementMethod = "bi_monthly"
-	PartnerSettlementQuarterly   PartnerSettlementMethod = "quarterly"
-	PartnerSettlementDays45      PartnerSettlementMethod = "days_45"
-	PartnerSettlementPrepaid     PartnerSettlementMethod = "prepaid"
-)
-
-func (m PartnerSettlementMethod) Valid() bool {
-	switch m {
-	case PartnerSettlementByTicket, PartnerSettlementMonthly, PartnerSettlementWeekly, PartnerSettlementSemiMonthly, PartnerSettlementBiMonthly, PartnerSettlementQuarterly, PartnerSettlementDays45, PartnerSettlementPrepaid:
-		return true
-	default:
-		return false
-	}
-}
-
-type PartnerSettlementBase string
-
-const (
-	PartnerSettlementBillDate    PartnerSettlementBase = "bill_date"
-	PartnerSettlementSailingDate PartnerSettlementBase = "sailing_date"
-	PartnerSettlementArrivalDate PartnerSettlementBase = "arrival_date"
-)
-
-func (b PartnerSettlementBase) Valid() bool {
-	return b == PartnerSettlementBillDate || b == PartnerSettlementSailingDate || b == PartnerSettlementArrivalDate
-}
-
+// PartnerSettlementRule 是客户角色唯一的收款约定。
 type PartnerSettlementRule struct {
-	ID                  uuid.UUID
-	PartnerRoleID       uuid.UUID
-	StatementMode       PartnerStatementMode
-	SettlementMethod    PartnerSettlementMethod
-	SettlementDay       *int
-	SettlementCycleDays *int
-	SettlementBase      *PartnerSettlementBase
-	SettlementCurrency  string
-	CreditLimitMinor    *int64
-	CreditCurrency      *string
-	PaymentTermsDays    *int
-	IsActive            bool
+	ID               uuid.UUID
+	PartnerRoleID    uuid.UUID
+	CreditLimitMinor *int64
+	CreditCurrency   *string
+	PaymentTermsDays *int
 }
 
 type PartnerSettlementRuleRepo interface {
@@ -97,6 +46,9 @@ func (uc *PartnerSettlementRuleUsecase) List(ctx context.Context, organizationID
 }
 
 func (uc *PartnerSettlementRuleUsecase) Create(ctx context.Context, organizationID, actorID, partnerID uuid.UUID, roleType PartnerRoleType, input *PartnerSettlementRule) (*PartnerSettlementRule, error) {
+	if roleType != PartnerRoleCustomer {
+		return nil, ErrPartnerSettlementRuleInvalidArgument
+	}
 	normalized, err := normalizePartnerSettlementRule(input)
 	if err != nil {
 		return nil, err
@@ -105,6 +57,9 @@ func (uc *PartnerSettlementRuleUsecase) Create(ctx context.Context, organization
 }
 
 func (uc *PartnerSettlementRuleUsecase) Update(ctx context.Context, organizationID, actorID, partnerID, id uuid.UUID, roleType PartnerRoleType, input *PartnerSettlementRule) (*PartnerSettlementRule, error) {
+	if roleType != PartnerRoleCustomer {
+		return nil, ErrPartnerSettlementRuleInvalidArgument
+	}
 	if id == uuid.Nil {
 		return nil, ErrPartnerSettlementRuleNotFound
 	}
@@ -120,35 +75,9 @@ func normalizePartnerSettlementRule(input *PartnerSettlementRule) (*PartnerSettl
 		return nil, ErrPartnerSettlementRuleInvalidArgument
 	}
 	output := *input
-	output.SettlementCurrency = strings.ToUpper(strings.TrimSpace(output.SettlementCurrency))
 	if output.CreditCurrency != nil {
 		value := strings.ToUpper(strings.TrimSpace(*output.CreditCurrency))
 		output.CreditCurrency = &value
-	}
-	if !output.StatementMode.Valid() || !output.SettlementMethod.Valid() || len(output.SettlementCurrency) != 3 {
-		return nil, ErrPartnerSettlementRuleInvalidArgument
-	}
-	if output.SettlementDay != nil {
-		max := 31
-		if output.SettlementMethod == PartnerSettlementWeekly {
-			max = 7
-		}
-		if *output.SettlementDay < 1 || *output.SettlementDay > max {
-			return nil, ErrPartnerSettlementRuleInvalidArgument
-		}
-	}
-	if output.SettlementCycleDays != nil && (*output.SettlementCycleDays < 1 || *output.SettlementCycleDays > 365) {
-		return nil, ErrPartnerSettlementRuleInvalidArgument
-	}
-	if output.SettlementBase != nil && !output.SettlementBase.Valid() {
-		return nil, ErrPartnerSettlementRuleInvalidArgument
-	}
-	if output.SettlementMethod == PartnerSettlementByTicket || output.SettlementMethod == PartnerSettlementPrepaid {
-		if output.SettlementDay != nil || output.SettlementCycleDays != nil || output.SettlementBase != nil {
-			return nil, ErrPartnerSettlementRuleInvalidArgument
-		}
-	} else if output.SettlementBase == nil {
-		return nil, ErrPartnerSettlementRuleInvalidArgument
 	}
 	if output.CreditLimitMinor != nil && (*output.CreditLimitMinor < 0 || output.CreditCurrency == nil) {
 		return nil, ErrPartnerSettlementRuleInvalidArgument
@@ -156,7 +85,7 @@ func normalizePartnerSettlementRule(input *PartnerSettlementRule) (*PartnerSettl
 	if output.CreditCurrency != nil && (len(*output.CreditCurrency) != 3 || output.CreditLimitMinor == nil) {
 		return nil, ErrPartnerSettlementRuleInvalidArgument
 	}
-	// 默认信用账期天数（账单日 + N 天），可空表示未配置；范围与 Ent Schema 校验保持一致。
+	// NULL 未约定、0 现结、正数为建账后 N 天；范围与 Ent Schema 一致。
 	if output.PaymentTermsDays != nil && (*output.PaymentTermsDays < 0 || *output.PaymentTermsDays > 3650) {
 		return nil, ErrPartnerSettlementRuleInvalidArgument
 	}

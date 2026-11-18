@@ -292,8 +292,7 @@ func (uc *FinanceBillUsecase) enrichReceivableGroupCreditInfo(ctx context.Contex
 
 // defaultFinanceBillPaymentTermsDays 返回单笔建账写入路径的默认账期注入值，
 // 与预览 enrich（enrichReceivableGroupCreditInfo）完全同口径：散客应收恒 0，
-// 正式客户取客户角色激活规则的默认账期（多条激活规则取最大值，由
-// GetPartnerCreditSummaries 聚合层统一）；无规则、应付方向返回 nil 表示不注入。
+// 正式客户直接取客户角色唯一收款约定的期限；未约定、应付方向返回 nil 表示不注入。
 func (uc *FinanceBillUsecase) defaultFinanceBillPaymentTermsDays(ctx context.Context, organizationID uuid.UUID, fee *FinanceBillableFee) (*int, error) {
 	if fee == nil || fee.Fee == nil || fee.Fee.Direction != OrderFeeReceivable {
 		return nil, nil

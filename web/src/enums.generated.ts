@@ -711,37 +711,6 @@ export const PartnerContractStatus = {
 
 export type PartnerContractStatus = (typeof PartnerContractStatus)[keyof typeof PartnerContractStatus];
 
-export const PartnerStatementMode = {
-  PARTNER_STATEMENT_MODE_UNSPECIFIED: 0,
-  PARTNER_STATEMENT_MODE_SINGLE: 1,
-  PARTNER_STATEMENT_MODE_MULTI: 2,
-} as const;
-
-export type PartnerStatementMode = (typeof PartnerStatementMode)[keyof typeof PartnerStatementMode];
-
-export const PartnerSettlementMethod = {
-  PARTNER_SETTLEMENT_METHOD_UNSPECIFIED: 0,
-  PARTNER_SETTLEMENT_METHOD_BY_TICKET: 1,
-  PARTNER_SETTLEMENT_METHOD_MONTHLY: 2,
-  PARTNER_SETTLEMENT_METHOD_WEEKLY: 3,
-  PARTNER_SETTLEMENT_METHOD_SEMI_MONTHLY: 4,
-  PARTNER_SETTLEMENT_METHOD_BI_MONTHLY: 5,
-  PARTNER_SETTLEMENT_METHOD_QUARTERLY: 6,
-  PARTNER_SETTLEMENT_METHOD_DAYS_45: 7,
-  PARTNER_SETTLEMENT_METHOD_PREPAID: 8,
-} as const;
-
-export type PartnerSettlementMethod = (typeof PartnerSettlementMethod)[keyof typeof PartnerSettlementMethod];
-
-export const PartnerSettlementBase = {
-  PARTNER_SETTLEMENT_BASE_UNSPECIFIED: 0,
-  PARTNER_SETTLEMENT_BASE_BILL_DATE: 1,
-  PARTNER_SETTLEMENT_BASE_SAILING_DATE: 2,
-  PARTNER_SETTLEMENT_BASE_ARRIVAL_DATE: 3,
-} as const;
-
-export type PartnerSettlementBase = (typeof PartnerSettlementBase)[keyof typeof PartnerSettlementBase];
-
 export const BackgroundTaskKind = {
   BACKGROUND_TASK_KIND_UNSPECIFIED: 0,
   BACKGROUND_TASK_KIND_MASTER_DATA_IMPORT: 1,

@@ -25,26 +25,12 @@ type PartnerSettlementRule struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// PartnerRoleID holds the value of the "partner_role_id" field.
 	PartnerRoleID uuid.UUID `json:"partner_role_id,omitempty"`
-	// StatementMode holds the value of the "statement_mode" field.
-	StatementMode partnersettlementrule.StatementMode `json:"statement_mode,omitempty"`
-	// SettlementMethod holds the value of the "settlement_method" field.
-	SettlementMethod partnersettlementrule.SettlementMethod `json:"settlement_method,omitempty"`
-	// SettlementDay holds the value of the "settlement_day" field.
-	SettlementDay *int `json:"settlement_day,omitempty"`
-	// SettlementCycleDays holds the value of the "settlement_cycle_days" field.
-	SettlementCycleDays *int `json:"settlement_cycle_days,omitempty"`
-	// SettlementBase holds the value of the "settlement_base" field.
-	SettlementBase *partnersettlementrule.SettlementBase `json:"settlement_base,omitempty"`
-	// SettlementCurrency holds the value of the "settlement_currency" field.
-	SettlementCurrency string `json:"settlement_currency,omitempty"`
 	// CreditLimitMinor holds the value of the "credit_limit_minor" field.
 	CreditLimitMinor *int64 `json:"credit_limit_minor,omitempty"`
 	// CreditCurrency holds the value of the "credit_currency" field.
 	CreditCurrency *string `json:"credit_currency,omitempty"`
-	// 默认信用账期天数
+	// 收款期限天数
 	PaymentTermsDays *int `json:"payment_terms_days,omitempty"`
-	// IsActive holds the value of the "is_active" field.
-	IsActive bool `json:"is_active,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PartnerSettlementRuleQuery when eager-loading is set.
 	Edges        PartnerSettlementRuleEdges `json:"edges"`
@@ -76,11 +62,9 @@ func (*PartnerSettlementRule) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case partnersettlementrule.FieldIsActive:
-			values[i] = new(sql.NullBool)
-		case partnersettlementrule.FieldSettlementDay, partnersettlementrule.FieldSettlementCycleDays, partnersettlementrule.FieldCreditLimitMinor, partnersettlementrule.FieldPaymentTermsDays:
+		case partnersettlementrule.FieldCreditLimitMinor, partnersettlementrule.FieldPaymentTermsDays:
 			values[i] = new(sql.NullInt64)
-		case partnersettlementrule.FieldStatementMode, partnersettlementrule.FieldSettlementMethod, partnersettlementrule.FieldSettlementBase, partnersettlementrule.FieldSettlementCurrency, partnersettlementrule.FieldCreditCurrency:
+		case partnersettlementrule.FieldCreditCurrency:
 			values[i] = new(sql.NullString)
 		case partnersettlementrule.FieldCreatedAt, partnersettlementrule.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -125,45 +109,6 @@ func (_m *PartnerSettlementRule) assignValues(columns []string, values []any) er
 			} else if value != nil {
 				_m.PartnerRoleID = *value
 			}
-		case partnersettlementrule.FieldStatementMode:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field statement_mode", values[i])
-			} else if value.Valid {
-				_m.StatementMode = partnersettlementrule.StatementMode(value.String)
-			}
-		case partnersettlementrule.FieldSettlementMethod:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field settlement_method", values[i])
-			} else if value.Valid {
-				_m.SettlementMethod = partnersettlementrule.SettlementMethod(value.String)
-			}
-		case partnersettlementrule.FieldSettlementDay:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field settlement_day", values[i])
-			} else if value.Valid {
-				_m.SettlementDay = new(int)
-				*_m.SettlementDay = int(value.Int64)
-			}
-		case partnersettlementrule.FieldSettlementCycleDays:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field settlement_cycle_days", values[i])
-			} else if value.Valid {
-				_m.SettlementCycleDays = new(int)
-				*_m.SettlementCycleDays = int(value.Int64)
-			}
-		case partnersettlementrule.FieldSettlementBase:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field settlement_base", values[i])
-			} else if value.Valid {
-				_m.SettlementBase = new(partnersettlementrule.SettlementBase)
-				*_m.SettlementBase = partnersettlementrule.SettlementBase(value.String)
-			}
-		case partnersettlementrule.FieldSettlementCurrency:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field settlement_currency", values[i])
-			} else if value.Valid {
-				_m.SettlementCurrency = value.String
-			}
 		case partnersettlementrule.FieldCreditLimitMinor:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field credit_limit_minor", values[i])
@@ -184,12 +129,6 @@ func (_m *PartnerSettlementRule) assignValues(columns []string, values []any) er
 			} else if value.Valid {
 				_m.PaymentTermsDays = new(int)
 				*_m.PaymentTermsDays = int(value.Int64)
-			}
-		case partnersettlementrule.FieldIsActive:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field is_active", values[i])
-			} else if value.Valid {
-				_m.IsActive = value.Bool
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -241,30 +180,6 @@ func (_m *PartnerSettlementRule) String() string {
 	builder.WriteString("partner_role_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.PartnerRoleID))
 	builder.WriteString(", ")
-	builder.WriteString("statement_mode=")
-	builder.WriteString(fmt.Sprintf("%v", _m.StatementMode))
-	builder.WriteString(", ")
-	builder.WriteString("settlement_method=")
-	builder.WriteString(fmt.Sprintf("%v", _m.SettlementMethod))
-	builder.WriteString(", ")
-	if v := _m.SettlementDay; v != nil {
-		builder.WriteString("settlement_day=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
-	}
-	builder.WriteString(", ")
-	if v := _m.SettlementCycleDays; v != nil {
-		builder.WriteString("settlement_cycle_days=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
-	}
-	builder.WriteString(", ")
-	if v := _m.SettlementBase; v != nil {
-		builder.WriteString("settlement_base=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
-	}
-	builder.WriteString(", ")
-	builder.WriteString("settlement_currency=")
-	builder.WriteString(_m.SettlementCurrency)
-	builder.WriteString(", ")
 	if v := _m.CreditLimitMinor; v != nil {
 		builder.WriteString("credit_limit_minor=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
@@ -279,9 +194,6 @@ func (_m *PartnerSettlementRule) String() string {
 		builder.WriteString("payment_terms_days=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
-	builder.WriteString(", ")
-	builder.WriteString("is_active=")
-	builder.WriteString(fmt.Sprintf("%v", _m.IsActive))
 	builder.WriteByte(')')
 	return builder.String()
 }

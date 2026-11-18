@@ -763,6 +763,9 @@ func savePartnerRoleSettlementRules(ctx context.Context, tx *ent.Tx, organizatio
 		if role.SettlementRule == nil {
 			continue
 		}
+		if role.Type != biz.PartnerRoleCustomer {
+			return biz.ErrPartnerSettlementRuleInvalidArgument
+		}
 		partnerRole, err := tx.PartnerRole.Query().Where(
 			partnerroleent.PartnerIDEQ(partnerID),
 			partnerroleent.RoleTypeEQ(partnerroleent.RoleType(role.Type)),
@@ -776,26 +779,20 @@ func savePartnerRoleSettlementRules(ctx context.Context, tx *ent.Tx, organizatio
 		if err != nil {
 			return err
 		}
-		if len(existingRules) > 1 {
-			return biz.ErrPartnerSettlementRuleInvalidArgument
-		}
 		if (len(existingRules) == 0 && !ruleAccess.Create) || (len(existingRules) == 1 && !ruleAccess.Update) {
 			return biz.ErrPermissionDenied
 		}
 		if err := validatePartnerCreditCurrency(ctx, tx.Client(), organizationID, role.SettlementRule.CreditLimitMinor, role.SettlementRule.CreditCurrency); err != nil {
 			return err
 		}
-		if err := validateSettlementCurrencies(ctx, tx.Currency.Query(), role.SettlementRule); err != nil {
-			return err
-		}
 		if len(existingRules) == 0 {
 			if _, err := createPartnerSettlementRule(ctx, tx.PartnerSettlementRule.Create().SetPartnerRoleID(partnerRole.ID), role.SettlementRule); err != nil {
-				return mapEntConstraint(err, "partner_settlement_rule_key", biz.ErrPartnerSettlementRuleExists)
+				return mapEntConstraint(err, "partner_settlement_rule_role_key", biz.ErrPartnerSettlementRuleExists)
 			}
 			continue
 		}
 		if _, err := updatePartnerSettlementRule(ctx, existingRules[0].Update(), role.SettlementRule); err != nil {
-			return mapEntConstraint(err, "partner_settlement_rule_key", biz.ErrPartnerSettlementRuleExists)
+			return mapEntConstraint(err, "partner_settlement_rule_role_key", biz.ErrPartnerSettlementRuleExists)
 		}
 	}
 	return nil

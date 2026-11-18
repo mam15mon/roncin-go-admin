@@ -3,7 +3,6 @@
 package partnersettlementrule
 
 import (
-	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -22,26 +21,12 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// FieldPartnerRoleID holds the string denoting the partner_role_id field in the database.
 	FieldPartnerRoleID = "partner_role_id"
-	// FieldStatementMode holds the string denoting the statement_mode field in the database.
-	FieldStatementMode = "statement_mode"
-	// FieldSettlementMethod holds the string denoting the settlement_method field in the database.
-	FieldSettlementMethod = "settlement_method"
-	// FieldSettlementDay holds the string denoting the settlement_day field in the database.
-	FieldSettlementDay = "settlement_day"
-	// FieldSettlementCycleDays holds the string denoting the settlement_cycle_days field in the database.
-	FieldSettlementCycleDays = "settlement_cycle_days"
-	// FieldSettlementBase holds the string denoting the settlement_base field in the database.
-	FieldSettlementBase = "settlement_base"
-	// FieldSettlementCurrency holds the string denoting the settlement_currency field in the database.
-	FieldSettlementCurrency = "settlement_currency"
 	// FieldCreditLimitMinor holds the string denoting the credit_limit_minor field in the database.
 	FieldCreditLimitMinor = "credit_limit_minor"
 	// FieldCreditCurrency holds the string denoting the credit_currency field in the database.
 	FieldCreditCurrency = "credit_currency"
 	// FieldPaymentTermsDays holds the string denoting the payment_terms_days field in the database.
 	FieldPaymentTermsDays = "payment_terms_days"
-	// FieldIsActive holds the string denoting the is_active field in the database.
-	FieldIsActive = "is_active"
 	// EdgePartnerRole holds the string denoting the partner_role edge name in mutations.
 	EdgePartnerRole = "partner_role"
 	// Table holds the table name of the partnersettlementrule in the database.
@@ -61,16 +46,9 @@ var Columns = []string{
 	FieldCreatedAt,
 	FieldUpdatedAt,
 	FieldPartnerRoleID,
-	FieldStatementMode,
-	FieldSettlementMethod,
-	FieldSettlementDay,
-	FieldSettlementCycleDays,
-	FieldSettlementBase,
-	FieldSettlementCurrency,
 	FieldCreditLimitMinor,
 	FieldCreditCurrency,
 	FieldPaymentTermsDays,
-	FieldIsActive,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -90,95 +68,15 @@ var (
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
-	// SettlementCurrencyValidator is a validator for the "settlement_currency" field. It is called by the builders before save.
-	SettlementCurrencyValidator func(string) error
 	// CreditLimitMinorValidator is a validator for the "credit_limit_minor" field. It is called by the builders before save.
 	CreditLimitMinorValidator func(int64) error
 	// CreditCurrencyValidator is a validator for the "credit_currency" field. It is called by the builders before save.
 	CreditCurrencyValidator func(string) error
 	// PaymentTermsDaysValidator is a validator for the "payment_terms_days" field. It is called by the builders before save.
 	PaymentTermsDaysValidator func(int) error
-	// DefaultIsActive holds the default value on creation for the "is_active" field.
-	DefaultIsActive bool
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
-
-// StatementMode defines the type for the "statement_mode" enum field.
-type StatementMode string
-
-// StatementMode values.
-const (
-	StatementModeSingle StatementMode = "single"
-	StatementModeMulti  StatementMode = "multi"
-)
-
-func (sm StatementMode) String() string {
-	return string(sm)
-}
-
-// StatementModeValidator is a validator for the "statement_mode" field enum values. It is called by the builders before save.
-func StatementModeValidator(sm StatementMode) error {
-	switch sm {
-	case StatementModeSingle, StatementModeMulti:
-		return nil
-	default:
-		return fmt.Errorf("partnersettlementrule: invalid enum value for statement_mode field: %q", sm)
-	}
-}
-
-// SettlementMethod defines the type for the "settlement_method" enum field.
-type SettlementMethod string
-
-// SettlementMethod values.
-const (
-	SettlementMethodByTicket    SettlementMethod = "by_ticket"
-	SettlementMethodMonthly     SettlementMethod = "monthly"
-	SettlementMethodWeekly      SettlementMethod = "weekly"
-	SettlementMethodSemiMonthly SettlementMethod = "semi_monthly"
-	SettlementMethodBiMonthly   SettlementMethod = "bi_monthly"
-	SettlementMethodQuarterly   SettlementMethod = "quarterly"
-	SettlementMethodDays45      SettlementMethod = "days_45"
-	SettlementMethodPrepaid     SettlementMethod = "prepaid"
-)
-
-func (sm SettlementMethod) String() string {
-	return string(sm)
-}
-
-// SettlementMethodValidator is a validator for the "settlement_method" field enum values. It is called by the builders before save.
-func SettlementMethodValidator(sm SettlementMethod) error {
-	switch sm {
-	case SettlementMethodByTicket, SettlementMethodMonthly, SettlementMethodWeekly, SettlementMethodSemiMonthly, SettlementMethodBiMonthly, SettlementMethodQuarterly, SettlementMethodDays45, SettlementMethodPrepaid:
-		return nil
-	default:
-		return fmt.Errorf("partnersettlementrule: invalid enum value for settlement_method field: %q", sm)
-	}
-}
-
-// SettlementBase defines the type for the "settlement_base" enum field.
-type SettlementBase string
-
-// SettlementBase values.
-const (
-	SettlementBaseBillDate    SettlementBase = "bill_date"
-	SettlementBaseSailingDate SettlementBase = "sailing_date"
-	SettlementBaseArrivalDate SettlementBase = "arrival_date"
-)
-
-func (sb SettlementBase) String() string {
-	return string(sb)
-}
-
-// SettlementBaseValidator is a validator for the "settlement_base" field enum values. It is called by the builders before save.
-func SettlementBaseValidator(sb SettlementBase) error {
-	switch sb {
-	case SettlementBaseBillDate, SettlementBaseSailingDate, SettlementBaseArrivalDate:
-		return nil
-	default:
-		return fmt.Errorf("partnersettlementrule: invalid enum value for settlement_base field: %q", sb)
-	}
-}
 
 // OrderOption defines the ordering options for the PartnerSettlementRule queries.
 type OrderOption func(*sql.Selector)
@@ -203,36 +101,6 @@ func ByPartnerRoleID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPartnerRoleID, opts...).ToFunc()
 }
 
-// ByStatementMode orders the results by the statement_mode field.
-func ByStatementMode(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldStatementMode, opts...).ToFunc()
-}
-
-// BySettlementMethod orders the results by the settlement_method field.
-func BySettlementMethod(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldSettlementMethod, opts...).ToFunc()
-}
-
-// BySettlementDay orders the results by the settlement_day field.
-func BySettlementDay(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldSettlementDay, opts...).ToFunc()
-}
-
-// BySettlementCycleDays orders the results by the settlement_cycle_days field.
-func BySettlementCycleDays(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldSettlementCycleDays, opts...).ToFunc()
-}
-
-// BySettlementBase orders the results by the settlement_base field.
-func BySettlementBase(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldSettlementBase, opts...).ToFunc()
-}
-
-// BySettlementCurrency orders the results by the settlement_currency field.
-func BySettlementCurrency(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldSettlementCurrency, opts...).ToFunc()
-}
-
 // ByCreditLimitMinor orders the results by the credit_limit_minor field.
 func ByCreditLimitMinor(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreditLimitMinor, opts...).ToFunc()
@@ -246,11 +114,6 @@ func ByCreditCurrency(opts ...sql.OrderTermOption) OrderOption {
 // ByPaymentTermsDays orders the results by the payment_terms_days field.
 func ByPaymentTermsDays(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPaymentTermsDays, opts...).ToFunc()
-}
-
-// ByIsActive orders the results by the is_active field.
-func ByIsActive(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldIsActive, opts...).ToFunc()
 }
 
 // ByPartnerRoleField orders the results by partner_role field.

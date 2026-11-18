@@ -18,7 +18,7 @@ func TestPartnerAggregateSettlementWriteAccessPostgres(t *testing.T) {
 	f := newCreditPartnerFixture(t, data)
 	repo := NewPartnerRepo(data)
 	rule := func() *biz.PartnerSettlementRule {
-		return &biz.PartnerSettlementRule{StatementMode: biz.PartnerStatementSingle, SettlementMethod: biz.PartnerSettlementByTicket, SettlementCurrency: "CNY", PaymentTermsDays: new(30), IsActive: true}
+		return &biz.PartnerSettlementRule{PaymentTermsDays: new(30)}
 	}
 	input := func(code string) *biz.Partner {
 		return &biz.Partner{Code: code, LegalName: code, NormalizedName: code, Enabled: true, Roles: []*biz.PartnerRole{{Type: biz.PartnerRoleCustomer, Enabled: true, SettlementRule: rule()}}}
@@ -114,23 +114,15 @@ func TestPartnerAggregateSettlementWriteAccessPostgres(t *testing.T) {
 	if _, err := repo.Import(ctx, f.organizationID, biz.PartnerImportUpsert, []*biz.Partner{input("IMPORT-DENIED")}, noAccess, audit()); !errors.Is(err, biz.ErrPermissionDenied) {
 		t.Fatalf("导入新建规则必须鉴权: %v", err)
 	}
-	// 停用规则仍属于实际更新；有多条规则仍保持明确拒绝，不静默选择一条。
-	if err := data.db.PartnerSettlementRule.UpdateOneID(originalRuleID).SetIsActive(false).Exec(ctx); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := repo.Update(ctx, f.organizationID, created.ID, &changed, createOnly, audit()); !errors.Is(err, biz.ErrPermissionDenied) {
-		t.Fatalf("停用规则不能当成无规则: %v", err)
-	}
+	// 数据库兜底同一客户角色只能有一条约定。
 	roleID := storedRule.PartnerRoleID
-	if _, err := data.db.PartnerSettlementRule.Create().SetPartnerRoleID(roleID).SetStatementMode("single").SetSettlementMethod("prepaid").SetSettlementCurrency("CNY").Save(ctx); err != nil {
-		t.Fatal(err)
+	if _, err := data.db.PartnerSettlementRule.Create().SetPartnerRoleID(roleID).Save(ctx); err == nil {
+		t.Fatal("第二条约定必须被唯一索引拒绝")
 	}
-	if _, err := repo.Update(ctx, f.organizationID, created.ID, &changed, updateOnly, audit()); !errors.Is(err, biz.ErrPartnerSettlementRuleInvalidArgument) {
-		t.Fatalf("多条规则不得静默更新: %v", err)
+	if count, err := data.db.PartnerSettlementRule.Query().Where(ruleent.PartnerRoleIDEQ(roleID)).Count(ctx); err != nil || count != 1 {
+		t.Fatalf("重复创建不应改动原约定: %d %v", count, err)
 	}
-	if count, err := data.db.PartnerSettlementRule.Query().Where(ruleent.PartnerRoleIDEQ(roleID)).Count(ctx); err != nil || count != 2 {
-		t.Fatalf("多规则拒绝后不应变更: %d %v", count, err)
-	}
+
 }
 
 func TestPartnerInvoiceProfileDefaultVersionPostgres(t *testing.T) {

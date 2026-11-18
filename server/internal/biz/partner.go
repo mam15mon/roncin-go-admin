@@ -635,6 +635,9 @@ func normalizePartnerRoles(input []*PartnerRole, partnerEnabled bool) ([]*Partne
 		hasEnabled = hasEnabled || item.Enabled
 		role := &PartnerRole{Type: item.Type, Enabled: item.Enabled}
 		if item.SettlementRule != nil {
+			if item.Type != PartnerRoleCustomer {
+				return nil, ErrPartnerSettlementRuleInvalidArgument
+			}
 			settlementRule, err := normalizePartnerSettlementRule(item.SettlementRule)
 			if err != nil {
 				return nil, err

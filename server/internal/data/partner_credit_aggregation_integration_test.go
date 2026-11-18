@@ -12,7 +12,6 @@ import (
 	financecashflowent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	financeverificationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	partnerroleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
-	partnersettlementruleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
 	"github.com/shopspring/decimal"
 )
 
@@ -65,27 +64,11 @@ func (f *creditPartnerFixture) newCreditPartner(name string) (uuid.UUID, uuid.UU
 	return partner.ID, role.ID
 }
 
-func (f *creditPartnerFixture) newSettlementRule(roleID uuid.UUID, method partnersettlementruleent.SettlementMethod, creditLimitMinor *int64, creditCurrency *string, paymentTermsDays *int, active bool) {
+func (f *creditPartnerFixture) newSettlementRule(roleID uuid.UUID, creditLimitMinor *int64, creditCurrency *string, paymentTermsDays *int) {
 	f.t.Helper()
-	ctx := context.Background()
-	builder := f.data.db.PartnerSettlementRule.Create().
-		SetPartnerRoleID(roleID).
-		SetStatementMode(partnersettlementruleent.StatementModeSingle).
-		SetSettlementMethod(method).
-		SetSettlementCurrency("CNY").
-		SetIsActive(active)
-	if method == partnersettlementruleent.SettlementMethodMonthly {
-		day := 15
-		builder = builder.SetSettlementDay(day).SetSettlementBase(partnersettlementruleent.SettlementBaseBillDate)
-	}
-	if creditLimitMinor != nil {
-		builder = builder.SetCreditLimitMinor(*creditLimitMinor).SetCreditCurrency(*creditCurrency)
-	}
-	if paymentTermsDays != nil {
-		builder = builder.SetPaymentTermsDays(*paymentTermsDays)
-	}
-	if _, err := builder.Save(ctx); err != nil {
-		f.t.Fatalf("创建测试结算规则: %v", err)
+	builder := f.data.db.PartnerSettlementRule.Create().SetPartnerRoleID(roleID).SetNillableCreditLimitMinor(creditLimitMinor).SetNillableCreditCurrency(creditCurrency).SetNillablePaymentTermsDays(paymentTermsDays)
+	if _, err := builder.Save(context.Background()); err != nil {
+		f.t.Fatalf("创建客户收款约定: %v", err)
 	}
 }
 
@@ -192,17 +175,12 @@ func TestPartnerCreditAggregationPostgres(t *testing.T) {
 	fixture := newCreditPartnerFixture(t, data)
 	ctx := context.Background()
 
-	// 客户 A：两条激活规则（取最大额度 2000 与最大账期 45）+ 一条停用规则（不参与）。
+	// 客户 A：唯一约定额度 2000、账期 45。
 	partnerA, roleA := fixture.newCreditPartner("信用客户A")
 	creditA := int64(200000)
-	creditASmall := int64(100000)
 	creditCurrency := "CNY"
 	termsA := 45
-	termsASmall := 30
-	hugeLimit := int64(99999999)
-	fixture.newSettlementRule(roleA, partnersettlementruleent.SettlementMethodMonthly, &creditASmall, &creditCurrency, &termsASmall, true)
-	fixture.newSettlementRule(roleA, partnersettlementruleent.SettlementMethodByTicket, &creditA, &creditCurrency, &termsA, true)
-	fixture.newSettlementRule(roleA, partnersettlementruleent.SettlementMethodWeekly, &hugeLimit, &creditCurrency, nil, false)
+	fixture.newSettlementRule(roleA, &creditA, &creditCurrency, &termsA)
 
 	// 已结清 800 + 部分核销 500（余额 400）参与聚合；草稿与应付不参与。
 	settledBill := fixture.newConfirmedBill("settled-a", partnerA, "信用客户A", financebillent.DirectionRECEIVABLE, financebillent.StatusCONFIRMED, "800.00000000")
@@ -215,7 +193,7 @@ func TestPartnerCreditAggregationPostgres(t *testing.T) {
 	// 客户 B：额度 100、余额 150，判定超额。
 	partnerB, roleB := fixture.newCreditPartner("信用客户B")
 	creditB := int64(10000)
-	fixture.newSettlementRule(roleB, partnersettlementruleent.SettlementMethodByTicket, &creditB, &creditCurrency, nil, true)
+	fixture.newSettlementRule(roleB, &creditB, &creditCurrency, nil)
 	fixture.newConfirmedBill("bill-b", partnerB, "信用客户B", financebillent.DirectionRECEIVABLE, financebillent.StatusCONFIRMED, "150.00000000")
 
 	// 客户 C：无客户角色规则，不参与超额判定。
@@ -239,10 +217,10 @@ func TestPartnerCreditAggregationPostgres(t *testing.T) {
 		t.Fatalf("客户 A 应有信用摘要")
 	}
 	if summaryA.CreditLimitBase == nil || !summaryA.CreditLimitBase.Equal(decimal.NewFromInt(2000)) {
-		t.Fatalf("客户 A 应取激活规则的最大额度 2000，实际 %v", summaryA.CreditLimitBase)
+		t.Fatalf("客户 A 应读取唯一约定额度 2000，实际 %v", summaryA.CreditLimitBase)
 	}
 	if summaryA.DefaultPaymentTermsDays == nil || *summaryA.DefaultPaymentTermsDays != termsA {
-		t.Fatalf("客户 A 应取激活规则的最大默认账期 45，实际 %v", summaryA.DefaultPaymentTermsDays)
+		t.Fatalf("客户 A 应读取唯一约定账期 45，实际 %v", summaryA.DefaultPaymentTermsDays)
 	}
 	if summaryA.CreditCurrency == nil || *summaryA.CreditCurrency != "CNY" {
 		t.Fatalf("客户 A 信用币种应为 CNY，实际 %v", summaryA.CreditCurrency)

@@ -59,66 +59,6 @@ func (_c *PartnerSettlementRuleCreate) SetPartnerRoleID(v uuid.UUID) *PartnerSet
 	return _c
 }
 
-// SetStatementMode sets the "statement_mode" field.
-func (_c *PartnerSettlementRuleCreate) SetStatementMode(v partnersettlementrule.StatementMode) *PartnerSettlementRuleCreate {
-	_c.mutation.SetStatementMode(v)
-	return _c
-}
-
-// SetSettlementMethod sets the "settlement_method" field.
-func (_c *PartnerSettlementRuleCreate) SetSettlementMethod(v partnersettlementrule.SettlementMethod) *PartnerSettlementRuleCreate {
-	_c.mutation.SetSettlementMethod(v)
-	return _c
-}
-
-// SetSettlementDay sets the "settlement_day" field.
-func (_c *PartnerSettlementRuleCreate) SetSettlementDay(v int) *PartnerSettlementRuleCreate {
-	_c.mutation.SetSettlementDay(v)
-	return _c
-}
-
-// SetNillableSettlementDay sets the "settlement_day" field if the given value is not nil.
-func (_c *PartnerSettlementRuleCreate) SetNillableSettlementDay(v *int) *PartnerSettlementRuleCreate {
-	if v != nil {
-		_c.SetSettlementDay(*v)
-	}
-	return _c
-}
-
-// SetSettlementCycleDays sets the "settlement_cycle_days" field.
-func (_c *PartnerSettlementRuleCreate) SetSettlementCycleDays(v int) *PartnerSettlementRuleCreate {
-	_c.mutation.SetSettlementCycleDays(v)
-	return _c
-}
-
-// SetNillableSettlementCycleDays sets the "settlement_cycle_days" field if the given value is not nil.
-func (_c *PartnerSettlementRuleCreate) SetNillableSettlementCycleDays(v *int) *PartnerSettlementRuleCreate {
-	if v != nil {
-		_c.SetSettlementCycleDays(*v)
-	}
-	return _c
-}
-
-// SetSettlementBase sets the "settlement_base" field.
-func (_c *PartnerSettlementRuleCreate) SetSettlementBase(v partnersettlementrule.SettlementBase) *PartnerSettlementRuleCreate {
-	_c.mutation.SetSettlementBase(v)
-	return _c
-}
-
-// SetNillableSettlementBase sets the "settlement_base" field if the given value is not nil.
-func (_c *PartnerSettlementRuleCreate) SetNillableSettlementBase(v *partnersettlementrule.SettlementBase) *PartnerSettlementRuleCreate {
-	if v != nil {
-		_c.SetSettlementBase(*v)
-	}
-	return _c
-}
-
-// SetSettlementCurrency sets the "settlement_currency" field.
-func (_c *PartnerSettlementRuleCreate) SetSettlementCurrency(v string) *PartnerSettlementRuleCreate {
-	_c.mutation.SetSettlementCurrency(v)
-	return _c
-}
-
 // SetCreditLimitMinor sets the "credit_limit_minor" field.
 func (_c *PartnerSettlementRuleCreate) SetCreditLimitMinor(v int64) *PartnerSettlementRuleCreate {
 	_c.mutation.SetCreditLimitMinor(v)
@@ -157,20 +97,6 @@ func (_c *PartnerSettlementRuleCreate) SetPaymentTermsDays(v int) *PartnerSettle
 func (_c *PartnerSettlementRuleCreate) SetNillablePaymentTermsDays(v *int) *PartnerSettlementRuleCreate {
 	if v != nil {
 		_c.SetPaymentTermsDays(*v)
-	}
-	return _c
-}
-
-// SetIsActive sets the "is_active" field.
-func (_c *PartnerSettlementRuleCreate) SetIsActive(v bool) *PartnerSettlementRuleCreate {
-	_c.mutation.SetIsActive(v)
-	return _c
-}
-
-// SetNillableIsActive sets the "is_active" field if the given value is not nil.
-func (_c *PartnerSettlementRuleCreate) SetNillableIsActive(v *bool) *PartnerSettlementRuleCreate {
-	if v != nil {
-		_c.SetIsActive(*v)
 	}
 	return _c
 }
@@ -237,10 +163,6 @@ func (_c *PartnerSettlementRuleCreate) defaults() {
 		v := partnersettlementrule.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
-	if _, ok := _c.mutation.IsActive(); !ok {
-		v := partnersettlementrule.DefaultIsActive
-		_c.mutation.SetIsActive(v)
-	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := partnersettlementrule.DefaultID()
 		_c.mutation.SetID(v)
@@ -258,35 +180,6 @@ func (_c *PartnerSettlementRuleCreate) check() error {
 	if _, ok := _c.mutation.PartnerRoleID(); !ok {
 		return &ValidationError{Name: "partner_role_id", err: errors.New(`ent: missing required field "PartnerSettlementRule.partner_role_id"`)}
 	}
-	if _, ok := _c.mutation.StatementMode(); !ok {
-		return &ValidationError{Name: "statement_mode", err: errors.New(`ent: missing required field "PartnerSettlementRule.statement_mode"`)}
-	}
-	if v, ok := _c.mutation.StatementMode(); ok {
-		if err := partnersettlementrule.StatementModeValidator(v); err != nil {
-			return &ValidationError{Name: "statement_mode", err: fmt.Errorf(`ent: validator failed for field "PartnerSettlementRule.statement_mode": %w`, err)}
-		}
-	}
-	if _, ok := _c.mutation.SettlementMethod(); !ok {
-		return &ValidationError{Name: "settlement_method", err: errors.New(`ent: missing required field "PartnerSettlementRule.settlement_method"`)}
-	}
-	if v, ok := _c.mutation.SettlementMethod(); ok {
-		if err := partnersettlementrule.SettlementMethodValidator(v); err != nil {
-			return &ValidationError{Name: "settlement_method", err: fmt.Errorf(`ent: validator failed for field "PartnerSettlementRule.settlement_method": %w`, err)}
-		}
-	}
-	if v, ok := _c.mutation.SettlementBase(); ok {
-		if err := partnersettlementrule.SettlementBaseValidator(v); err != nil {
-			return &ValidationError{Name: "settlement_base", err: fmt.Errorf(`ent: validator failed for field "PartnerSettlementRule.settlement_base": %w`, err)}
-		}
-	}
-	if _, ok := _c.mutation.SettlementCurrency(); !ok {
-		return &ValidationError{Name: "settlement_currency", err: errors.New(`ent: missing required field "PartnerSettlementRule.settlement_currency"`)}
-	}
-	if v, ok := _c.mutation.SettlementCurrency(); ok {
-		if err := partnersettlementrule.SettlementCurrencyValidator(v); err != nil {
-			return &ValidationError{Name: "settlement_currency", err: fmt.Errorf(`ent: validator failed for field "PartnerSettlementRule.settlement_currency": %w`, err)}
-		}
-	}
 	if v, ok := _c.mutation.CreditLimitMinor(); ok {
 		if err := partnersettlementrule.CreditLimitMinorValidator(v); err != nil {
 			return &ValidationError{Name: "credit_limit_minor", err: fmt.Errorf(`ent: validator failed for field "PartnerSettlementRule.credit_limit_minor": %w`, err)}
@@ -301,9 +194,6 @@ func (_c *PartnerSettlementRuleCreate) check() error {
 		if err := partnersettlementrule.PaymentTermsDaysValidator(v); err != nil {
 			return &ValidationError{Name: "payment_terms_days", err: fmt.Errorf(`ent: validator failed for field "PartnerSettlementRule.payment_terms_days": %w`, err)}
 		}
-	}
-	if _, ok := _c.mutation.IsActive(); !ok {
-		return &ValidationError{Name: "is_active", err: errors.New(`ent: missing required field "PartnerSettlementRule.is_active"`)}
 	}
 	if len(_c.mutation.PartnerRoleIDs()) == 0 {
 		return &ValidationError{Name: "partner_role", err: errors.New(`ent: missing required edge "PartnerSettlementRule.partner_role"`)}
@@ -352,30 +242,6 @@ func (_c *PartnerSettlementRuleCreate) createSpec() (*PartnerSettlementRule, *sq
 		_spec.SetField(partnersettlementrule.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
-	if value, ok := _c.mutation.StatementMode(); ok {
-		_spec.SetField(partnersettlementrule.FieldStatementMode, field.TypeEnum, value)
-		_node.StatementMode = value
-	}
-	if value, ok := _c.mutation.SettlementMethod(); ok {
-		_spec.SetField(partnersettlementrule.FieldSettlementMethod, field.TypeEnum, value)
-		_node.SettlementMethod = value
-	}
-	if value, ok := _c.mutation.SettlementDay(); ok {
-		_spec.SetField(partnersettlementrule.FieldSettlementDay, field.TypeInt, value)
-		_node.SettlementDay = &value
-	}
-	if value, ok := _c.mutation.SettlementCycleDays(); ok {
-		_spec.SetField(partnersettlementrule.FieldSettlementCycleDays, field.TypeInt, value)
-		_node.SettlementCycleDays = &value
-	}
-	if value, ok := _c.mutation.SettlementBase(); ok {
-		_spec.SetField(partnersettlementrule.FieldSettlementBase, field.TypeEnum, value)
-		_node.SettlementBase = &value
-	}
-	if value, ok := _c.mutation.SettlementCurrency(); ok {
-		_spec.SetField(partnersettlementrule.FieldSettlementCurrency, field.TypeString, value)
-		_node.SettlementCurrency = value
-	}
 	if value, ok := _c.mutation.CreditLimitMinor(); ok {
 		_spec.SetField(partnersettlementrule.FieldCreditLimitMinor, field.TypeInt64, value)
 		_node.CreditLimitMinor = &value
@@ -387,10 +253,6 @@ func (_c *PartnerSettlementRuleCreate) createSpec() (*PartnerSettlementRule, *sq
 	if value, ok := _c.mutation.PaymentTermsDays(); ok {
 		_spec.SetField(partnersettlementrule.FieldPaymentTermsDays, field.TypeInt, value)
 		_node.PaymentTermsDays = &value
-	}
-	if value, ok := _c.mutation.IsActive(); ok {
-		_spec.SetField(partnersettlementrule.FieldIsActive, field.TypeBool, value)
-		_node.IsActive = value
 	}
 	if nodes := _c.mutation.PartnerRoleIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -485,108 +347,6 @@ func (u *PartnerSettlementRuleUpsert) UpdatePartnerRoleID() *PartnerSettlementRu
 	return u
 }
 
-// SetStatementMode sets the "statement_mode" field.
-func (u *PartnerSettlementRuleUpsert) SetStatementMode(v partnersettlementrule.StatementMode) *PartnerSettlementRuleUpsert {
-	u.Set(partnersettlementrule.FieldStatementMode, v)
-	return u
-}
-
-// UpdateStatementMode sets the "statement_mode" field to the value that was provided on create.
-func (u *PartnerSettlementRuleUpsert) UpdateStatementMode() *PartnerSettlementRuleUpsert {
-	u.SetExcluded(partnersettlementrule.FieldStatementMode)
-	return u
-}
-
-// SetSettlementMethod sets the "settlement_method" field.
-func (u *PartnerSettlementRuleUpsert) SetSettlementMethod(v partnersettlementrule.SettlementMethod) *PartnerSettlementRuleUpsert {
-	u.Set(partnersettlementrule.FieldSettlementMethod, v)
-	return u
-}
-
-// UpdateSettlementMethod sets the "settlement_method" field to the value that was provided on create.
-func (u *PartnerSettlementRuleUpsert) UpdateSettlementMethod() *PartnerSettlementRuleUpsert {
-	u.SetExcluded(partnersettlementrule.FieldSettlementMethod)
-	return u
-}
-
-// SetSettlementDay sets the "settlement_day" field.
-func (u *PartnerSettlementRuleUpsert) SetSettlementDay(v int) *PartnerSettlementRuleUpsert {
-	u.Set(partnersettlementrule.FieldSettlementDay, v)
-	return u
-}
-
-// UpdateSettlementDay sets the "settlement_day" field to the value that was provided on create.
-func (u *PartnerSettlementRuleUpsert) UpdateSettlementDay() *PartnerSettlementRuleUpsert {
-	u.SetExcluded(partnersettlementrule.FieldSettlementDay)
-	return u
-}
-
-// AddSettlementDay adds v to the "settlement_day" field.
-func (u *PartnerSettlementRuleUpsert) AddSettlementDay(v int) *PartnerSettlementRuleUpsert {
-	u.Add(partnersettlementrule.FieldSettlementDay, v)
-	return u
-}
-
-// ClearSettlementDay clears the value of the "settlement_day" field.
-func (u *PartnerSettlementRuleUpsert) ClearSettlementDay() *PartnerSettlementRuleUpsert {
-	u.SetNull(partnersettlementrule.FieldSettlementDay)
-	return u
-}
-
-// SetSettlementCycleDays sets the "settlement_cycle_days" field.
-func (u *PartnerSettlementRuleUpsert) SetSettlementCycleDays(v int) *PartnerSettlementRuleUpsert {
-	u.Set(partnersettlementrule.FieldSettlementCycleDays, v)
-	return u
-}
-
-// UpdateSettlementCycleDays sets the "settlement_cycle_days" field to the value that was provided on create.
-func (u *PartnerSettlementRuleUpsert) UpdateSettlementCycleDays() *PartnerSettlementRuleUpsert {
-	u.SetExcluded(partnersettlementrule.FieldSettlementCycleDays)
-	return u
-}
-
-// AddSettlementCycleDays adds v to the "settlement_cycle_days" field.
-func (u *PartnerSettlementRuleUpsert) AddSettlementCycleDays(v int) *PartnerSettlementRuleUpsert {
-	u.Add(partnersettlementrule.FieldSettlementCycleDays, v)
-	return u
-}
-
-// ClearSettlementCycleDays clears the value of the "settlement_cycle_days" field.
-func (u *PartnerSettlementRuleUpsert) ClearSettlementCycleDays() *PartnerSettlementRuleUpsert {
-	u.SetNull(partnersettlementrule.FieldSettlementCycleDays)
-	return u
-}
-
-// SetSettlementBase sets the "settlement_base" field.
-func (u *PartnerSettlementRuleUpsert) SetSettlementBase(v partnersettlementrule.SettlementBase) *PartnerSettlementRuleUpsert {
-	u.Set(partnersettlementrule.FieldSettlementBase, v)
-	return u
-}
-
-// UpdateSettlementBase sets the "settlement_base" field to the value that was provided on create.
-func (u *PartnerSettlementRuleUpsert) UpdateSettlementBase() *PartnerSettlementRuleUpsert {
-	u.SetExcluded(partnersettlementrule.FieldSettlementBase)
-	return u
-}
-
-// ClearSettlementBase clears the value of the "settlement_base" field.
-func (u *PartnerSettlementRuleUpsert) ClearSettlementBase() *PartnerSettlementRuleUpsert {
-	u.SetNull(partnersettlementrule.FieldSettlementBase)
-	return u
-}
-
-// SetSettlementCurrency sets the "settlement_currency" field.
-func (u *PartnerSettlementRuleUpsert) SetSettlementCurrency(v string) *PartnerSettlementRuleUpsert {
-	u.Set(partnersettlementrule.FieldSettlementCurrency, v)
-	return u
-}
-
-// UpdateSettlementCurrency sets the "settlement_currency" field to the value that was provided on create.
-func (u *PartnerSettlementRuleUpsert) UpdateSettlementCurrency() *PartnerSettlementRuleUpsert {
-	u.SetExcluded(partnersettlementrule.FieldSettlementCurrency)
-	return u
-}
-
 // SetCreditLimitMinor sets the "credit_limit_minor" field.
 func (u *PartnerSettlementRuleUpsert) SetCreditLimitMinor(v int64) *PartnerSettlementRuleUpsert {
 	u.Set(partnersettlementrule.FieldCreditLimitMinor, v)
@@ -650,18 +410,6 @@ func (u *PartnerSettlementRuleUpsert) AddPaymentTermsDays(v int) *PartnerSettlem
 // ClearPaymentTermsDays clears the value of the "payment_terms_days" field.
 func (u *PartnerSettlementRuleUpsert) ClearPaymentTermsDays() *PartnerSettlementRuleUpsert {
 	u.SetNull(partnersettlementrule.FieldPaymentTermsDays)
-	return u
-}
-
-// SetIsActive sets the "is_active" field.
-func (u *PartnerSettlementRuleUpsert) SetIsActive(v bool) *PartnerSettlementRuleUpsert {
-	u.Set(partnersettlementrule.FieldIsActive, v)
-	return u
-}
-
-// UpdateIsActive sets the "is_active" field to the value that was provided on create.
-func (u *PartnerSettlementRuleUpsert) UpdateIsActive() *PartnerSettlementRuleUpsert {
-	u.SetExcluded(partnersettlementrule.FieldIsActive)
 	return u
 }
 
@@ -744,125 +492,6 @@ func (u *PartnerSettlementRuleUpsertOne) UpdatePartnerRoleID() *PartnerSettlemen
 	})
 }
 
-// SetStatementMode sets the "statement_mode" field.
-func (u *PartnerSettlementRuleUpsertOne) SetStatementMode(v partnersettlementrule.StatementMode) *PartnerSettlementRuleUpsertOne {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.SetStatementMode(v)
-	})
-}
-
-// UpdateStatementMode sets the "statement_mode" field to the value that was provided on create.
-func (u *PartnerSettlementRuleUpsertOne) UpdateStatementMode() *PartnerSettlementRuleUpsertOne {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.UpdateStatementMode()
-	})
-}
-
-// SetSettlementMethod sets the "settlement_method" field.
-func (u *PartnerSettlementRuleUpsertOne) SetSettlementMethod(v partnersettlementrule.SettlementMethod) *PartnerSettlementRuleUpsertOne {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.SetSettlementMethod(v)
-	})
-}
-
-// UpdateSettlementMethod sets the "settlement_method" field to the value that was provided on create.
-func (u *PartnerSettlementRuleUpsertOne) UpdateSettlementMethod() *PartnerSettlementRuleUpsertOne {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.UpdateSettlementMethod()
-	})
-}
-
-// SetSettlementDay sets the "settlement_day" field.
-func (u *PartnerSettlementRuleUpsertOne) SetSettlementDay(v int) *PartnerSettlementRuleUpsertOne {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.SetSettlementDay(v)
-	})
-}
-
-// AddSettlementDay adds v to the "settlement_day" field.
-func (u *PartnerSettlementRuleUpsertOne) AddSettlementDay(v int) *PartnerSettlementRuleUpsertOne {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.AddSettlementDay(v)
-	})
-}
-
-// UpdateSettlementDay sets the "settlement_day" field to the value that was provided on create.
-func (u *PartnerSettlementRuleUpsertOne) UpdateSettlementDay() *PartnerSettlementRuleUpsertOne {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.UpdateSettlementDay()
-	})
-}
-
-// ClearSettlementDay clears the value of the "settlement_day" field.
-func (u *PartnerSettlementRuleUpsertOne) ClearSettlementDay() *PartnerSettlementRuleUpsertOne {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.ClearSettlementDay()
-	})
-}
-
-// SetSettlementCycleDays sets the "settlement_cycle_days" field.
-func (u *PartnerSettlementRuleUpsertOne) SetSettlementCycleDays(v int) *PartnerSettlementRuleUpsertOne {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.SetSettlementCycleDays(v)
-	})
-}
-
-// AddSettlementCycleDays adds v to the "settlement_cycle_days" field.
-func (u *PartnerSettlementRuleUpsertOne) AddSettlementCycleDays(v int) *PartnerSettlementRuleUpsertOne {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.AddSettlementCycleDays(v)
-	})
-}
-
-// UpdateSettlementCycleDays sets the "settlement_cycle_days" field to the value that was provided on create.
-func (u *PartnerSettlementRuleUpsertOne) UpdateSettlementCycleDays() *PartnerSettlementRuleUpsertOne {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.UpdateSettlementCycleDays()
-	})
-}
-
-// ClearSettlementCycleDays clears the value of the "settlement_cycle_days" field.
-func (u *PartnerSettlementRuleUpsertOne) ClearSettlementCycleDays() *PartnerSettlementRuleUpsertOne {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.ClearSettlementCycleDays()
-	})
-}
-
-// SetSettlementBase sets the "settlement_base" field.
-func (u *PartnerSettlementRuleUpsertOne) SetSettlementBase(v partnersettlementrule.SettlementBase) *PartnerSettlementRuleUpsertOne {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.SetSettlementBase(v)
-	})
-}
-
-// UpdateSettlementBase sets the "settlement_base" field to the value that was provided on create.
-func (u *PartnerSettlementRuleUpsertOne) UpdateSettlementBase() *PartnerSettlementRuleUpsertOne {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.UpdateSettlementBase()
-	})
-}
-
-// ClearSettlementBase clears the value of the "settlement_base" field.
-func (u *PartnerSettlementRuleUpsertOne) ClearSettlementBase() *PartnerSettlementRuleUpsertOne {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.ClearSettlementBase()
-	})
-}
-
-// SetSettlementCurrency sets the "settlement_currency" field.
-func (u *PartnerSettlementRuleUpsertOne) SetSettlementCurrency(v string) *PartnerSettlementRuleUpsertOne {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.SetSettlementCurrency(v)
-	})
-}
-
-// UpdateSettlementCurrency sets the "settlement_currency" field to the value that was provided on create.
-func (u *PartnerSettlementRuleUpsertOne) UpdateSettlementCurrency() *PartnerSettlementRuleUpsertOne {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.UpdateSettlementCurrency()
-	})
-}
-
 // SetCreditLimitMinor sets the "credit_limit_minor" field.
 func (u *PartnerSettlementRuleUpsertOne) SetCreditLimitMinor(v int64) *PartnerSettlementRuleUpsertOne {
 	return u.Update(func(s *PartnerSettlementRuleUpsert) {
@@ -937,20 +566,6 @@ func (u *PartnerSettlementRuleUpsertOne) UpdatePaymentTermsDays() *PartnerSettle
 func (u *PartnerSettlementRuleUpsertOne) ClearPaymentTermsDays() *PartnerSettlementRuleUpsertOne {
 	return u.Update(func(s *PartnerSettlementRuleUpsert) {
 		s.ClearPaymentTermsDays()
-	})
-}
-
-// SetIsActive sets the "is_active" field.
-func (u *PartnerSettlementRuleUpsertOne) SetIsActive(v bool) *PartnerSettlementRuleUpsertOne {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.SetIsActive(v)
-	})
-}
-
-// UpdateIsActive sets the "is_active" field to the value that was provided on create.
-func (u *PartnerSettlementRuleUpsertOne) UpdateIsActive() *PartnerSettlementRuleUpsertOne {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.UpdateIsActive()
 	})
 }
 
@@ -1200,125 +815,6 @@ func (u *PartnerSettlementRuleUpsertBulk) UpdatePartnerRoleID() *PartnerSettleme
 	})
 }
 
-// SetStatementMode sets the "statement_mode" field.
-func (u *PartnerSettlementRuleUpsertBulk) SetStatementMode(v partnersettlementrule.StatementMode) *PartnerSettlementRuleUpsertBulk {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.SetStatementMode(v)
-	})
-}
-
-// UpdateStatementMode sets the "statement_mode" field to the value that was provided on create.
-func (u *PartnerSettlementRuleUpsertBulk) UpdateStatementMode() *PartnerSettlementRuleUpsertBulk {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.UpdateStatementMode()
-	})
-}
-
-// SetSettlementMethod sets the "settlement_method" field.
-func (u *PartnerSettlementRuleUpsertBulk) SetSettlementMethod(v partnersettlementrule.SettlementMethod) *PartnerSettlementRuleUpsertBulk {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.SetSettlementMethod(v)
-	})
-}
-
-// UpdateSettlementMethod sets the "settlement_method" field to the value that was provided on create.
-func (u *PartnerSettlementRuleUpsertBulk) UpdateSettlementMethod() *PartnerSettlementRuleUpsertBulk {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.UpdateSettlementMethod()
-	})
-}
-
-// SetSettlementDay sets the "settlement_day" field.
-func (u *PartnerSettlementRuleUpsertBulk) SetSettlementDay(v int) *PartnerSettlementRuleUpsertBulk {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.SetSettlementDay(v)
-	})
-}
-
-// AddSettlementDay adds v to the "settlement_day" field.
-func (u *PartnerSettlementRuleUpsertBulk) AddSettlementDay(v int) *PartnerSettlementRuleUpsertBulk {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.AddSettlementDay(v)
-	})
-}
-
-// UpdateSettlementDay sets the "settlement_day" field to the value that was provided on create.
-func (u *PartnerSettlementRuleUpsertBulk) UpdateSettlementDay() *PartnerSettlementRuleUpsertBulk {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.UpdateSettlementDay()
-	})
-}
-
-// ClearSettlementDay clears the value of the "settlement_day" field.
-func (u *PartnerSettlementRuleUpsertBulk) ClearSettlementDay() *PartnerSettlementRuleUpsertBulk {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.ClearSettlementDay()
-	})
-}
-
-// SetSettlementCycleDays sets the "settlement_cycle_days" field.
-func (u *PartnerSettlementRuleUpsertBulk) SetSettlementCycleDays(v int) *PartnerSettlementRuleUpsertBulk {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.SetSettlementCycleDays(v)
-	})
-}
-
-// AddSettlementCycleDays adds v to the "settlement_cycle_days" field.
-func (u *PartnerSettlementRuleUpsertBulk) AddSettlementCycleDays(v int) *PartnerSettlementRuleUpsertBulk {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.AddSettlementCycleDays(v)
-	})
-}
-
-// UpdateSettlementCycleDays sets the "settlement_cycle_days" field to the value that was provided on create.
-func (u *PartnerSettlementRuleUpsertBulk) UpdateSettlementCycleDays() *PartnerSettlementRuleUpsertBulk {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.UpdateSettlementCycleDays()
-	})
-}
-
-// ClearSettlementCycleDays clears the value of the "settlement_cycle_days" field.
-func (u *PartnerSettlementRuleUpsertBulk) ClearSettlementCycleDays() *PartnerSettlementRuleUpsertBulk {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.ClearSettlementCycleDays()
-	})
-}
-
-// SetSettlementBase sets the "settlement_base" field.
-func (u *PartnerSettlementRuleUpsertBulk) SetSettlementBase(v partnersettlementrule.SettlementBase) *PartnerSettlementRuleUpsertBulk {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.SetSettlementBase(v)
-	})
-}
-
-// UpdateSettlementBase sets the "settlement_base" field to the value that was provided on create.
-func (u *PartnerSettlementRuleUpsertBulk) UpdateSettlementBase() *PartnerSettlementRuleUpsertBulk {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.UpdateSettlementBase()
-	})
-}
-
-// ClearSettlementBase clears the value of the "settlement_base" field.
-func (u *PartnerSettlementRuleUpsertBulk) ClearSettlementBase() *PartnerSettlementRuleUpsertBulk {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.ClearSettlementBase()
-	})
-}
-
-// SetSettlementCurrency sets the "settlement_currency" field.
-func (u *PartnerSettlementRuleUpsertBulk) SetSettlementCurrency(v string) *PartnerSettlementRuleUpsertBulk {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.SetSettlementCurrency(v)
-	})
-}
-
-// UpdateSettlementCurrency sets the "settlement_currency" field to the value that was provided on create.
-func (u *PartnerSettlementRuleUpsertBulk) UpdateSettlementCurrency() *PartnerSettlementRuleUpsertBulk {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.UpdateSettlementCurrency()
-	})
-}
-
 // SetCreditLimitMinor sets the "credit_limit_minor" field.
 func (u *PartnerSettlementRuleUpsertBulk) SetCreditLimitMinor(v int64) *PartnerSettlementRuleUpsertBulk {
 	return u.Update(func(s *PartnerSettlementRuleUpsert) {
@@ -1393,20 +889,6 @@ func (u *PartnerSettlementRuleUpsertBulk) UpdatePaymentTermsDays() *PartnerSettl
 func (u *PartnerSettlementRuleUpsertBulk) ClearPaymentTermsDays() *PartnerSettlementRuleUpsertBulk {
 	return u.Update(func(s *PartnerSettlementRuleUpsert) {
 		s.ClearPaymentTermsDays()
-	})
-}
-
-// SetIsActive sets the "is_active" field.
-func (u *PartnerSettlementRuleUpsertBulk) SetIsActive(v bool) *PartnerSettlementRuleUpsertBulk {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.SetIsActive(v)
-	})
-}
-
-// UpdateIsActive sets the "is_active" field to the value that was provided on create.
-func (u *PartnerSettlementRuleUpsertBulk) UpdateIsActive() *PartnerSettlementRuleUpsertBulk {
-	return u.Update(func(s *PartnerSettlementRuleUpsert) {
-		s.UpdateIsActive()
 	})
 }
 

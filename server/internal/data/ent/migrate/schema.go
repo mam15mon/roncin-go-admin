@@ -6033,16 +6033,9 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "statement_mode", Type: field.TypeEnum, Enums: []string{"single", "multi"}},
-		{Name: "settlement_method", Type: field.TypeEnum, Enums: []string{"by_ticket", "monthly", "weekly", "semi_monthly", "bi_monthly", "quarterly", "days_45", "prepaid"}},
-		{Name: "settlement_day", Type: field.TypeInt, Nullable: true},
-		{Name: "settlement_cycle_days", Type: field.TypeInt, Nullable: true},
-		{Name: "settlement_base", Type: field.TypeEnum, Nullable: true, Enums: []string{"bill_date", "sailing_date", "arrival_date"}},
-		{Name: "settlement_currency", Type: field.TypeString, Size: 3},
 		{Name: "credit_limit_minor", Type: field.TypeInt64, Nullable: true},
 		{Name: "credit_currency", Type: field.TypeString, Nullable: true, Size: 3},
 		{Name: "payment_terms_days", Type: field.TypeInt, Nullable: true},
-		{Name: "is_active", Type: field.TypeBool, Default: true},
 		{Name: "partner_role_id", Type: field.TypeUUID},
 	}
 	// PartnerSettlementRulesTable holds the schema information for the "partner_settlement_rules" table.
@@ -6053,7 +6046,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "partner_settlement_rules_partner_roles_settlement_rules",
-				Columns:    []*schema.Column{PartnerSettlementRulesColumns[13]},
+				Columns:    []*schema.Column{PartnerSettlementRulesColumns[6]},
 				RefColumns: []*schema.Column{PartnerRolesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -6065,14 +6058,9 @@ var (
 				Columns: []*schema.Column{PartnerSettlementRulesColumns[2]},
 			},
 			{
-				Name:    "partner_settlement_rule_key",
+				Name:    "partner_settlement_rule_role_key",
 				Unique:  true,
-				Columns: []*schema.Column{PartnerSettlementRulesColumns[13], PartnerSettlementRulesColumns[3], PartnerSettlementRulesColumns[4]},
-			},
-			{
-				Name:    "partnersettlementrule_partner_role_id_is_active",
-				Unique:  false,
-				Columns: []*schema.Column{PartnerSettlementRulesColumns[13], PartnerSettlementRulesColumns[12]},
+				Columns: []*schema.Column{PartnerSettlementRulesColumns[6]},
 			},
 		},
 	}

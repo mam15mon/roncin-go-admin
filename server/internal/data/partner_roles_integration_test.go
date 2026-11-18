@@ -45,7 +45,7 @@ func TestPartnerUpdateRolesPreservesAggregatePostgres(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	rule, err := client.PartnerSettlementRule.Create().SetPartnerRoleID(customerRole.ID).SetStatementMode("single").SetSettlementMethod("by_ticket").SetSettlementCurrency("CNY").SetPaymentTermsDays(30).Save(ctx)
+	rule, err := client.PartnerSettlementRule.Create().SetPartnerRoleID(customerRole.ID).SetPaymentTermsDays(30).Save(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
