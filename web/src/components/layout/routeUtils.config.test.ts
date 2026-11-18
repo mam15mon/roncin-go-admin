@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 
 // 测试只增加集中配置：标题解析器不能要求 layout 同步维护另一张名称表。
-vi.mock('@root/config/routes', () => ({
+vi.mock('@root/config/routes', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@root/config/routes')>()),
   default: [
     { path: '/new-business', name: '新增业务', hideInMenu: true },
     { path: '/new-business/:id', name: '新增业务详情' },
