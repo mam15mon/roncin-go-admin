@@ -113,6 +113,8 @@ export type DescriptionsDetailModalProps<T> = Omit<
   width?: number;
   /** 弹窗底部操作区；默认只有「关闭」。 */
   footer?: ReactNode | ((detail: T) => ReactNode);
+  /** 字段表上方的标题行，可放与字段直接相关的操作（如编辑）。 */
+  header?: ReactNode | ((detail: T) => ReactNode);
 };
 
 /** 只读详情弹窗外壳，字段与明细由调用方提供；内容超高时在弹窗内滚动。 */
@@ -124,6 +126,7 @@ export function DescriptionsDetailModal<T>({
   width = 1200,
   column = 2,
   footer,
+  header,
   descriptions,
   children,
   onClose,
@@ -149,6 +152,7 @@ export function DescriptionsDetailModal<T>({
     >
       {detail ? (
         <>
+          {typeof header === 'function' ? header(detail) : header}
           <Descriptions bordered size="small" column={column}>
             {resolveDescriptionItems(descriptions(detail))}
           </Descriptions>

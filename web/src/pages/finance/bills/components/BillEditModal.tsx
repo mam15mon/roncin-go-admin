@@ -3,14 +3,15 @@ import {
   Alert,
   App,
   Button,
-  Card,
+  Col,
   Form,
   type FormInstance,
   Input,
   InputNumber,
   Modal,
+  Row,
   Select,
-  Space,
+  Typography,
 } from 'antd';
 import Decimal from 'decimal.js';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -34,6 +35,7 @@ import {
   settlementServiceListBills,
 } from '@/services/roncin/settlementService';
 import { ensureListResponse, unwrapList } from '@/utils/api';
+import { trimDecimal } from '@/utils/format';
 import type { BillFormValues } from './billConstants';
 import { useBillChangeNotice } from './use-bill-change-notice';
 
@@ -263,7 +265,7 @@ export default function BillEditModal({
     <Modal
       title={`编辑账单 ${editing?.billNo || ''}`}
       open={open}
-      width={680}
+      width={720}
       destroyOnHidden
       confirmLoading={submitting}
       okText="保存"
@@ -320,66 +322,75 @@ export default function BillEditModal({
           billAmount={editing?.totalAmount}
           billCurrency={editing?.currency}
         />
-        <Space size={16} align="start" wrap style={{ width: '100%' }}>
-          <Form.Item
-            name="statementTitle"
-            label="对账抬头"
-            rules={[
-              { required: true, whitespace: true, message: '请输入对账抬头' },
-              { max: 200, message: '对账抬头不能超过 200 字' },
-            ]}
-            style={{ minWidth: 260 }}
-          >
-            <Input maxLength={200} />
-          </Form.Item>
-          <Form.Item
-            label="创建日期"
-            tooltip="由系统维护。未开票时增减费用会更新创建日期，开票后固定。"
-          >
-            <span>{editing?.billDate || '-'}</span>
-          </Form.Item>
-          <Form.Item name="paymentTermsDays" label="账期（天，可选）">
-            <InputNumber
-              min={0}
-              max={3650}
-              precision={0}
-              disabled={fieldsProtected}
-            />
-          </Form.Item>
-          <Form.Item
-            name="settlementAccountId"
-            label="结算账户"
-            rules={[{ required: true, message: '请选择结算账户' }]}
-            style={{ minWidth: 620 }}
-          >
-            <Select
-              allowClear
-              disabled={fieldsProtected}
-              open={accountSelectOpen}
-              onOpenChange={setAccountSelectOpen}
-              loading={accountsLoading}
-              placeholder="请选择可用于该账单的启用账户"
-              popupRender={
-                canQuickCreateAccount
-                  ? (menu) => (
-                      <QuickCreateSelectFooter
-                        label="新增结算账户"
-                        onCreate={() => {
-                          setAccountSelectOpen(false);
-                          setQuickAccountFor(accountIdentity);
-                        }}
-                      >
-                        {menu}
-                      </QuickCreateSelectFooter>
-                    )
-                  : undefined
-              }
-              options={accountOptions.map((account) => ({
-                value: account.id,
-                label: settlementAccountLabel(account),
-              }))}
-            />
-          </Form.Item>
+        <Row gutter={16}>
+          <Col xs={24} md={12}>
+            <Form.Item
+              name="statementTitle"
+              label="对账抬头"
+              rules={[
+                { required: true, whitespace: true, message: '请输入对账抬头' },
+                { max: 200, message: '对账抬头不能超过 200 字' },
+              ]}
+            >
+              <Input maxLength={200} />
+            </Form.Item>
+          </Col>
+          <Col xs={12} md={6}>
+            <Form.Item
+              label="创建日期"
+              tooltip="由系统维护。未开票时增减费用会更新创建日期，开票后固定。"
+            >
+              <span style={{ lineHeight: '32px' }}>
+                {editing?.billDate || '-'}
+              </span>
+            </Form.Item>
+          </Col>
+          <Col xs={12} md={6}>
+            <Form.Item name="paymentTermsDays" label="账期（天，可选）">
+              <InputNumber
+                min={0}
+                max={3650}
+                precision={0}
+                disabled={fieldsProtected}
+                style={{ width: '100%' }}
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24}>
+            <Form.Item
+              name="settlementAccountId"
+              label="结算账户"
+              rules={[{ required: true, message: '请选择结算账户' }]}
+            >
+              <Select
+                allowClear
+                disabled={fieldsProtected}
+                open={accountSelectOpen}
+                onOpenChange={setAccountSelectOpen}
+                loading={accountsLoading}
+                placeholder="请选择可用于该账单的启用账户"
+                popupRender={
+                  canQuickCreateAccount
+                    ? (menu) => (
+                        <QuickCreateSelectFooter
+                          label="新增结算账户"
+                          onCreate={() => {
+                            setAccountSelectOpen(false);
+                            setQuickAccountFor(accountIdentity);
+                          }}
+                        >
+                          {menu}
+                        </QuickCreateSelectFooter>
+                      )
+                    : undefined
+                }
+                options={accountOptions.map((account) => ({
+                  value: account.id,
+                  label: settlementAccountLabel(account),
+                }))}
+              />
+            </Form.Item>
+          </Col>
           <SettlementAccountQuickCreateModal
             open={canQuickCreateAccount && quickAccountFor === accountIdentity}
             organizationId={editing?.organizationId || ''}
@@ -399,95 +410,91 @@ export default function BillEditModal({
               void accountsQuery.refetch();
             }}
           />
-          <Card
-            size="small"
-            title="固定账单币种与汇率"
-            style={{ width: '100%' }}
-          >
-            <Space wrap>
-              <span>账单币种：{editing?.currency || '-'}</span>
-              <span>组织本位币：{editing?.baseCurrency || '-'}</span>
-              <span>生效汇率：{editing?.exchangeRate || '服务端未提供'}</span>
-              <span>
-                汇率日期：{editing?.exchangeRateDate || '服务端未提供'}
-              </span>
-            </Space>
-          </Card>
-          <Card
-            size="small"
-            title="预计开票配置（不改变固定账单币种）"
-            style={{ width: '100%' }}
-          >
-            <Space size={16} align="start" wrap>
-              <Form.Item name="estimatedInvoiceCurrency" label="预计开票币种">
-                <Select
-                  allowClear
-                  disabled={fieldsProtected}
-                  placeholder="默认使用账单币种"
-                  options={currencyOptions}
-                  style={{ minWidth: 220 }}
-                />
-              </Form.Item>
-              <Form.Item
-                name="estimatedInvoiceRate"
-                label="预计开票汇率"
-                rules={[
-                  ({ getFieldValue }) => ({
-                    validator: async (_, rate) => {
-                      const estimatedCurrency = getFieldValue(
-                        'estimatedInvoiceCurrency',
-                      );
-                      const billCurrency = editing?.currency;
-                      const normalizedRate = rate?.trim();
-                      if (!estimatedCurrency) {
-                        if (normalizedRate) {
-                          throw new Error(
-                            '填写预计开票汇率时必须选择预计开票币种',
-                          );
-                        }
-                        return;
-                      }
-                      if (
-                        estimatedCurrency !== billCurrency &&
-                        !normalizedRate
-                      ) {
-                        throw new Error(
-                          '预计开票币种与账单币种不同时必须填写预计开票汇率',
-                        );
-                      }
+          <Col xs={24}>
+            <Form.Item label="账单币种与汇率（固定，不可修改）">
+              <Typography.Text>
+                账单币种 {editing?.currency || '-'} · 组织本位币{' '}
+                {editing?.baseCurrency || '-'} · 生效汇率{' '}
+                {editing?.exchangeRate
+                  ? trimDecimal(editing.exchangeRate)
+                  : '-'}
+                {editing?.exchangeRateDate
+                  ? `（${editing.exchangeRateDate}）`
+                  : ''}
+              </Typography.Text>
+            </Form.Item>
+          </Col>
+          <Col xs={24}>
+            <Typography.Text
+              strong
+              style={{ display: 'block', marginBottom: 8 }}
+            >
+              预计开票（只作预计，不改变账单币种）
+            </Typography.Text>
+          </Col>
+          <Col xs={24} md={12}>
+            <Form.Item name="estimatedInvoiceCurrency" label="预计开票币种">
+              <Select
+                allowClear
+                disabled={fieldsProtected}
+                placeholder="默认使用账单币种"
+                options={currencyOptions}
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24} md={12}>
+            <Form.Item
+              name="estimatedInvoiceRate"
+              label="预计开票汇率"
+              rules={[
+                ({ getFieldValue }) => ({
+                  validator: async (_, rate) => {
+                    const estimatedCurrency = getFieldValue(
+                      'estimatedInvoiceCurrency',
+                    );
+                    const billCurrency = editing?.currency;
+                    const normalizedRate = rate?.trim();
+                    if (!estimatedCurrency) {
                       if (normalizedRate) {
-                        const num = Number(normalizedRate);
-                        if (Number.isNaN(num) || num <= 0) {
-                          throw new Error(
-                            '预计开票汇率必须为大于 0 的有效数字',
-                          );
-                        }
-                      }
-                      if (
-                        estimatedCurrency === billCurrency &&
-                        normalizedRate &&
-                        Number(normalizedRate) !== 1
-                      ) {
                         throw new Error(
-                          '预计开票币种与账单币种相同时，汇率必须为 1',
+                          '填写预计开票汇率时必须选择预计开票币种',
                         );
                       }
-                    },
-                  }),
-                ]}
-              >
-                <Input
-                  disabled={fieldsProtected}
-                  placeholder="预计汇率"
-                  style={{ minWidth: 220 }}
-                />
-              </Form.Item>
-            </Space>
-          </Card>
-          <Form.Item name="note" label="备注" style={{ minWidth: 620 }}>
-            <Input maxLength={500} />
-          </Form.Item>
-        </Space>
+                      return;
+                    }
+                    if (estimatedCurrency !== billCurrency && !normalizedRate) {
+                      throw new Error(
+                        '预计开票币种与账单币种不同时必须填写预计开票汇率',
+                      );
+                    }
+                    if (normalizedRate) {
+                      const num = Number(normalizedRate);
+                      if (Number.isNaN(num) || num <= 0) {
+                        throw new Error('预计开票汇率必须为大于 0 的有效数字');
+                      }
+                    }
+                    if (
+                      estimatedCurrency === billCurrency &&
+                      normalizedRate &&
+                      Number(normalizedRate) !== 1
+                    ) {
+                      throw new Error(
+                        '预计开票币种与账单币种相同时，汇率必须为 1',
+                      );
+                    }
+                  },
+                }),
+              ]}
+            >
+              <Input disabled={fieldsProtected} placeholder="预计汇率" />
+            </Form.Item>
+          </Col>
+          <Col xs={24}>
+            <Form.Item name="note" label="备注">
+              <Input.TextArea rows={2} maxLength={500} showCount />
+            </Form.Item>
+          </Col>
+        </Row>
       </Form>
     </Modal>
   );

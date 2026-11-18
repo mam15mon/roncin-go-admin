@@ -1,5 +1,13 @@
 import { EditOutlined } from '@ant-design/icons';
-import { Button, Descriptions, Space, type TableColumnsType, Tag } from 'antd';
+import {
+  Button,
+  Descriptions,
+  Flex,
+  Space,
+  type TableColumnsType,
+  Tag,
+  Typography,
+} from 'antd';
 import React from 'react';
 import {
   DescriptionsDetailModal,
@@ -19,6 +27,8 @@ import BillInvoiceExemptionSection, {
   type BillInvoiceExemptionActions,
 } from './BillInvoiceExemptionSection';
 import BillInvoiceRegistrationSection from './BillInvoiceRegistrationSection';
+
+const { Text } = Typography;
 
 interface BillDetailModalProps {
   open: boolean;
@@ -125,17 +135,20 @@ export default function BillDetailModal({
       loading={loading}
       column={3}
       onClose={onClose}
-      footer={(current) =>
-        canEdit && onEdit ? (
-          <Button
-            type="primary"
-            icon={<EditOutlined />}
-            onClick={() => onEdit(current)}
-          >
-            编辑账单信息
-          </Button>
-        ) : null
-      }
+      header={(current) => (
+        <Flex
+          justify="space-between"
+          align="center"
+          style={{ marginBottom: 8 }}
+        >
+          <Text strong>账单信息</Text>
+          {canEdit && onEdit ? (
+            <Button icon={<EditOutlined />} onClick={() => onEdit(current)}>
+              编辑账单信息
+            </Button>
+          ) : null}
+        </Flex>
+      )}
       descriptions={(detail) => (
         <>
           <Descriptions.Item label="状态">
@@ -266,34 +279,37 @@ export default function BillDetailModal({
     >
       {(detail) => (
         <>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              marginBottom: 8,
-            }}
-          >
-            {lineColumnSettings.entry}
-          </div>
           {feeMaintenance ? (
             <BillFeeMaintenance
               key={detail.id}
               bill={detail}
               lineColumns={lineColumnSettings.columns}
+              toolbarExtra={lineColumnSettings.entry}
               onUpdated={feeMaintenance.onUpdated}
               onRefresh={feeMaintenance.onRefresh}
             />
           ) : (
-            <Table<API.FinanceBillLine>
-              rowKey="id"
-              size="small"
-              bordered
-              pagination={false}
-              dataSource={(detail.lines ?? []).filter(
-                (line) => line.active === true,
-              )}
-              columns={lineColumnSettings.columns}
-            />
+            <>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  marginBottom: 8,
+                }}
+              >
+                {lineColumnSettings.entry}
+              </div>
+              <Table<API.FinanceBillLine>
+                rowKey="id"
+                size="small"
+                bordered
+                pagination={false}
+                dataSource={(detail.lines ?? []).filter(
+                  (line) => line.active === true,
+                )}
+                columns={lineColumnSettings.columns}
+              />
+            </>
           )}
           <BillInvoiceRegistrationSection
             bill={detail}

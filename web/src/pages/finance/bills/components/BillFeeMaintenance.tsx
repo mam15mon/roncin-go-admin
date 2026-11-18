@@ -3,6 +3,7 @@ import {
   Alert,
   App,
   Button,
+  Flex,
   Input,
   Modal,
   Space,
@@ -26,6 +27,8 @@ const CANDIDATE_PAGE_SIZE = 20;
 export interface BillFeeMaintenanceProps {
   bill: API.FinanceBill;
   lineColumns: TableColumnsType<API.FinanceBillLine>;
+  /** 与「添加费用」同一行靠右显示的列设置入口。 */
+  toolbarExtra?: React.ReactNode;
   /** 增删成功：父级以响应替换详情快照并刷新列表。 */
   onUpdated: (bill: API.FinanceBill) => void;
   /** 显式刷新：父级重读账单详情。 */
@@ -41,6 +44,7 @@ export interface BillFeeMaintenanceProps {
 export default function BillFeeMaintenance({
   bill,
   lineColumns,
+  toolbarExtra,
   onUpdated,
   onRefresh,
 }: BillFeeMaintenanceProps) {
@@ -237,20 +241,24 @@ export default function BillFeeMaintenance({
           description="如需调整费用，请先撤销对应的发票、核销或对冲记录。"
         />
       )}
-      {editable && (
-        <Space style={{ marginBottom: 8 }}>
+      <Flex justify="space-between" align="center" style={{ marginBottom: 8 }}>
+        {editable ? (
           <Tooltip
             title={locked ? `账单已有${lockLabels.join('、')}` : undefined}
           >
             <Button
+              type="primary"
               disabled={locked || mutation.isPending}
               onClick={() => setPickerOpen(true)}
             >
               添加费用
             </Button>
           </Tooltip>
-        </Space>
-      )}
+        ) : (
+          <span />
+        )}
+        {toolbarExtra}
+      </Flex>
       <Table<API.FinanceBillLine>
         rowKey="id"
         size="small"

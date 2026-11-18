@@ -250,7 +250,7 @@ describe('BillEditModal 结算账户候选', () => {
       />,
     );
     await waitFor(() =>
-      expect(screen.getByText('账单币种：USD')).toBeInTheDocument(),
+      expect(screen.getByText(/账单币种 USD/)).toBeInTheDocument(),
     );
     expect(screen.getByTestId('estimated-invoice-currency')).toHaveTextContent(
       'CNY',
