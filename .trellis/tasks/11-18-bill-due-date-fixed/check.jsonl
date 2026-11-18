@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "后端质量检查清单"}
+{"file": ".trellis/spec/server/backend/finance-bill-currency.md", "reason": "核对规范已按新口径改写且与实现一致"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "前端质量检查清单"}
+{"file": ".trellis/spec/web/frontend/capability-navigation.md", "reason": "核对新导出已登记"}
+{"file": ".trellis/spec/domain/glossary.md", "reason": "核对账单词条口径"}

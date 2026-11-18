@@ -1,0 +1,10 @@
+{"file": ".trellis/spec/server/backend/index.md", "reason": "后端规范索引"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "正式迁移、索引与迁移集成测试要求"}
+{"file": ".trellis/spec/server/backend/partner-aggregate-consistency.md", "reason": "结算规则读写权限与聚合写入边界，需改写多规则相关条目"}
+{"file": ".trellis/spec/server/backend/partner-credit-currency.md", "reason": "信用额度本币口径，需删除结算币种描述"}
+{"file": ".trellis/spec/server/backend/partner-casual-contract.md", "reason": "散客默认现结口径与正式客户默认账期带出"}
+{"file": ".trellis/spec/server/backend/error-handling.md", "reason": "错误映射与唯一约束映射"}
+{"file": ".trellis/spec/web/frontend/index.md", "reason": "前端规范索引"}
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "optional 字段 NULL/0/N 的 wire 形态"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "主档表单加载、dirty 与保存契约"}
+{"file": ".trellis/spec/domain/glossary.md", "reason": "新增或改写收款约定词条"}

@@ -1,0 +1,29 @@
+{
+  "id": "payment-terms-due-date",
+  "name": "payment-terms-due-date",
+  "title": "账期与到期日收口",
+  "description": "客户收款约定只保留真正生效的字段，账单到期日建账后固定、补费用不顺延",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "mam15mon",
+  "assignee": "mam15mon",
+  "createdAt": "2026-11-18",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "11-18-bill-due-date-fixed",
+    "11-18-customer-payment-terms"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "后端质量检查清单"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "核对迁移写法与迁移测试"}
+{"file": ".trellis/spec/server/backend/partner-aggregate-consistency.md", "reason": "核对权限边界未被破坏"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "前端质量检查清单"}
+{"file": ".trellis/spec/domain/glossary.md", "reason": "核对收款约定词条"}

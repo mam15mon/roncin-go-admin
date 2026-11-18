@@ -1,0 +1,9 @@
+{"file": ".trellis/spec/server/backend/index.md", "reason": "后端规范索引"}
+{"file": ".trellis/spec/server/backend/finance-bill-currency.md", "reason": "账单日期、汇率与增减费用的现行契约，本任务要改写其中增减费用部分"}
+{"file": ".trellis/spec/server/backend/partner-casual-contract.md", "reason": "散客应收默认现结与账期预警口径，不得改变"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "事务与锁规范，增减费用仍在原锁序内"}
+{"file": ".trellis/spec/web/frontend/index.md", "reason": "前端规范索引"}
+{"file": ".trellis/spec/web/frontend/capability-navigation.md", "reason": "新增 bill-creation 共享到期能力前先查重，提取后同步更新"}
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "账单日期只读展示的组件约定"}
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "optional 字段存在性与 wire 形态验证"}
+{"file": ".trellis/spec/domain/glossary.md", "reason": "账单词条需同步改写"}
