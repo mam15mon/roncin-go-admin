@@ -227,18 +227,17 @@ export default function access(
     canReadFeeSettings: has(permissions.financeFeeSettingRead),
     canCreateFeeSettings: has(permissions.financeFeeSettingCreate),
     canUpdateFeeSettings: has(permissions.financeFeeSettingUpdate),
-    canAccessFinanceManagement: [
-      permissions.financeFeeRead,
-      permissions.financeReportRead,
-      permissions.financeBillRead,
-      permissions.financeInvoiceRead,
-      permissions.financeCashflowRead,
-      permissions.financeVerificationRead,
-      permissions.financeNettingRead,
-      permissions.financeCommissionRead,
-      permissions.financeExchangeRateRead,
-      permissions.financeFeeSettingRead,
-    ].some((permission) => has(permission)),
+    canAccessFinanceManagement:
+      canOperateBusiness &&
+      hasAny(
+        permissions.financeFeeRead,
+        permissions.financeBillRead,
+        permissions.financeInvoiceRead,
+        permissions.financeCashflowRead,
+        permissions.financeVerificationRead,
+        permissions.financeNettingRead,
+        permissions.financeCommissionRead,
+      ),
     canReadFinanceReports:
       canOperateBusiness && has(permissions.financeReportRead),
     canReadFinanceFees: canOperateBusiness && has(permissions.financeFeeRead),

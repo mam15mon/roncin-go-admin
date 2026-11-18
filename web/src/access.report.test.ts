@@ -16,13 +16,13 @@ function reportAccess(
 }
 
 describe('独立财务报表权限', () => {
-  it('只持报表权限可进入公司报表和财务目录，不获得相邻实体权限', () => {
+  it('只持报表权限可进入公司报表，费用管理入口不可见', () => {
     const result = reportAccess(
       AuthOrganizationKind.ORGANIZATION_KIND_COMPANY,
       ['system.finance.report.read'],
     );
     expect(result.canReadFinanceReports).toBe(true);
-    expect(result.canAccessFinanceManagement).toBe(true);
+    expect(result.canAccessFinanceManagement).toBe(false);
     expect(result.canReadFinanceBills).toBe(false);
     expect(result.canReadFinanceFees).toBe(false);
     expect(result.canReadFinanceInvoices).toBe(false);

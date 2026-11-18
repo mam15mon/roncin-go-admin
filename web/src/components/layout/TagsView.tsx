@@ -21,8 +21,8 @@ import { history } from '@/router/history';
 import { clearTabDrafts, getFormDraftScope } from './formDraft';
 import {
   isRouteWithoutLayout,
-  resolveRouteTitle,
   resolveTabKey,
+  resolveWorkspaceTabTitle,
 } from './routeUtils';
 import { confirmIfTabsDirty } from './tabCloseGuard';
 
@@ -125,7 +125,7 @@ export const TagsView: React.FC = () => {
         {
           key: initialKey,
           path: fullPath,
-          title: resolveRouteTitle(currentPath),
+          title: resolveWorkspaceTabTitle(currentPath),
           closable: true,
         },
       ];
@@ -155,7 +155,7 @@ export const TagsView: React.FC = () => {
         const title =
           prevPathname === currentPath
             ? prevTag.title
-            : resolveRouteTitle(currentPath);
+            : resolveWorkspaceTabTitle(currentPath);
 
         const updated = [...prevTags];
         updated[index] = {
@@ -171,7 +171,7 @@ export const TagsView: React.FC = () => {
         {
           key: tabKey,
           path: fullPath,
-          title: resolveRouteTitle(currentPath),
+          title: resolveWorkspaceTabTitle(currentPath),
           closable: true,
         },
       ];

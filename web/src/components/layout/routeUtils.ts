@@ -1,4 +1,7 @@
-import routes from '@root/config/routes';
+import routes, {
+  financeReportCenter,
+  financeReportRoutes,
+} from '@root/config/routes';
 import { matchPath } from 'react-router';
 import type { UmiRoute } from '@/router/routeTypes';
 
@@ -96,6 +99,9 @@ export function resolveTabKey(pathname: string): string {
 
   // 规范化：去除末尾的斜杠
   const targetPath = resolveRedirectPath(pathname);
+  if (financeReportRoutes.some((route) => route.path === targetPath)) {
+    return financeReportCenter.path;
+  }
 
   for (const { pattern, key } of TAB_KEY_RULES) {
     if (pattern.test(targetPath)) {
@@ -104,6 +110,13 @@ export function resolveTabKey(pathname: string): string {
   }
 
   return targetPath;
+}
+
+/** 财务报表的页内切换共用一个工作区页签。 */
+export function resolveWorkspaceTabTitle(pathname: string): string {
+  return resolveTabKey(pathname) === financeReportCenter.path
+    ? financeReportCenter.name
+    : resolveRouteTitle(pathname);
 }
 
 /**

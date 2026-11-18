@@ -1,6 +1,7 @@
 import type { MenuDataItem, ProLayoutProps } from '@ant-design/pro-components';
 import { ProLayout } from '@ant-design/pro-components';
 import { layoutDimensions } from '@root/config/layout';
+import { financeReportCenter } from '@root/config/routes';
 import { Grid } from 'antd';
 import {
   Fragment,
@@ -18,6 +19,7 @@ import {
   getOrganizationWorkspaceKey,
   OrganizationWorkspace,
 } from '@/components/layout/OrganizationWorkspace';
+import { resolveTabKey } from '@/components/layout/routeUtils';
 import {
   buildWorkspaceMenus,
   resolveWorkspaceMenuKey,
@@ -158,6 +160,12 @@ export function AppLayout() {
     workspaceMenus,
   );
   const menuData = useMemo(() => buildMenuData(accessState), [accessState]);
+  const selectedMenuKey =
+    resolveTabKey(location.pathname) === financeReportCenter.path
+      ? financeReportCenter.path
+      : isMobile
+        ? workspaceSelectedKey
+        : undefined;
 
   // 平移 onPageChange 未登录守卫。
   useEffect(() => {
@@ -176,11 +184,7 @@ export function AppLayout() {
       menuDataRender={(items) =>
         isMobile ? [...items, ...supplementalMenus] : items
       }
-      menuProps={
-        isMobile && workspaceSelectedKey
-          ? { selectedKeys: [workspaceSelectedKey] }
-          : undefined
-      }
+      menuProps={selectedMenuKey ? { selectedKeys: [selectedMenuKey] } : undefined}
       menu={{
         locale: false,
         collapsedWidth: layoutDimensions.collapsedSiderWidth,

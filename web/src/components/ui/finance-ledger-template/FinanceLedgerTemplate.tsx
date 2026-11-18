@@ -50,6 +50,7 @@ export function FinanceLedgerTemplate<
   onReset,
   pageTitle,
   pageSubTitle,
+  pageTabs,
   headerExtra,
   topBar,
   headerTitle = '财务明细台账',
@@ -157,6 +158,7 @@ export function FinanceLedgerTemplate<
 
   return (
     <PageContainer
+      {...pageTabs}
       header={{
         title: pageTitle,
         subTitle: pageSubTitle,

@@ -37,7 +37,7 @@ vi.mock('@/services/roncin/settlementService', () => ({
 vi.mock('@/features/finance/invoice-registration', () => ({
   InvoiceRegistrationModal: () => null,
 }));
-vi.mock('./components/InvoiceDetailDrawer', () => ({ default: () => null }));
+vi.mock('./components/InvoiceDetailModal', () => ({ default: () => null }));
 vi.mock('./components/InvoiceCancelModal', () => ({ default: () => null }));
 vi.mock('./components/InvoiceIssueAndRedFlushModals', () => ({
   InvoiceRedFlushModal: () => null,

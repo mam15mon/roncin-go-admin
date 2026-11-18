@@ -11,9 +11,11 @@ import {
   SafetyCertificateOutlined,
   SettingOutlined,
   ShopOutlined,
+  TransactionOutlined,
   UserOutlined,
 } from '@ant-design/icons';
 import type { MenuDataItem } from '@ant-design/pro-components';
+import { financeSettingRoutes } from '@root/config/routes';
 import type { ReactNode } from 'react';
 import type { AccessState } from '@/router/routeTypes';
 
@@ -25,7 +27,14 @@ export type WorkspaceMenus = {
 
 /** 桌面快捷菜单和移动Drawer共用同一权限过滤，不改变业务详情hideInMenu。 */
 export function buildWorkspaceMenus(access: AccessState): WorkspaceMenus {
-  const settingsItems: WorkspaceMenuItem[] = [];
+  const settingsItems: WorkspaceMenuItem[] = financeSettingRoutes
+    .filter((route) => access[route.access])
+    .map((route) => ({
+      key: route.path,
+      label: route.name,
+      icon:
+        route.icon === 'transaction' ? <TransactionOutlined /> : <SettingOutlined />,
+    }));
 
   if (access?.canPreviewNotifications) {
     settingsItems.push({

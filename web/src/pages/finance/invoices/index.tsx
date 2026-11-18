@@ -49,7 +49,7 @@ import {
 import { getErrorMessage } from '@/utils/errorMessage';
 import { formatAmount, trimDecimal } from '@/utils/format';
 import InvoiceCancelModal from './components/InvoiceCancelModal';
-import InvoiceDetailDrawer from './components/InvoiceDetailDrawer';
+import InvoiceDetailModal from './components/InvoiceDetailModal';
 import { InvoiceRedFlushModal } from './components/InvoiceIssueAndRedFlushModals';
 import {
   invoiceCancelSuccessText,
@@ -612,7 +612,7 @@ export default function FinanceInvoicesPage() {
         onOk={cancelInvoice}
       />
 
-      <InvoiceDetailDrawer
+      <InvoiceDetailModal
         detail={detail}
         onClose={() => setDetailId(undefined)}
       />

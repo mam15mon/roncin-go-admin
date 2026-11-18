@@ -7,7 +7,7 @@ import {
 } from 'antd';
 import React from 'react';
 import {
-  DescriptionsDetailDrawer,
+  DescriptionsDetailModal,
   DItem,
   ResponsiveTable as Table,
 } from '@/components/ui';
@@ -26,15 +26,15 @@ import {
   invoiceStateText,
 } from './invoiceConstants';
 
-interface InvoiceDetailDrawerProps {
+interface InvoiceDetailModalProps {
   detail?: API.FinanceInvoice;
   onClose: () => void;
 }
 
-export default function InvoiceDetailDrawer({
+export default function InvoiceDetailModal({
   detail,
   onClose,
-}: InvoiceDetailDrawerProps) {
+}: InvoiceDetailModalProps) {
   const lineColumns: TableColumnsType<API.FinanceInvoiceLine> = [
     { title: '行号', dataIndex: 'lineNo', width: 65 },
     { title: '费用代码', dataIndex: 'itemCode', width: 110 },
@@ -103,13 +103,13 @@ export default function InvoiceDetailDrawer({
   });
 
   return (
-    <DescriptionsDetailDrawer
+    <DescriptionsDetailModal
       title={(current) =>
         `${invoiceRecordNoun(current?.direction)}详情 ${current?.recordNo || ''}`
       }
       open={Boolean(detail)}
       detail={detail}
-      size={760}
+      width={900}
       column={2}
       onClose={onClose}
       descriptions={(detail) => (
@@ -252,6 +252,6 @@ export default function InvoiceDetailDrawer({
           <InvoiceRevisionHistory revisions={detail.revisions} />
         </>
       )}
-    </DescriptionsDetailDrawer>
+    </DescriptionsDetailModal>
   );
 }

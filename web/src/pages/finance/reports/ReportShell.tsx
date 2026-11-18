@@ -1,5 +1,6 @@
 import { DownloadOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import { financeReportCenter, financeReportRoutes } from '@root/config/routes';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { App, Button, Space, Typography } from 'antd';
 import dayjs from 'dayjs';
@@ -19,6 +20,7 @@ import type { FinanceLedgerSummaryItem } from '@/components/ui/finance-ledger-te
 import { useListQueryState } from '@/components/ui/list-query-state';
 import { currencyOptionsQueryOptions } from '@/features/master-data/currencies';
 import { useAsyncGuard } from '@/hooks/useAsyncGuard';
+import { history } from '@/router/history';
 import {
   financeReportServiceListFinanceReportPartyOptions,
   financeReportServiceListFinanceReportPersonnelOptions,
@@ -39,6 +41,10 @@ import {
 } from './reportModel';
 
 const { Text } = Typography;
+const reportTabs = financeReportRoutes.map(({ path, name }) => ({
+  key: path,
+  label: name,
+}));
 type Accepted<T, S> = {
   payload: S;
   query: ReportQuery;
@@ -132,7 +138,7 @@ export default function ReportShell<
   const fields = filterFields(kind);
   const settings = useFilterSettings({ pageKey, fields });
   const queryState = useListQueryState<ReportSearchValues>({
-    tabKey: pageKey,
+    tabKey: financeReportCenter.path,
     listId: pageKey,
     defaultPageSize: 20,
     defaultFilters:
@@ -290,8 +296,13 @@ export default function ReportShell<
   });
   return (
     <FinanceLedgerTemplate<T, Record<string, never>, Accepted<T, S>>
-      pageTitle={title}
+      pageTitle={financeReportCenter.name}
       pageSubTitle={`${org?.name ?? ''} · ${subtitle}`}
+      pageTabs={{
+        tabList: reportTabs,
+        tabActiveKey: pageKey,
+        onTabChange: (path) => void history.push(path),
+      }}
       headerTitle={TABLE_TITLES[kind]}
       columns={columns}
       exportColumns={exportColumns}

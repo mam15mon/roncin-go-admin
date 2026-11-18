@@ -1,5 +1,6 @@
 import type {
   ActionType,
+  PageContainerProps,
   ProColumns,
   ProTableProps,
 } from '@ant-design/pro-components';
@@ -94,6 +95,10 @@ export interface FinanceLedgerTemplateProps<
   onReset?: ProTableProps<T, TFilter & FinanceLedgerRequestParams>['onReset'];
   pageTitle?: ReactNode;
   pageSubTitle?: ReactNode;
+  pageTabs?: Pick<
+    PageContainerProps,
+    'tabList' | 'tabActiveKey' | 'onTabChange'
+  >;
   headerExtra?: ReactNode;
   headerTitle?: string;
   columns: ProColumns<T>[];

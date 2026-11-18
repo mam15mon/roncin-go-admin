@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import access from '@/access';
+import { AuthOrganizationKind } from '@/enums.generated';
 import configuredRoutes from '../../config/routes';
 import { buildMenuData, buildRouterConfig } from './adaptRoutes';
 
@@ -73,5 +74,40 @@ describe('adaptRoutes 路由适配', () => {
     const paths = (superAdmin.routes ?? []).map((item) => item.path);
     expect(paths).toContain('/welcome');
     expect(paths).toContain('/orders');
+  });
+
+  it('财务报表独立显示，费用管理只列有权访问的业务操作', () => {
+    const menus = (keys: string[]) =>
+      buildMenuData(
+        access({
+          currentUser: {
+            id: 'u',
+            currentOrganization: {
+              id: 'org',
+              kind: AuthOrganizationKind.ORGANIZATION_KIND_COMPANY,
+            },
+            permissionCapabilities: keys.map((key) => ({
+              key,
+              dataScope: 'organization',
+            })),
+          },
+        }),
+      ).routes;
+
+    expect(menus(['system.finance.report.read'])).toMatchObject([
+      { path: '/finance/reports', name: '财务报表' },
+    ]);
+    expect(
+      menus(['system.finance.exchange_rate.read', 'system.finance.fee_setting.read']),
+    ).toEqual([]);
+    expect(
+      menus(['system.finance.fee.read', 'system.finance.netting.read']),
+    ).toMatchObject([
+      {
+        path: '/finance',
+        name: '费用管理',
+        routes: [{ path: '/finance/fees' }, { path: '/finance/nettings' }],
+      },
+    ]);
   });
 });
