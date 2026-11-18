@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-4.md`
-- **Total Sessions**: 219
+- **Total Sessions**: 220
 - **Last Active**: 2026-11-18
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-4.md` | ~70 | Active |
+| `journal-4.md` | ~92 | Active |
 | `journal-3.md` | ~1999 | Archived |
 | `journal-2.md` | ~2003 | Archived |
 | `journal-1.md` | ~1979 | Archived |
@@ -32,6 +32,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 220 | 2026-11-18 | 统一 TagsView 页签草稿生命周期 | `f5bbb02d` | `codex/tagsview-draft-lifecycle` |
 | 219 | 2026-11-18 | 账单五态筛选与无票核销限制交付 | `1c054567`, `89d37d68` | `codex/bill-business-status-alignment` |
 | 218 | 2026-11-17 | 退役订单集运跨境模式与自拼汇总 | `34216cbd`, `f6f40f1c` | `codex/retire-shipment-mode` |
 | 217 | 2026-11-16 | 空运 MAWB 同号主单判断对齐海运 | `ee7ecfbf`, `6562d2a1` | `main` |

@@ -68,3 +68,25 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 220: 统一 TagsView 页签草稿生命周期
+<!-- trellis-session: v=2 fp=dfdf053980d91a00 -->
+
+**Date**: 2026-11-18
+**Task**: 统一 TagsView 页签草稿生命周期
+**Branch**: `codex/tagsview-draft-lifecycle`
+
+### Summary
+
+业务页签切换保留草稿，关闭经确认清理，Chrome 前后台草稿使用原生离开提示。真实 Chrome 验收及 188 项定向测试通过，全量提成台账 5 项在改动基线复现。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `f5bbb02d` | feat(web): 按 TagsView 页签统一管理表单草稿 |
+
+### Status
+
+[OK] **Completed**
