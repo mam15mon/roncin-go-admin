@@ -14,9 +14,27 @@ import {
 } from 'antd';
 import type { DefaultOptionType } from 'antd/es/select';
 import Decimal from 'decimal.js';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useParams } from 'react-router';
+import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
+import {
+  captureFormDraftSession,
+  clearFormDraft,
+  getFormDraft,
+  getFormDraftKey,
+  getFormDraftScope,
+  prepareFormDraftClear,
+  saveFormDraft,
+} from '@/components/layout/formDraft';
+import { resolveTabKey } from '@/components/layout/routeUtils';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { AsyncPopconfirm, StickyFooterBar } from '@/components/ui';
 import { OrderBusinessType } from '@/enums.generated';
@@ -75,12 +93,69 @@ import {
   type ResultConfig,
 } from './splitUtils';
 
+type SplitDraft = {
+  baseline: { orderId: string; data: API.SeaOrderSplitContextData };
+  results: ResultConfig[];
+  containerAssignments: Record<string, string>;
+  cargoAllocations: Record<
+    string,
+    Record<
+      string,
+      { packageCount: number; grossWeightKg: string; volumeCbm: string }
+    >
+  >;
+  sharedAllocations: Record<
+    string,
+    Record<
+      string,
+      { packageCount: number; grossWeightKg: string; volumeCbm: string }
+    >
+  >;
+  feeAssignments: Record<string, string>;
+  attAssignments: Record<string, string[]>;
+  note: string;
+  confirmation: SeaExternalConfirmationFormValues;
+};
+
 export default function SeaOrderSplitPage() {
+  const { id } = useParams<{ id: string }>();
+  return <SeaOrderSplitEditor key={`${id}:${history.location.search}`} />;
+}
+
+function SeaOrderSplitEditor() {
   const params = useParams<{ id: string }>();
   const orderId = params.id || '';
+  const location = history.location;
+  const { initialState } = useInitialState();
+  const draftKey = getFormDraftKey(
+    resolveTabKey(location.pathname),
+    location.pathname + location.search,
+    getFormDraftScope(
+      initialState?.currentUser?.id,
+      initialState?.currentUser?.currentOrganization?.id,
+    ),
+  );
+  const draftSession = useMemo(
+    () => captureFormDraftSession(draftKey),
+    [draftKey],
+  );
+  const restoredDraft = useMemo(
+    () => getFormDraft<SplitDraft>(draftKey),
+    [draftKey],
+  );
+  const consumedDraft = useRef<string | undefined>(undefined);
+  useLayoutEffect(() => {
+    consumedDraft.current = undefined;
+  }, [draftKey]);
   const { message, modal } = App.useApp();
   const activeOrderIdRef = useRef(orderId);
   activeOrderIdRef.current = orderId;
+  useLayoutEffect(() => {
+    activeOrderIdRef.current = orderId;
+    return () => {
+      activeOrderIdRef.current = '';
+    };
+  }, [orderId]);
   const cargoItemDrawerRef = useRef<CargoItemDrawerRef>(null);
   const access = useAccess();
   const canSplit = access.canOrder(OrderBusinessType.BUSINESS_TYPE_SE, 'split');
@@ -158,7 +233,7 @@ export default function SeaOrderSplitPage() {
   const [splitBaseline, setSplitBaseline] = useState<{
     orderId: string;
     data: API.SeaOrderSplitContextData;
-  } | null>(null);
+  } | null>(restoredDraft?.baseline ?? null);
   const splitContext =
     splitBaseline?.orderId === orderId ? splitBaseline.data : null;
   useEffect(() => {
@@ -185,16 +260,25 @@ export default function SeaOrderSplitPage() {
   const { markDirty: markUnsaved, resetDirty: resetUnsaved } =
     useUnsavedChangesGuard({
       identity: orderId,
+      draftKey,
     });
   const splitEditedRef = useRef(false);
+  const editRevision = useRef(0);
+  const persistDraftRef = useMemo<{ current: () => void }>(
+    () => ({ current: () => undefined }),
+    [draftKey],
+  );
   const markDirty = useCallback(() => {
     splitEditedRef.current = true;
+    editRevision.current += 1;
     markUnsaved();
-  }, [markUnsaved]);
+    persistDraftRef.current();
+  }, [markUnsaved, persistDraftRef]);
   const resetDirty = useCallback(() => {
     splitEditedRef.current = false;
     resetUnsaved();
-  }, [resetUnsaved]);
+    clearFormDraft(draftKey, draftSession);
+  }, [resetUnsaved, draftKey, draftSession]);
   const [changedCargoOrderId, setChangedCargoOrderId] = useState<string>();
   const cargoChanged = changedCargoOrderId === orderId;
   const [results, setResults] = useState<ResultConfig[]>([]);
@@ -262,6 +346,19 @@ export default function SeaOrderSplitPage() {
   // 只在首次采纳或用户确认刷新后重建分配，不跟随查询缓存自动覆盖输入。
   useEffect(() => {
     if (!splitContext) return;
+    if (restoredDraft && consumedDraft.current !== draftKey) {
+      consumedDraft.current = draftKey;
+      setResults(restoredDraft.results);
+      setContainerAssignments(restoredDraft.containerAssignments);
+      setCargoAllocations(restoredDraft.cargoAllocations);
+      setSharedAllocations(restoredDraft.sharedAllocations);
+      setFeeAssignments(restoredDraft.feeAssignments);
+      setAttAssignments(restoredDraft.attAssignments);
+      setNote(restoredDraft.note);
+      confirmationForm.setFieldsValue(restoredDraft.confirmation);
+      markDirty();
+      return;
+    }
     const ctx = splitContext;
     if (ctx.currentMasterBill?.shippingLineId) {
       setCarrierOptions([
@@ -393,6 +490,30 @@ export default function SeaOrderSplitPage() {
     resetDirty();
   }, [splitBaseline, splitContext, confirmationForm, resetDirty]);
 
+  const persistDraft = () => {
+    if (!splitEditedRef.current || !splitBaseline) return;
+    saveFormDraft(
+      draftKey,
+      {
+        baseline: splitBaseline,
+        results,
+        containerAssignments,
+        cargoAllocations,
+        sharedAllocations,
+        feeAssignments,
+        attAssignments,
+        note,
+        confirmation: confirmationForm.getFieldsValue(true),
+      } satisfies SplitDraft,
+      draftSession,
+    );
+  };
+  persistDraftRef.current = persistDraft;
+  useLayoutEffect(() => {
+    persistDraft();
+  });
+  useLayoutEffect(() => () => persistDraftRef.current(), [persistDraftRef]);
+
   const refreshSplitBaseline = async () => {
     const requestedOrderId = orderId;
     setRefreshingOrderId(requestedOrderId);
@@ -403,6 +524,7 @@ export default function SeaOrderSplitPage() {
       ]);
       if (activeOrderIdRef.current !== requestedOrderId) return;
       if (contextResult.isSuccess && contextResult.data) {
+        resetDirty();
         setSplitBaseline({
           orderId: requestedOrderId,
           data: contextResult.data,
@@ -942,6 +1064,9 @@ export default function SeaOrderSplitPage() {
       const fingerprint = `split-fp:${hash}`;
       const idempotencyKey = `split:${orderId}:${hash}`;
 
+      persistDraftRef.current();
+      const clearSubmittedDraft = prepareFormDraftClear(draftKey, draftSession);
+      const submittedRevision = editRevision.current;
       const resp = await seaOrderChangeServiceExecuteSeaOrderSplit(
         { orderId },
         {
@@ -962,6 +1087,12 @@ export default function SeaOrderSplitPage() {
       )
         return false;
 
+      clearSubmittedDraft();
+      if (
+        activeOrderIdRef.current !== orderId ||
+        submittedRevision !== editRevision.current
+      )
+        return;
       const createdCount = resp?.data?.createdOrders?.length || 0;
       resetDirty();
       message.success(`拆票成功！原票已更新，成功生成 ${createdCount} 张新票`);

@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'react';
+import { prepareFormDraftClear } from '@/components/layout/formDraft';
 import { orderErrorReasons } from '@/errorReasons.generated';
 import {
   getRequestErrorMessage,
@@ -23,6 +24,7 @@ const concurrentChangeReasons = new Set<string>([
 export function useSeaOrderSave(
   identity: string | undefined,
   reload: (isCurrent: () => boolean) => Promise<void>,
+  draftKey?: string,
 ) {
   const [state, setState] = useState<{ identity?: string; status: SaveStatus }>(
     { status: 'idle' },
@@ -47,6 +49,9 @@ export function useSeaOrderSave(
   }, [identity]);
   const submit = async (payload?: API.UpdateOrderRequest): Promise<boolean> => {
     if (!identity || savingRef.current) return false;
+    const clearSubmittedDraft = draftKey
+      ? prepareFormDraftClear(draftKey)
+      : undefined;
     const currentIdentity = identity;
     const startedEpoch = epoch.current;
     const isCurrent = () =>
@@ -108,7 +113,10 @@ export function useSeaOrderSave(
           );
         }
       }
-      if (!isCurrent()) return false;
+      if (!isCurrent()) {
+        clearSubmittedDraft?.();
+        return false;
+      }
       try {
         await reload(isCurrent);
       } catch (error) {

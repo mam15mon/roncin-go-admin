@@ -56,6 +56,8 @@ export interface OrderFormTemplateProps<T> {
   draftPathname?: string;
   /** 用户与组织组成的草稿命名空间；缺失时不持久化草稿。 */
   draftScope?: string;
+  /** 与输入对应的原始业务基线；以 JSON 文本保存以保留 API 时间类型。 */
+  draftMetadata?: unknown;
   /** 接收模板显式动作（如 resetTo）的外部引用。 */
   actionsRef?: React.MutableRefObject<OrderFormTemplateActions<T> | undefined>;
   /** 是否启用页签关闭拦截提示，默认为 true */

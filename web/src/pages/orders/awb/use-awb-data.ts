@@ -60,6 +60,7 @@ export function useAwbChangeNotice(
   identity: AwbIdentity,
   session: number,
   enabled: boolean,
+  latestSaved?: AwbBundle,
 ) {
   const owner = useMemo(() => generateUUID(), []);
   const base = awbFingerprint(baseline);
@@ -69,7 +70,7 @@ export function useAwbChangeNotice(
   const foreground = usePageForeground(() => resume.current());
   const query = useQuery({
     queryKey: ['air-orders', 'awb-check', { owner, identity, session }],
-    initialData: baseline,
+    initialData: latestSaved ?? baseline,
     staleTime: Infinity,
     enabled: enabled && foreground,
     refetchInterval: enabled && foreground ? 15_000 : false,
@@ -85,6 +86,7 @@ export function useAwbChangeNotice(
       setChangedMarker(marker);
   }, [query.isSuccess, query.data, base, marker]);
   return {
+    observedSnapshot: query.isSuccess ? query.data : undefined,
     changed:
       changedMarker === marker ||
       (query.isSuccess && awbFingerprint(query.data) !== base),

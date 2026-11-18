@@ -35,6 +35,7 @@ export function useHblChangeNotice(
   baseline: HblBundle,
   scope: string,
   paused: boolean,
+  latestSaved?: HblBundle,
 ) {
   const base = hblBundleFingerprint(baseline);
   const [changedBase, setChangedBase] = useState<string>();
@@ -42,10 +43,18 @@ export function useHblChangeNotice(
     () => document.visibilityState === 'visible' && document.hasFocus(),
   );
   const query = useQuery({
-    queryKey: ['orders', 'hbl-change-notice', { scope, base }],
+    queryKey: [
+      'orders',
+      'hbl-change-notice',
+      {
+        scope,
+        base,
+        loaded: latestSaved ? hblBundleFingerprint(latestSaved) : undefined,
+      },
+    ],
     queryFn: ({ signal }) =>
       fetchHblBundle(baseline.order.id as string, baseline.order, signal),
-    initialData: baseline,
+    initialData: latestSaved ?? baseline,
     staleTime: Infinity,
     enabled: foreground && !paused,
     refetchInterval: foreground && !paused ? 15_000 : false,
@@ -91,6 +100,7 @@ export function useHblChangeNotice(
       setChangedBase(base);
   }, [query.data, base]);
   return {
+    observedSnapshot: query.isSuccess ? query.data : undefined,
     changed: changedBase === base,
     async verifyCurrent() {
       const result = await query.refetch();

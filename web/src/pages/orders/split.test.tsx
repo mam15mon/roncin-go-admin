@@ -1,3 +1,14 @@
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
+    initialState: {
+      currentUser: {
+        id: 'split-user',
+        currentOrganization: { id: 'split-org' },
+      },
+    },
+  }),
+}));
+
 import { renderWithClient } from '@root/tests/queryClientTestUtils';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
@@ -55,6 +66,12 @@ const getLockState = vi.mocked(orderLockServiceGetOrderLockState);
 
 describe('SeaOrderSplitPage', () => {
   beforeEach(() => {
+    sessionStorage.clear();
+    window.history.replaceState(
+      {},
+      '',
+      '/orders/sea-export/test-order-123/split',
+    );
     vi.clearAllMocks();
     splitAccess.allowed = true;
     getLockState.mockResolvedValue({

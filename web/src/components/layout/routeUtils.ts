@@ -3,7 +3,7 @@ import routes, {
   financeReportRoutes,
 } from '@root/config/routes';
 import { matchPath } from 'react-router';
-import type { UmiRoute } from '@/router/routeTypes';
+import type { AccessState, UmiRoute } from '@/router/routeTypes';
 
 /** 页面标题、重定向与布局属性统一读取真实路由配置，隐藏菜单不影响标题。 */
 function flattenRoutes(items: UmiRoute[], parentLayout = true): UmiRoute[] {
@@ -45,6 +45,23 @@ function resolveRedirectPath(pathname: string): string {
     path = normalizePath(redirect);
   }
   throw new Error('路由重定向存在循环');
+}
+
+/** 恢复页签时使用与路由入口相同的访问条件。 */
+export function canRestoreWorkspaceTab(fullPath: string, access: AccessState) {
+  if (!fullPath.startsWith('/') || fullPath.startsWith('//')) return false;
+  const pathname = normalizePath(fullPath);
+  const route = configuredRoutes
+    .filter(
+      (entry) =>
+        entry.path &&
+        (entry.component || entry.redirect) &&
+        matchPath({ path: entry.path, end: true }, pathname),
+    )
+    .sort(
+      (a, b) => routeSpecificity(b.path ?? '') - routeSpecificity(a.path ?? ''),
+    )[0];
+  return Boolean(route?.layout && (!route.access || access[route.access]));
 }
 
 /** 无布局页面及其子路由不创建业务页签。 */

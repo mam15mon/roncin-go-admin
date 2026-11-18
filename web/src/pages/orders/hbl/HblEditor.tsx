@@ -20,9 +20,14 @@ import {
   useState,
 } from 'react';
 import { useAccess } from '@/app/access';
+import {
+  getFormDraft,
+  getFormDraftKey,
+  parseFormDraftMetadata,
+  prepareFormDraftClear,
+} from '@/components/layout/formDraft';
 import { resolveTabKey } from '@/components/layout/routeUtils';
 import { useTabCloseGuard } from '@/components/layout/tabCloseGuard';
-import { useRouteLeaveGuard } from '@/components/layout/useRouteLeaveGuard';
 import {
   OrderFormTemplate,
   PageHeaderShell,
@@ -53,6 +58,7 @@ import {
   formatHblContainers,
   type HblBundle,
   type HblFormValues,
+  hblBundleFingerprint,
   hblFormPayload,
   hblOutputBlockedReason,
   hblUnavailableReason,
@@ -82,8 +88,21 @@ export default function HblEditor({
   const actionsRef = useRef<
     OrderFormTemplateActions<HblFormValues> | undefined
   >(undefined);
-  const [baseline, setBaseline] = useState(initial);
-  const [initialValues] = useState(() => buildHblFormValues(initial));
+  const [restoredBaseline] = useState(() => {
+    const restoredPath = `/orders/${getOrderKindDefinitionByBusinessType(initial.order.businessType ?? 0)?.kind}/${initial.order.id}/hbl`;
+    const saved = getFormDraft<{ __draftMetadata?: string }>(
+      getFormDraftKey(resolveTabKey(restoredPath), restoredPath, scope),
+    );
+    return parseFormDraftMetadata<HblBundle>(saved?.__draftMetadata) ?? initial;
+  });
+  const [baseline, setBaseline] = useState(restoredBaseline);
+  const [savedOutputBaseline, setSavedOutputBaseline] = useState(initial);
+  const [outputChanged, setOutputChanged] = useState(false);
+  const [restoredMismatch, setRestoredMismatch] = useState(
+    () =>
+      hblBundleFingerprint(restoredBaseline) !== hblBundleFingerprint(initial),
+  );
+  const [initialValues] = useState(() => buildHblFormValues(restoredBaseline));
   const [baselineValues, setBaselineValues] = useState(initialValues);
   const [variant, setVariant] = useState<HblPdfVariant>('draft');
   const [preview, setPreview] = useState<HblPdfModel>();
@@ -137,12 +156,22 @@ export default function HblEditor({
       ),
   });
   const busy = saveMutation.isPending || refreshing || checkingPreview;
-  const notice = useHblChangeNotice(baseline, scope, busy);
+  const observedNotice = useHblChangeNotice(
+    baseline,
+    scope,
+    busy,
+    savedOutputBaseline,
+  );
+  const notice = {
+    ...observedNotice,
+    changed: restoredMismatch || observedNotice.changed,
+  };
   useEffect(() => {
     if (notice.changed) setPreview(undefined);
   }, [notice.changed]);
   const disabled =
     !canUpdate ||
+    notice.changed ||
     policy.disabled ||
     busy ||
     syncError ||
@@ -155,13 +184,19 @@ export default function HblEditor({
       ? hblValuesFingerprint(values) !== hblValuesFingerprint(baselineValues)
       : false;
   };
-  useRouteLeaveGuard(tabKey, hasChanges, scope);
   // 模板只在输入事件标脏；显式带入也是编辑，此守卫按完整表单快照保护工作区切换。
-  useTabCloseGuard({ tabKey, isDirty: hasChanges });
+  useTabCloseGuard({
+    tabKey,
+    draftKey: getFormDraftKey(tabKey, path, scope),
+    isDirty: hasChanges,
+  });
 
   const acceptBundle = (bundle: HblBundle) => {
     if (!alive.current) return;
     const values = buildHblFormValues(bundle);
+    setRestoredMismatch(false);
+    setSavedOutputBaseline(bundle);
+    setOutputChanged(false);
     setBaseline(bundle);
     setBaselineValues(values);
     setSyncError(false);
@@ -217,6 +252,9 @@ export default function HblEditor({
       message.error('制作草稿与当前 HBL 不一致，输入已保留，请刷新后重试。');
       return false;
     }
+    const clearSubmittedDraft = prepareFormDraftClear(
+      getFormDraftKey(tabKey, path, scope),
+    );
     setRefreshing(true);
     try {
       const response = await saveMutation.mutateAsync({
@@ -233,7 +271,11 @@ export default function HblEditor({
           ...hblFormPayload(values),
         },
       });
-      if (!alive.current || !isWriteResponse(response, true)) return false;
+      if (!isWriteResponse(response, true)) return false;
+      if (!alive.current) {
+        clearSubmittedDraft();
+        return true;
+      }
       const saved = response.data as API.SeaHouseBill;
       const savedBundle = {
         order,
@@ -379,26 +421,60 @@ export default function HblEditor({
     );
   };
 
+  const readOnlyOutput = !canUpdate || policy.disabled;
+  const outputBaseline = readOnlyOutput ? savedOutputBaseline : baseline;
+  const outputInvalid =
+    outputChanged ||
+    (readOnlyOutput &&
+      Boolean(
+        observedNotice.observedSnapshot &&
+          hblBundleFingerprint(observedNotice.observedSnapshot) !==
+            hblBundleFingerprint(outputBaseline),
+      ));
+  useEffect(() => {
+    if (outputInvalid) setPreview(undefined);
+  }, [outputInvalid]);
   const requestPreview = async () => {
-    const blocked = hblOutputBlockedReason(baseline);
+    const blocked = hblOutputBlockedReason(outputBaseline);
     if (blocked) {
       message.warning(blocked);
       return;
     }
-    if (hasChanges()) {
+    if (!readOnlyOutput && hasChanges()) {
       message.warning('请先保存制作修改，再预览、打印或下载。');
       return;
     }
     setCheckingPreview(true);
     try {
-      if (!(await notice.verifyCurrent()) || !alive.current) return;
+      if (readOnlyOutput) {
+        const current = await client.fetchQuery({
+          queryKey: ['orders', 'hbl-output-check', { orderId, scope }],
+          queryFn: ({ signal }) =>
+            fetchHblBundle(orderId, initial.order, signal),
+          staleTime: 0,
+          meta: { silent: true },
+        });
+        if (!alive.current) return;
+        if (
+          hblBundleFingerprint(current) !== hblBundleFingerprint(outputBaseline)
+        ) {
+          setOutputChanged(true);
+          setPreview(undefined);
+          message.warning('这个订单已经发生变动，请重新刷新。');
+          return;
+        }
+      } else if (!(await notice.verifyCurrent()) || !alive.current) return;
+      const outputHouse = outputBaseline.documents.houseBill;
+      const outputArchive = isExternalHblArchive(outputBaseline);
       setPreview({
-        houseNo: house?.houseNo ?? '',
-        issuerNameEn: house?.issuerOrganizationNameEn ?? '',
-        outputKind: isArchive ? 'external-archive' : undefined,
-        issuerDisplayName: isArchive ? house?.issuerPartnerName : undefined,
-        savedVersion: house?.version,
-        ...hblFormPayload(baselineValues),
+        houseNo: outputHouse?.houseNo ?? '',
+        issuerNameEn: outputHouse?.issuerOrganizationNameEn ?? '',
+        outputKind: outputArchive ? 'external-archive' : undefined,
+        issuerDisplayName: outputArchive
+          ? outputHouse?.issuerPartnerName
+          : undefined,
+        savedVersion: outputHouse?.version,
+        ...hblFormPayload(buildHblFormValues(outputBaseline)),
       });
     } catch (error) {
       if (alive.current)
@@ -411,7 +487,7 @@ export default function HblEditor({
   };
 
   const unavailable = hblUnavailableReason(baseline);
-  const outputBlocked = hblOutputBlockedReason(baseline);
+  const outputBlocked = hblOutputBlockedReason(outputBaseline);
   useEffect(() => {
     window.dispatchEvent(
       new CustomEvent('roncin:update-tab-title', {
@@ -424,7 +500,7 @@ export default function HblEditor({
     <Button
       icon={<EyeOutlined />}
       loading={checkingPreview}
-      disabled={busy || Boolean(outputBlocked)}
+      disabled={busy || outputInvalid || Boolean(outputBlocked)}
       onClick={() => void requestPreview()}
     >
       预览 / 打印 / 下载
@@ -461,6 +537,7 @@ export default function HblEditor({
         tabKey={tabKey}
         draftPathname={path}
         draftScope={scope}
+        draftMetadata={baseline}
         showAnchorNav={false}
         header={
           <PageHeaderShell
@@ -514,7 +591,7 @@ export default function HblEditor({
                     ? `${house?.issuerPartnerName ?? ''} · 外部提单登记资料（归档），保存和输出不代表本公司签发或办理放货。`
                     : `${house?.issuerOrganizationName ?? ''} · 四种版本可直接选择，输出不会改变订单审核或放单状态。`}
                 </Typography.Text>
-                {notice.changed && (
+                {(notice.changed || outputInvalid) && (
                   <Alert
                     type="warning"
                     showIcon

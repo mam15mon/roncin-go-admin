@@ -20,6 +20,7 @@ import {
   OrganizationWorkspace,
 } from '@/components/layout/OrganizationWorkspace';
 import { resolveTabKey } from '@/components/layout/routeUtils';
+import { WorkspaceRouteLeavePrompt } from '@/components/layout/useRouteLeaveGuard';
 import {
   buildWorkspaceMenus,
   resolveWorkspaceMenuKey,
@@ -261,6 +262,7 @@ export function AppLayout() {
     >
       {!workspaceSuspended && (
         <OrganizationWorkspace key={getOrganizationWorkspaceKey(currentUser)}>
+          <WorkspaceRouteLeavePrompt />
           {navigationErrorKey === location.key ? (
             <RouteErrorPage />
           ) : (

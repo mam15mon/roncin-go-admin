@@ -1,136 +1,23 @@
-import type { ActionType } from '@ant-design/pro-components';
 import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
-import {
-  act,
-  fireEvent,
-  screen,
-  waitFor,
-  within,
-} from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
-import type React from 'react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
-  orderFeeServiceListFees,
-  orderFeeServiceResolveFeeExchangeRate,
-} from '@/services/roncin/orderFeeService';
-import { RECEIVABLE } from './feeConstants';
-import OrderFeeTableTabs from './OrderFeeTableTabs';
+  hideColumns,
+  makeProps,
+  OrderFeeTableTabs,
+  STORAGE_KEY,
+  setupFeeColumnsTests,
+  tableHeaderCount,
+} from './OrderFeeTableTabs.feeColumns.fixtures';
 
 vi.mock('@/services/roncin/orderFeeService', () => ({
   orderFeeServiceListFees: vi.fn(),
   orderFeeServiceResolveFeeExchangeRate: vi.fn(),
 }));
 
-const listFees = vi.mocked(orderFeeServiceListFees);
-const resolveRate = vi.mocked(orderFeeServiceResolveFeeExchangeRate);
-
-const SCOPE = { userId: 'user-9', organizationId: 'org-9' };
-const STORAGE_KEY = 'roncin:order-fee-columns:v1:user-9:org-9';
-
-function makeProps(orderId: string) {
-  return {
-    orderId,
-    receivableActionRef: {
-      current: undefined,
-    } as React.RefObject<ActionType | undefined>,
-    payableActionRef: {
-      current: undefined,
-    } as React.RefObject<ActionType | undefined>,
-    receivableSummary: {
-      count: 0,
-      gross: '0',
-      net: '0',
-      unconvertedCount: 0,
-      currencies: [],
-    },
-    payableSummary: {
-      count: 0,
-      gross: '0',
-      net: '0',
-      unconvertedCount: 0,
-      currencies: [],
-    },
-    selectedReceivableFeeIds: [],
-    setSelectedReceivableFeeIds: vi.fn(),
-    selectedPayableFeeIds: [],
-    setSelectedPayableFeeIds: vi.fn(),
-    setAllReceivableItems: vi.fn(),
-    setAllPayableItems: vi.fn(),
-    setReceivableSummary: vi.fn(),
-    setPayableSummary: vi.fn(),
-    canCreateFinanceBills: false,
-    canCreateFees: true,
-    canUpdateFees: true,
-    canDeleteFees: true,
-    feeWritesDisabled: true,
-    onOpenBillWorkbench: vi.fn(),
-    getTableColumns: undefined,
-    columnSettingScope: SCOPE,
-  };
-}
-
-const taxFee = {
-  canEdit: true,
-  canBill: true,
-  id: 'fee-tax-1',
-  direction: RECEIVABLE,
-  currency: 'USD',
-  createdAt: '2026-09-20T14:30:00+08:00',
-  version: '3',
-  feeName: '海运费',
-  taxRate: '6',
-  taxAmount: '5.66',
-  netAmount: '94.34',
-  baseCurrency: 'CNY',
-  baseCurrencyAmount: '700.00',
-  taxInclusive: true,
-} as API.OrderFee;
-
-/** 表格列头数量（应收/应付两表各一份，共 2；隐藏列为 0；不含弹窗内同名文本）。 */
-function tableHeaderCount(title: string) {
-  return screen.queryAllByRole('columnheader', { name: title }).length;
-}
-
-async function openColumnSettings() {
-  await act(async () => {
-    screen.getAllByRole('button', { name: /列设置/ })[0].click();
-  });
-  await screen.findByPlaceholderText('搜索列名');
-}
-
-/** 在列设置弹窗中找到指定列的复选框输入。 */
-async function columnCheckbox(title: string) {
-  const dialog = await screen.findByRole('dialog', { name: '列设置' });
-  return within(dialog).getByRole('checkbox', {
-    name: title,
-  }) as HTMLInputElement;
-}
-
-/** 打开列设置、取消若干列的勾选；弹窗内操作即时生效并持久化。 */
-async function hideColumns(titles: string[]) {
-  await openColumnSettings();
-  for (const title of titles) {
-    const checkbox = await columnCheckbox(title);
-    await act(async () => {
-      fireEvent.click(checkbox);
-    });
-  }
-}
-
 describe('OrderFeeTableTabs 列设置与只读金额列', () => {
-  beforeEach(() => {
-    window.localStorage.clear();
-    listFees.mockReset();
-    listFees.mockResolvedValue({
-      data: [taxFee],
-    } as Awaited<ReturnType<typeof listFees>>);
-    resolveRate.mockReset();
-    resolveRate.mockResolvedValue({
-      exchangeRate: '1.0000',
-      exchangeRateSource: 'SYSTEM',
-    } as Awaited<ReturnType<typeof resolveRate>>);
-  });
+  setupFeeColumnsTests();
 
   it('税额相关列默认可见展示后端快照；列设置取消勾选后隐藏并持久化（A1/A3）', async () => {
     render(
@@ -197,50 +84,5 @@ describe('OrderFeeTableTabs 列设置与只读金额列', () => {
       ]);
     }
     expect(tableHeaderCount('录入日期')).toBe(0);
-  });
-
-  it('正在编辑费用行时禁用列设置入口（A2）', async () => {
-    const props = {
-      ...makeProps('order-1'),
-      feeWritesDisabled: false,
-      billingUnits: [{ id: 'unit-piao', code: 'PIAO', name: '票' }],
-    };
-    render(
-      <App>
-        <OrderFeeTableTabs {...props} />
-      </App>,
-    );
-    await waitFor(() =>
-      expect(
-        document.querySelector('tr[data-row-key="fee-tax-1"]'),
-      ).not.toBeNull(),
-    );
-
-    const settingsButton = screen.getAllByRole('button', {
-      name: /列设置/,
-    })[0];
-    expect(settingsButton).not.toBeDisabled();
-
-    await act(async () => {
-      screen.getByRole('button', { name: /新增应收费用/ }).click();
-    });
-    await waitFor(() =>
-      expect(document.querySelector('tr[data-row-key^="new_"]')).not.toBeNull(),
-    );
-    expect(settingsButton).toBeDisabled();
-  });
-
-  it('必显列在列设置中勾选锁定且不可取消（A2）', async () => {
-    render(
-      <App>
-        <OrderFeeTableTabs {...makeProps('order-1')} />
-      </App>,
-    );
-    await screen.findByText('海运费');
-
-    await openColumnSettings();
-    const lockedCheckbox = await columnCheckbox('费用名称');
-    expect(lockedCheckbox).toBeDisabled();
-    expect(lockedCheckbox.checked).toBe(true);
   });
 });

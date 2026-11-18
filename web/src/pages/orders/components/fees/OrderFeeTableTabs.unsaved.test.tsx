@@ -219,3 +219,68 @@ it('编辑后被外部审核锁定仍保留离开保护，不能因变只读丢�
   expect(confirmIfAnyTabDirty(vi.fn(), confirmation)).toBe(false);
   expect(confirmation).toHaveBeenCalledOnce();
 });
+
+it('前后台页签重挂保留两侧输入，保存仍使用编辑时的费用版本', async () => {
+  sessionStorage.clear();
+  const props = {
+    ...makeProps(),
+    columnSettingScope: { userId: 'fee-user', organizationId: 'fee-company' },
+  };
+  const first = render(
+    <App>
+      <OrderFeeTableTabs {...props} />
+    </App>,
+  );
+  const rowInput = async (direction: number) => {
+    const row = await waitFor(() => {
+      const element = document.querySelector(
+        `tr[data-row-key="fee-${direction}"]`,
+      );
+      expect(element).not.toBeNull();
+      return element as HTMLElement;
+    });
+    return within(row).findByPlaceholderText('备注（可选）');
+  };
+  fireEvent.change(await rowInput(RECEIVABLE), {
+    target: { value: '应收跨页输入' },
+  });
+  fireEvent.change(await rowInput(PAYABLE), {
+    target: { value: '应付跨页输入' },
+  });
+  first.unmount();
+  listFees.mockResolvedValue({ data: [] });
+  vi.mocked(orderFeeServiceSaveOrderFees).mockResolvedValue({ success: true });
+  const restoredPage = render(
+    <App>
+      <OrderFeeTableTabs {...props} />
+    </App>,
+  );
+  await waitFor(async () => {
+    expect(await rowInput(RECEIVABLE)).toHaveValue('应收跨页输入');
+    expect(await rowInput(PAYABLE)).toHaveValue('应付跨页输入');
+  });
+  fireEvent.click(screen.getByRole('button', { name: /保存应收费用/ }));
+  await waitFor(() => expect(orderFeeServiceSaveOrderFees).toHaveBeenCalled());
+  const request = vi
+    .mocked(orderFeeServiceSaveOrderFees)
+    .mock.calls.at(-1)?.[1];
+  expect(request?.rows?.[0]?.expectedVersion).toBe('1');
+  expect(await rowInput(PAYABLE)).toHaveValue('应付跨页输入');
+  let completeSave: ((value: { success: boolean }) => void) | undefined;
+  vi.mocked(orderFeeServiceSaveOrderFees).mockReturnValueOnce(
+    new Promise((resolve) => {
+      completeSave = resolve;
+    }),
+  );
+  fireEvent.click(screen.getByRole('button', { name: /保存应付费用/ }));
+  await waitFor(() =>
+    expect(orderFeeServiceSaveOrderFees).toHaveBeenCalledTimes(2),
+  );
+  restoredPage.unmount();
+  await act(async () => {
+    completeSave?.({ success: true });
+  });
+  expect(
+    Object.keys(sessionStorage).filter((key) => key.includes('tab-draft')),
+  ).toHaveLength(0);
+});

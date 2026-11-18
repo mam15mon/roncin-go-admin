@@ -26,7 +26,25 @@ import {
   Tag,
   Tooltip,
 } from 'antd';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  captureFormDraftSession,
+  clearFormDraft,
+  discardFormDraft,
+  getFormDraft,
+  getFormDraftKey,
+  getFormDraftScope,
+  hasFormDraft,
+  prepareFormDraftClear,
+  saveFormDraft,
+} from '@/components/layout/formDraft';
+import { resolveTabKey } from '@/components/layout/routeUtils';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import {
   ColumnSettingsEntry,
@@ -184,7 +202,13 @@ type RowEditPreview = {
   rateReset?: boolean;
 };
 
+export type OrderFeeDraftActions = {
+  discard: () => void;
+  hasDraft: () => boolean;
+};
+
 interface OrderFeeTableTabsProps {
+  draftActionsRef?: React.RefObject<OrderFeeDraftActions | undefined>;
   orderId: string;
   receivableActionRef: React.RefObject<ActionType | undefined>;
   payableActionRef: React.RefObject<ActionType | undefined>;
@@ -241,6 +265,7 @@ interface OrderFeeTableTabsProps {
 }
 
 export default function OrderFeeTableTabs({
+  draftActionsRef,
   orderId,
   receivableActionRef,
   payableActionRef,
@@ -280,6 +305,70 @@ export default function OrderFeeTableTabs({
   onSavingChange,
 }: OrderFeeTableTabsProps) {
   const { message } = App.useApp();
+  const location = history.location;
+  const draftScope = getFormDraftScope(
+    columnSettingScope?.userId,
+    columnSettingScope?.organizationId,
+  );
+  const draftKeys = useMemo<Record<number, string>>(
+    () => ({
+      [RECEIVABLE]: getFormDraftKey(
+        resolveTabKey(location.pathname),
+        `${location.pathname}${location.search}:receivable`,
+        draftScope,
+      ),
+      [PAYABLE]: getFormDraftKey(
+        resolveTabKey(location.pathname),
+        `${location.pathname}${location.search}:payable`,
+        draftScope,
+      ),
+    }),
+    [location.pathname, location.search, draftScope],
+  );
+  const draftSessions = useMemo<Record<number, object | undefined>>(
+    () => ({
+      [RECEIVABLE]: captureFormDraftSession(draftKeys[RECEIVABLE]),
+      [PAYABLE]: captureFormDraftSession(draftKeys[PAYABLE]),
+    }),
+    [draftKeys],
+  );
+  useLayoutEffect(() => {
+    if (!draftActionsRef) return;
+    const actions = {
+      hasDraft: () =>
+        [RECEIVABLE, PAYABLE].some((direction) =>
+          hasFormDraft(draftKeys[direction]),
+        ),
+      discard: () => {
+        for (const direction of [RECEIVABLE, PAYABLE])
+          discardFormDraft(draftKeys[direction], draftSessions[direction]);
+      },
+    };
+    draftActionsRef.current = actions;
+    return () => {
+      if (draftActionsRef.current === actions)
+        draftActionsRef.current = undefined;
+    };
+  }, [draftActionsRef, draftKeys, draftSessions]);
+  type FeeSideDraft = {
+    baseline: API.OrderFee[];
+    drafts: [string, API.OrderFee][];
+    values: Record<string, API.OrderFee>;
+    request?: { fingerprint: string; key: string };
+  };
+  const restoredDrafts = useMemo<Record<number, FeeSideDraft | null>>(
+    () => ({
+      [RECEIVABLE]: getFormDraft<FeeSideDraft>(draftKeys[RECEIVABLE]),
+      [PAYABLE]: getFormDraft<FeeSideDraft>(draftKeys[PAYABLE]),
+    }),
+    [draftKeys],
+  );
+  const loadedDraftSides = useRef(new Set<number>());
+  const restoredFormSides = useRef(new Set<number>());
+  const persistenceRef = useMemo<{ current: (direction: number) => void }>(
+    () => ({ current: () => undefined }),
+    [draftKeys],
+  );
   const currentOrderIdRef = useRef(orderId);
   const localReloadRef = useRef(new Set<number>());
   const mountedRef = useRef(true);
@@ -339,10 +428,12 @@ export default function OrderFeeTableTabs({
   const receivableGuard = useUnsavedChangesGuard({
     enabled: Boolean(orderId),
     identity: orderId,
+    draftKey: draftKeys[RECEIVABLE],
   });
   const payableGuard = useUnsavedChangesGuard({
     enabled: Boolean(orderId),
     identity: orderId,
+    draftKey: draftKeys[PAYABLE],
   });
   const sideName = (direction: number) =>
     direction === RECEIVABLE ? 'receivable' : 'payable';
@@ -358,6 +449,7 @@ export default function OrderFeeTableTabs({
     );
   };
   const clearDirty = (direction: number) => {
+    clearFormDraft(draftKeys[direction], draftSessions[direction]);
     if (direction === RECEIVABLE) receivableGuard.resetDirty();
     else payableGuard.resetDirty();
     setDirty((prev) =>
@@ -503,8 +595,10 @@ export default function OrderFeeTableTabs({
           row.canEdit === true &&
           feeRowChanged({ ...row, ...form?.getFieldValue([row.id]) }, row),
       );
-    if (changed) markDirty(direction);
-    else clearDirty(direction);
+    if (changed) {
+      markDirty(direction);
+      persistenceRef.current(direction);
+    } else clearDirty(direction);
   };
 
   /** 由选中 ID 解析可执行批量操作的目标行：仅已保存且带版本的行。 */
@@ -716,8 +810,15 @@ export default function OrderFeeTableTabs({
     });
   }, [receivableEditable, payableEditable]);
 
+  const lastResetIdentity = useRef({ orderId, reloadToken });
   // 切换订单或外部确认刷新后：丢弃全部草稿状态，表格随 key 重建并重新加载。
   useEffect(() => {
+    if (
+      lastResetIdentity.current.orderId === orderId &&
+      lastResetIdentity.current.reloadToken === reloadToken
+    )
+      return;
+    lastResetIdentity.current = { orderId, reloadToken };
     localReloadRef.current.clear();
     setRowPreviews({});
     setRateRequests({ scope: rateScope, rows: {} });
@@ -729,7 +830,51 @@ export default function OrderFeeTableTabs({
     for (const rows of Object.values(draftRowsRef.current)) rows.clear();
     receivableGuard.resetDirty();
     payableGuard.resetDirty();
+    for (const direction of [RECEIVABLE, PAYABLE])
+      clearFormDraft(draftKeys[direction], draftSessions[direction]);
   }, [orderId, reloadToken]);
+
+  persistenceRef.current = (direction) => {
+    const isDirty = direction === RECEIVABLE ? dirty.receivable : dirty.payable;
+    if (
+      (!isDirty && draftRowsRef.current[direction].size === 0) ||
+      !formRefOf(direction).current
+    )
+      return;
+    saveFormDraft(
+      draftKeys[direction],
+      {
+        baseline: getDirectionItems(direction),
+        drafts: [...draftRowsRef.current[direction]],
+        values: formRefOf(direction).current?.getFieldsValue(true) ?? {},
+        request: requestKeyHoldersRef.current[direction].snapshot(),
+      } satisfies FeeSideDraft,
+      draftSessions[direction],
+    );
+  };
+  useLayoutEffect(() => {
+    for (const direction of [RECEIVABLE, PAYABLE]) {
+      const draft = restoredDrafts[direction];
+      const form = formRefOf(direction).current;
+      if (
+        draft &&
+        loadedDraftSides.current.has(direction) &&
+        form &&
+        !restoredFormSides.current.has(direction)
+      ) {
+        restoredFormSides.current.add(direction);
+        form.setFieldsValue(draft.values);
+      }
+      persistenceRef.current(direction);
+    }
+  });
+  useLayoutEffect(
+    () => () => {
+      persistenceRef.current(RECEIVABLE);
+      persistenceRef.current(PAYABLE);
+    },
+    [draftKeys],
+  );
 
   // 默认计费单位：优先查找“票”（PIAO / 包含票），否则选用首项
   const defaultBillingUnit =
@@ -1066,6 +1211,11 @@ export default function OrderFeeTableTabs({
       }),
     );
     const requestKey = requestKeyHoldersRef.current[direction].keyFor(rows);
+    persistenceRef.current(direction);
+    const clearSubmittedDraft = prepareFormDraftClear(
+      draftKeys[direction],
+      draftSessions[direction],
+    );
     setRowErrors((prev) => ({ ...prev, [side]: [], rateDetail: undefined }));
     try {
       const response = await orderFeeServiceSaveOrderFees(
@@ -1073,7 +1223,9 @@ export default function OrderFeeTableTabs({
         { orderId, direction, requestKey, rows },
         { skipErrorHandler: true },
       );
-      if (currentOrderIdRef.current !== requestedOrderId) return;
+      if (response && response.success !== false) clearSubmittedDraft();
+      if (!mountedRef.current || currentOrderIdRef.current !== requestedOrderId)
+        return;
       if (!response || response.success === false) {
         message.error('未能确认保存结果，原样重试不会重复新增');
         return;
@@ -1099,7 +1251,8 @@ export default function OrderFeeTableTabs({
       }
       onFeeSaved?.(response.feeContentVersion);
     } catch (error) {
-      if (currentOrderIdRef.current !== requestedOrderId) return;
+      if (!mountedRef.current || currentOrderIdRef.current !== requestedOrderId)
+        return;
       const parsed = parseFeeSaveError(error);
       const rateDetail = describeRateMissing({
         reason: parsed.reason,
@@ -1890,6 +2043,23 @@ export default function OrderFeeTableTabs({
           .map((fee) => String(fee.id)),
       ]);
       return { data: withDrafts(items), success: true };
+    }
+    const restored = restoredDrafts[direction];
+    if (restored && !loadedDraftSides.current.has(direction)) {
+      loadedDraftSides.current.add(direction);
+      draftRowsRef.current[direction] = new Map(restored.drafts);
+      requestKeyHoldersRef.current[direction].restore(restored.request);
+      refs.latest.current = { orderId, items: restored.baseline };
+      refs.setAll(restored.baseline);
+      refs.setSummary(summarizeFees(restored.baseline));
+      refs.setKeys([
+        ...restored.drafts.map(([key]) => key),
+        ...restored.baseline
+          .filter((row) => row.id && row.canEdit)
+          .map((row) => String(row.id)),
+      ]);
+      markDirty(direction);
+      return { data: withDrafts(restored.baseline), success: true };
     }
     try {
       const res = await orderFeeServiceListFees({ orderId });

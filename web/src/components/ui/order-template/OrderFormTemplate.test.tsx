@@ -336,7 +336,7 @@ describe('OrderFormTemplate Component', () => {
     expect(isTabDirty(tabKey)).toBe(true);
   });
 
-  it('初始 readonly 时不读取持久草稿，首次解除 readonly 后只恢复一次', () => {
+  it('初始只读时恢复草稿，切换锁状态保留同一份输入', () => {
     const tabKey = resolveTabKey(DRAFT_PATHNAME);
     const draftKey = getFormDraftKey(tabKey, DRAFT_PATHNAME, draftScope);
     sessionStorage.setItem(
@@ -369,11 +369,10 @@ describe('OrderFormTemplate Component', () => {
       />,
     );
 
-    expect(screen.getByText('SERVER-ORIGINAL')).toBeInTheDocument();
-    expect(screen.queryByText('DRAFT-DIRTY')).not.toBeInTheDocument();
-    expect(isTabDirty(tabKey)).toBe(false);
+    expect(screen.getByText('DRAFT-DIRTY')).toBeInTheDocument();
+    expect(isTabDirty(tabKey)).toBe(true);
 
-    // 首次解除 readonly：恢复草稿一次
+    // 解锁时继续编辑已经恢复的值。
     rerender(
       <OrderFormTemplate
         readonly={false}

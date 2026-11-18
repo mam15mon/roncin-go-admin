@@ -65,6 +65,7 @@ function table() {
 
 describe('行内费用数量带入', () => {
   beforeEach(() => {
+    sessionStorage.clear();
     window.history.replaceState({}, '', '/orders/sea-export/order-1/fees');
     vi.mocked(orderFeeServiceListFees).mockResolvedValue({
       data: [

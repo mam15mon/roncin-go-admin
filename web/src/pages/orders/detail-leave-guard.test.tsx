@@ -1,17 +1,7 @@
-import {
-  act,
-  fireEvent,
-  screen,
-  waitFor,
-  within,
-} from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import { Link, useLocation } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  getFormDraftKey,
-  hasFormDraft,
-  saveFormDraft,
-} from '@/components/layout/formDraft';
+import { getFormDraftKey, hasFormDraft } from '@/components/layout/formDraft';
 import { resolveTabKey } from '@/components/layout/routeUtils';
 import {
   _clearAllTabCloseGuards,
@@ -99,47 +89,28 @@ afterEach(() => _clearAllTabCloseGuards());
 
 describe('订单详情真实路由离开保护', () => {
   it.each(['sea-export', 'air-export'])(
-    '%s 切换前确认，取消保留输入，确认后返回不恢复草稿',
+    '%s 切换时保留输入，返回后恢复草稿与原提交版本',
     async (kind) => {
       state.routeKind = kind;
       const path = `/orders/${kind}/${state.routeId}`;
       const key = getFormDraftKey(resolveTabKey(path), path, 'user-1:org-1');
-      saveFormDraft(key, {
-        version: '1',
-        customerReferenceNo: '退役详情草稿',
-        containerRequests: null,
-      });
       const { router } = mount();
       expect(screen.getByLabelText('客户业务编号')).toHaveValue(
         '服务端业务编号',
       );
-      expect(isTabDirty(resolveTabKey(path), 'user-1:org-1')).toBe(false);
       editReference();
+      const originalVersion = state.form?.getFieldValue('version');
+      expect(hasFormDraft(key)).toBe(true);
       fireEvent.click(screen.getByText('前往工作台'));
-      const dialog = await screen.findByRole('dialog');
-      expect(dialog).toHaveTextContent('有未保存的修改，是否放弃并离开？');
-      fireEvent.click(within(dialog).getByRole('button', { name: '继续编辑' }));
-      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-      expect(router.state.location.pathname).toBe(path);
-      expect(screen.getByLabelText('客户业务编号')).toHaveValue(
-        '未保存业务编号',
-      );
-      expect(state.form?.getFieldValue('version')).toBe(
-        kind === 'sea-export' ? '4' : undefined,
-      );
-      fireEvent.click(screen.getByText('前往工作台'));
-      fireEvent.click(
-        await screen.findByRole('button', { name: '放弃并离开' }),
-      );
       await screen.findByText('工作台页面');
+      expect(screen.queryByRole('dialog')).toBeNull();
+      expect(router.state.location.pathname).toBe('/welcome');
       fireEvent.click(screen.getByText('重新打开订单'));
       expect(await screen.findByLabelText('客户业务编号')).toHaveValue(
-        '服务端业务编号',
+        '未保存业务编号',
       );
-      // 遗留记录既不读取也不更新，更不会转换成新的恢复会话。
-      expect(
-        JSON.parse(sessionStorage.getItem(key) ?? '{}').customerReferenceNo,
-      ).toBe('退役详情草稿');
+      expect(state.form?.getFieldValue('version')).toBe(originalVersion);
+      expect(isTabDirty(resolveTabKey(path), 'user-1:org-1')).toBe(true);
     },
   );
 
@@ -177,9 +148,6 @@ describe('订单详情真实路由离开保护', () => {
     expect(isTabDirty('/orders/sea-export/order-1')).toBe(true);
     expect(state.form?.getFieldValue('version')).toBe('4');
     expect(screen.getByLabelText('客户业务编号')).toHaveValue('未保存业务编号');
-    fireEvent.click(screen.getByText('前往工作台'));
-    fireEvent.click(await screen.findByRole('button', { name: '继续编辑' }));
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     await save();
     expect(isTabDirty('/orders/sea-export/order-1')).toBe(false);
     expect(

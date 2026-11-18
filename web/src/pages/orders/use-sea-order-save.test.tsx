@@ -9,6 +9,11 @@ import {
 } from '@testing-library/react';
 import { useState } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  getFormDraft,
+  getFormDraftKey,
+  saveFormDraft,
+} from '@/components/layout/formDraft';
 import { orderErrorReasons } from '@/errorReasons.generated';
 import { orderServiceUpdateOrder } from '@/services/roncin/orderService';
 import { useSeaOrderSave } from './use-sea-order-save';
@@ -63,6 +68,44 @@ function Harness({ reload }: { reload: () => Promise<void> }) {
 }
 beforeEach(() => vi.clearAllMocks());
 describe('整页保存提交生命周期', () => {
+  it.each([false, true])(
+    '离开后确认保存成功，仅清理原快照（后续编辑=%s）',
+    async (editedAgain) => {
+      const key = getFormDraftKey(
+        '/orders/sea-export/order-1',
+        '/orders/sea-export/order-1',
+        'user:org',
+      );
+      saveFormDraft(key, { notes: '提交快照' });
+      let finish!: (value: API.UpdateOrderResponse) => void;
+      update.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            finish = resolve;
+          }),
+      );
+      const reload = vi.fn();
+      const first = renderHook(() => useSeaOrderSave('A', reload, key));
+      let pending!: Promise<boolean>;
+      act(() => {
+        pending = first.result.current.submit({
+          id: 'order-1',
+          expectedVersion: '3',
+        });
+      });
+      first.unmount();
+      if (editedAgain) saveFormDraft(key, { notes: '后续编辑' });
+      await act(async () => {
+        finish({ success: true, data: { id: 'order-1' } });
+        await pending;
+      });
+      expect(getFormDraft(key)).toEqual(
+        editedAgain ? { notes: '后续编辑' } : null,
+      );
+      expect(reload).not.toHaveBeenCalled();
+      sessionStorage.clear();
+    },
+  );
   it('真实表单onFinish一次写入后刷新，失败保留输入', async () => {
     update.mockRejectedValueOnce({
       response: {

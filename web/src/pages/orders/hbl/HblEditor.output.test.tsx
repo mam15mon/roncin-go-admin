@@ -44,9 +44,9 @@ describe('HBL 制作输出边界', () => {
     expect(state.preview.mock.calls.at(-1)?.[0].variant).toBe('draft');
     expect(state.save).not.toHaveBeenCalled();
   });
-  it('已锁定时不恢复待保存草稿，仍可输出已保存正文并保留原草稿', async () => {
+  it('已锁定重挂仍显示并保护草稿，但输出只使用复核后的已保存正文', async () => {
     const draftKey = getFormDraftKey(
-      '/orders/sea-export',
+      '/orders/sea-export/order-1/hbl',
       '/orders/sea-export/order-1/hbl',
       'user-1:org-1',
     );
@@ -56,6 +56,7 @@ describe('HBL 制作输出边界', () => {
     });
     state.locked = true;
     renderEditor();
+    expect(screen.getByText('不可用作已保存内容的草稿')).toBeVisible();
     await preview();
     expect(state.preview.mock.calls.at(-1)?.[0].model.content.shipperText).toBe(
       '原发货人',

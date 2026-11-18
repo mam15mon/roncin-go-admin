@@ -16,8 +16,8 @@ import { bindRouter } from '@/router/history';
 import { setAppFeedback } from '@/utils/appFeedback';
 import { getFormDraftKey, hasFormDraft, saveFormDraft } from './formDraft';
 import { TagsView } from './TagsView';
-import { _clearAllTabCloseGuards, isTabDirty } from './tabCloseGuard';
-import { useRouteLeaveGuard } from './useRouteLeaveGuard';
+import { _clearAllTabCloseGuards } from './tabCloseGuard';
+import { WorkspaceRouteLeavePrompt } from './useRouteLeaveGuard';
 
 const clearQueries = vi.fn();
 vi.mock('@/components/ui/list-query-state', () => ({
@@ -61,12 +61,11 @@ vi.mock('antd', async (original) => ({
 }));
 
 function Editor() {
-  useRouteLeaveGuard('/orders/sea-export/order-1', () =>
-    isTabDirty('/orders/sea-export/order-1'),
-  );
   return (
     <OrderFormTemplate
       tabKey="/orders/sea-export/order-1"
+      draftPathname="/orders/sea-export/order-1"
+      draftScope="user:company"
       initialValues={{ customerReferenceNo: '原编号' }}
       sections={[
         {
@@ -88,6 +87,7 @@ function Workspace() {
   return (
     <>
       <TagsView />
+      <WorkspaceRouteLeavePrompt />
       {location.pathname.startsWith('/orders/sea-export/') ? (
         <Editor />
       ) : (
@@ -129,6 +129,11 @@ describe('关闭全部标签页的真实路由确认', () => {
     fireEvent.change(screen.getByLabelText('客户业务编号'), {
       target: { value: '未保存编号' },
     });
+    await act(async () => router.navigate('/welcome'));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    await act(async () => router.navigate('/orders/sea-export/order-1'));
+    expect(screen.getByLabelText('客户业务编号')).toHaveValue('未保存编号');
+
     const workbenchMenu = screen.getByText('工作台').closest('section');
     if (!workbenchMenu) throw new Error('缺少工作台菜单');
     const closeAll = within(workbenchMenu).getByRole('button', {
@@ -152,6 +157,8 @@ describe('关闭全部标签页的真实路由确认', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     expect(screen.getAllByRole('tab')).toHaveLength(1);
     expect(hasFormDraft(newDraft)).toBe(false);
+    await act(async () => router.navigate('/orders/sea-export/order-1'));
+    expect(screen.getByLabelText('客户业务编号')).toHaveValue('原编号');
     expect(clearQueries).toHaveBeenCalledExactlyOnceWith([
       '/orders/air-export/new',
       '/orders/sea-export/order-1',

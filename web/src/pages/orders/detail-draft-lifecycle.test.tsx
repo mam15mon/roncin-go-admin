@@ -361,7 +361,7 @@ describe('订单详情页未保存修改与记录身份', () => {
     await flushMountFetches();
   });
 
-  it('详情 A 原地导航到 B 后，忽略 B 的遗留草稿并保持干净', async () => {
+  it('详情 A 原地导航到 B 后，重建表单并提供 B 的独立草稿身份', async () => {
     const tabKey = resolveTabKey('/orders/sea-export/ord-B');
     saveFormDraft(
       getFormDraftKey(
@@ -391,9 +391,9 @@ describe('订单详情页未保存修改与记录身份', () => {
     await waitFor(() => {
       expect(screen.getByLabelText('客户参考号')).toHaveValue('B-服务端初始值');
       expect(templateLifecycleState.internalDirty).toBe(false);
-      expect(
-        templateLifecycleState.activeInstanceProps.draftPathname,
-      ).toBeUndefined();
+      expect(templateLifecycleState.activeInstanceProps.draftPathname).toBe(
+        '/orders/sea-export/ord-B',
+      );
     });
   });
 

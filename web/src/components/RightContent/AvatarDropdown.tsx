@@ -6,7 +6,9 @@ import {
 import { App, Avatar, Button, Divider, Spin, Tag } from 'antd';
 import React, { startTransition, useEffect, useState } from 'react';
 import { useInitialState } from '@/app/AppProvider';
+import { getFormDraftScope } from '@/components/layout/formDraft';
 import { confirmIfAnyTabDirty } from '@/components/layout/tabCloseGuard';
+import { closeWorkspaceTabs } from '@/components/layout/workspaceTabs';
 import { PasskeyManagerModal } from '@/features/auth/passkeys';
 import { history } from '@/router/history';
 import { authServiceLogout } from '@/services/roncin/authService';
@@ -36,10 +38,15 @@ export const AvatarDropdown: React.FC<AvatarDropdownProps> = () => {
 
   if (!initialState?.currentUser) return <Spin size="small" />;
 
+  const draftScope = getFormDraftScope(
+    initialState.currentUser.id,
+    initialState.currentUser.currentOrganization?.id,
+  );
   const handleLogout = async (): Promise<void> => {
     try {
       const writeResponse1 = await authServiceLogout({});
       if (!isWriteResponse(writeResponse1)) return;
+      closeWorkspaceTabs(draftScope);
       startTransition(() => {
         setInitialState((state) => ({ ...state, currentUser: undefined }));
       });
@@ -170,7 +177,13 @@ export const AvatarDropdown: React.FC<AvatarDropdownProps> = () => {
         danger
         icon={<LogoutOutlined />}
         onClick={() =>
-          confirmIfAnyTabDirty(handleLogout, modal.confirm, undefined, 'logout')
+          confirmIfAnyTabDirty(
+            handleLogout,
+            modal.confirm,
+            undefined,
+            'logout',
+            draftScope,
+          )
         }
         style={{
           width: '100%',

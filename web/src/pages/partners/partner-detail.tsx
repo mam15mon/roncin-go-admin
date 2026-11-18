@@ -13,9 +13,17 @@ import React, {
 import { useLocation, useParams, useSearchParams } from 'react-router';
 import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
+import {
+  captureFormDraftSession,
+  clearFormDraft,
+  getFormDraft,
+  getFormDraftKey,
+  getFormDraftScope,
+  prepareFormDraftClear,
+  saveFormDraft,
+} from '@/components/layout/formDraft';
 import { resolveTabKey } from '@/components/layout/routeUtils';
 import { useTabCloseGuard } from '@/components/layout/tabCloseGuard';
-import { useRouteLeaveGuard } from '@/components/layout/useRouteLeaveGuard';
 import {
   PageHeaderShell,
   StickyFooterBar,
@@ -140,6 +148,32 @@ export default function PartnerDetailPage() {
   const hasValidUuid = isValidPartnerId(rawId);
   const partnerId = !isCreate && hasValidUuid ? rawId : undefined;
   const identity = `${location.pathname}${location.search}`;
+  const draftScope = getFormDraftScope(
+    initialState?.currentUser?.id,
+    initialState?.currentUser?.currentOrganization?.id,
+  );
+  const draftKey = getFormDraftKey(
+    resolveTabKey(location.pathname),
+    identity,
+    draftScope,
+  );
+  const draftSession = useMemo(
+    () => captureFormDraftSession(draftKey),
+    [draftKey],
+  );
+  const restoredDraft = useMemo(
+    () =>
+      getFormDraft<{
+        values: Record<string, unknown>;
+        contacts: ContactItem[];
+        aliases: string[];
+        newAliasInput: string;
+        enabled?: boolean;
+      }>(draftKey),
+    [draftKey],
+  );
+  const restoredIdentity = useRef<string | undefined>(undefined);
+  const editRevision = useRef(0);
   const dirtyRef = useRef(false);
   const identityGenerationRef = useRef(0);
   const initializedIdentityRef = useRef<string | undefined>(undefined);
@@ -147,10 +181,11 @@ export default function PartnerDetailPage() {
   const tabKey = resolveTabKey(location.pathname);
   const markDirty = () => {
     dirtyRef.current = true;
+    editRevision.current += 1;
   };
-  useTabCloseGuard({ tabKey, isDirty: () => dirtyRef.current });
-  useRouteLeaveGuard(tabKey, () => dirtyRef.current);
+  useTabCloseGuard({ tabKey, isDirty: () => dirtyRef.current, draftKey });
   useLayoutEffect(() => {
+    restoredIdentity.current = undefined;
     identityGenerationRef.current += 1;
     dirtyRef.current = false;
     setSaving(false);
@@ -318,7 +353,7 @@ export default function PartnerDetailPage() {
   // 创建模式（含非法路由）表单默认值：跟随当前地址重建；携带 legalName
   // 查询参数时预填公司抬头，参数移除或变化时按新地址重建，不残留上一条地址的预填。
   useEffect(() => {
-    if (partnerId) return;
+    if (partnerId || restoredDraft) return;
     setContacts([]);
     setAliases([]);
     formRef.current?.resetFields();
@@ -340,6 +375,7 @@ export default function PartnerDetailPage() {
   useEffect(() => {
     if (
       !partnerId ||
+      restoredDraft ||
       initializedIdentityRef.current === identity ||
       dirtyRef.current
     )
@@ -430,6 +466,7 @@ export default function PartnerDetailPage() {
   useEffect(() => {
     if (
       !partnerId ||
+      restoredDraft ||
       !canReadSettlementRules ||
       !settlementRuleQuery.isSuccess ||
       settlementRuleQuery.isFetching ||
@@ -449,6 +486,46 @@ export default function PartnerDetailPage() {
     settlementRuleQuery.data,
     baseCurrency,
   ]);
+
+  useEffect(() => {
+    if (
+      !restoredDraft ||
+      restoredIdentity.current === identity ||
+      !formRef.current
+    )
+      return;
+    restoredIdentity.current = identity;
+    formRef.current.setFieldsValue(restoredDraft.values);
+    setContacts(restoredDraft.contacts);
+    setAliases(restoredDraft.aliases);
+    setNewAliasInput(restoredDraft.newAliasInput);
+    initializedIdentityRef.current = identity;
+    initializedSettlementRef.current = identity;
+    dirtyRef.current = true;
+  });
+
+  const snapshotRef = useMemo<{ current: () => void }>(
+    () => ({ current: () => undefined }),
+    [draftKey],
+  );
+  snapshotRef.current = () => {
+    if (!dirtyRef.current || !formRef.current) return;
+    saveFormDraft(
+      draftKey,
+      {
+        values: formRef.current.getFieldsValue(true),
+        contacts,
+        aliases,
+        newAliasInput,
+        enabled: restoredDraft?.enabled ?? partner?.enabled,
+      },
+      draftSession,
+    );
+  };
+  useLayoutEffect(() => {
+    snapshotRef.current();
+  });
+  useLayoutEffect(() => () => snapshotRef.current(), [snapshotRef]);
 
   // 候选资格由服务端限定当前公司；候选为空时不回退管理端用户列表。
   const userSelectOptions = useMemo(
@@ -494,6 +571,7 @@ export default function PartnerDetailPage() {
   // Submit Handler (Atomic Save)
   const handleSubmit = async (): Promise<false | undefined> => {
     const submittedGeneration = identityGenerationRef.current;
+    const submittedRevision = editRevision.current;
     if (!canSave) {
       message.error(isCreate ? '暂无创建权限' : '暂无编辑权限');
       return;
@@ -517,6 +595,8 @@ export default function PartnerDetailPage() {
         return;
 
       setSaving(true);
+      snapshotRef.current();
+      const clearSubmittedDraft = prepareFormDraftClear(draftKey, draftSession);
 
       const regionCodes: string[] = values.regionCodes || [];
       const provinceCode = regionCodes[0] || '';
@@ -616,7 +696,7 @@ export default function PartnerDetailPage() {
               ? undefined
               : values.unifiedSocialCreditCode?.trim(),
             registeredAddress: effectiveAddress,
-            enabled: partner?.enabled ?? false,
+            enabled: restoredDraft?.enabled ?? partner?.enabled ?? false,
             isCasual: isForeign ? false : Boolean(values.isCasual),
             roles: roleInputs,
             profile,
@@ -625,11 +705,18 @@ export default function PartnerDetailPage() {
             aliases: aliasInputs,
           },
         );
+        if (updateRes?.data?.id && updateRes.success !== false)
+          clearSubmittedDraft();
         if (submittedGeneration !== identityGenerationRef.current) return;
         if (!updateRes) return;
         if (!updateRes.data?.id || updateRes.success === false)
           throw new Error('保存失败，请重试');
+        if (submittedRevision !== editRevision.current) {
+          message.success('已保存提交内容，后续修改仍保留在当前页面');
+          return;
+        }
         dirtyRef.current = false;
+        clearFormDraft(draftKey, draftSession);
         message.success(`${roleLabel}档案已成功更新`);
       } else {
         const createRes = await partnerServiceCreatePartner({
@@ -646,11 +733,18 @@ export default function PartnerDetailPage() {
           contacts: contactInputs,
           aliases: aliasInputs,
         });
+        if (createRes?.data?.id && createRes.success !== false)
+          clearSubmittedDraft();
         if (submittedGeneration !== identityGenerationRef.current) return;
         if (!createRes) return;
         if (!createRes.data?.id || createRes.success === false)
           throw new Error('保存失败，请重试');
+        if (submittedRevision !== editRevision.current) {
+          message.success('已保存提交内容，后续修改仍保留在当前页面');
+          return;
+        }
         dirtyRef.current = false;
+        clearFormDraft(draftKey, draftSession);
         message.success(`${roleLabel}档案已成功创建`);
         history.push(`${listUrl}/${createRes.data.id}`);
         return;
@@ -810,7 +904,10 @@ export default function PartnerDetailPage() {
         <ProForm
           key={identity}
           formRef={formRef}
-          onValuesChange={markDirty}
+          onValuesChange={() => {
+            markDirty();
+            snapshotRef.current();
+          }}
           submitter={false}
           disabled={!canOperate}
           layout="horizontal"

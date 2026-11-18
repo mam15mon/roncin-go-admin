@@ -17,13 +17,16 @@ import React, {
   useId,
   useImperativeHandle,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
 import {
+  captureFormDraftSession,
   clearFormDraft,
   getFormDraft,
   getFormDraftKey,
+  prepareFormDraftClear,
   saveFormDraft,
 } from '@/components/layout/formDraft';
 import { useTabCloseGuard } from '@/components/layout/tabCloseGuard';
@@ -87,6 +90,7 @@ export function OrderFormTemplate<T>({
   tabKey,
   draftPathname,
   draftScope,
+  draftMetadata,
   actionsRef,
   enableCloseGuard = true,
   closeGuardMessage,
@@ -172,23 +176,49 @@ export function OrderFormTemplate<T>({
       ? getFormDraftKey(tabKey, draftPathname, draftScope)
       : undefined;
 
+  const draftSession = useMemo(
+    () => (draftKey ? captureFormDraftSession(draftKey) : undefined),
+    [draftKey],
+  );
+  const persistDraft = (values: Record<string, unknown>) => {
+    if (draftKey)
+      saveFormDraft(
+        draftKey,
+        {
+          ...values,
+          ...(draftMetadata === undefined
+            ? {}
+            : { __draftMetadata: JSON.stringify(draftMetadata) }),
+        },
+        draftSession,
+      );
+  };
+
+  const mountedRef = useRef(true);
+  useLayoutEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
   const dirtyRef = useRef(false);
   // 保存等待期间的新编辑仍属于未保存内容，不能被旧提交的成功结果清除。
   const editRevisionRef = useRef(0);
 
   useTabCloseGuard({
     tabKey,
+    draftKey,
     isDirty: () => dirtyRef.current,
     message: closeGuardMessage,
     enabled: enableCloseGuard,
   });
 
   // 草稿恢复：draftKey 在模板挂载期内恒定，组织与单据身份变化分别由 OrganizationWorkspace 和调用方 key 负责卸载重挂载。
-  // 一个模板身份只在首次同时满足「非 loading、非 readonly、身份完整」时恢复一次；
-  // 初始 loading/readonly 时等待首次合法时机，后续锁状态往返不再覆盖内存中的表单值。
+  // 一个模板身份在首次加载完成且身份完整时恢复一次；只读仍展示已有草稿，
+  // 后续锁状态往返不再覆盖内存中的表单值，也不恢复编辑权限。
   const draftRestoreAttemptedRef = useRef(false);
   useLayoutEffect(() => {
-    if (loading || readonly || !draftKey) return;
+    if (loading || !draftKey) return;
     if (draftRestoreAttemptedRef.current) return;
     draftRestoreAttemptedRef.current = true;
     const draft = getFormDraft<Partial<T>>(draftKey);
@@ -196,7 +226,7 @@ export function OrderFormTemplate<T>({
       resolvedFormRef.current?.setFieldsValue(draft);
       dirtyRef.current = true;
     }
-  }, [draftKey, loading, readonly]);
+  }, [draftKey, loading]);
 
   useImperativeHandle(
     actionsRef,
@@ -207,11 +237,11 @@ export function OrderFormTemplate<T>({
         editRevisionRef.current += 1;
         dirtyRef.current = true;
         if (draftKey)
-          saveFormDraft(draftKey, resolvedFormRef.current.getFieldsValue(true));
+          persistDraft(resolvedFormRef.current.getFieldsValue(true));
       },
       resetTo: (values?: Partial<T>) => {
         if (draftKey) {
-          clearFormDraft(draftKey);
+          clearFormDraft(draftKey, draftSession);
         }
         // 先清 Form store 再回填最新快照，移除服务端新值中已不存在的旧字段。
         resolvedFormRef.current?.resetFields();
@@ -222,26 +252,40 @@ export function OrderFormTemplate<T>({
         setSectionErrors({});
       },
     }),
-    [draftKey, resolvedFormRef, readonly, editingDisabled],
+    [
+      draftKey,
+      draftSession,
+      draftMetadata,
+      resolvedFormRef,
+      readonly,
+      editingDisabled,
+    ],
   );
 
   const handleFinish = async (values: T) => {
     if (readonly || editingDisabled) return false;
     if (!onFinish) return true;
     const submittedRevision = editRevisionRef.current;
+    const clearSubmittedDraft = draftKey
+      ? prepareFormDraftClear(draftKey, draftSession)
+      : undefined;
     setSubmitting(true);
     try {
       const result = await onFinish(values);
+      if (!mountedRef.current) {
+        if (result !== false) clearSubmittedDraft?.();
+        return result;
+      }
       if (result !== false && editRevisionRef.current === submittedRevision) {
         if (draftKey) {
-          clearFormDraft(draftKey);
+          clearFormDraft(draftKey, draftSession);
         }
         dirtyRef.current = false;
         setSectionErrors({});
       }
       return result;
     } finally {
-      setSubmitting(false);
+      if (mountedRef.current) setSubmitting(false);
     }
   };
 
@@ -354,13 +398,13 @@ export function OrderFormTemplate<T>({
               dirtyRef.current = true;
             }
             if (!readonly && draftKey) {
-              saveFormDraft(draftKey, form.getFieldsValue(true));
+              persistDraft(form.getFieldsValue(true));
             }
             onValuesChange?.(changedValues, allValues);
           }}
           onReset={() => {
             if (draftKey) {
-              clearFormDraft(draftKey);
+              clearFormDraft(draftKey, draftSession);
             }
             dirtyRef.current = false;
             setSectionErrors({});
@@ -402,8 +446,7 @@ export function OrderFormTemplate<T>({
           {draftKey && (
             <DraftSnapshotObserver
               onSnapshot={(values) => {
-                if (!readonly && dirtyRef.current)
-                  saveFormDraft(draftKey, values);
+                if (!readonly && dirtyRef.current) persistDraft(values);
               }}
             />
           )}

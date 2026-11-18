@@ -2,12 +2,15 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { StrictMode, useRef } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { appInitialStateContext } from '@/app/initialStateContext';
+import { getFormDraftKey, saveFormDraft } from './formDraft';
 import { OrganizationWorkspace } from './OrganizationWorkspace';
 import {
   _clearAllTabCloseGuards,
   registerTabCloseGuard,
   useTabCloseGuard,
 } from './tabCloseGuard';
+
+import { storeWorkspaceTabs } from './workspaceTabs';
 
 vi.mock('./TagsView', () => ({ TagsView: () => null }));
 
@@ -83,6 +86,7 @@ function editOrder() {
 
 afterEach(() => {
   cleanup();
+  sessionStorage.clear();
   _clearAllTabCloseGuards();
   vi.restoreAllMocks();
 });
@@ -96,6 +100,21 @@ describe('工作区浏览器离开保护', () => {
     expect(requestBrowserDeparture().event.defaultPrevented).toBe(true);
 
     fireEvent.click(screen.getByRole('button', { name: '保存成功' }));
+    expect(requestBrowserDeparture().event.defaultPrevented).toBe(false);
+  });
+
+  it('后台挂载已销毁后，只检查当前工作区仍打开的页签草稿', () => {
+    mountWorkspace();
+    const scope = 'user-a:company-a';
+    const key = '/orders/sea-export/order-1';
+    saveFormDraft(getFormDraftKey(key, key, scope), { note: '后台草稿' });
+
+    expect(requestBrowserDeparture().event.defaultPrevented).toBe(false);
+    storeWorkspaceTabs(scope, [
+      { key, path: key, title: '订单详情', closable: true },
+    ]);
+    expect(requestBrowserDeparture().event.defaultPrevented).toBe(true);
+    storeWorkspaceTabs(scope, []);
     expect(requestBrowserDeparture().event.defaultPrevented).toBe(false);
   });
 

@@ -8,7 +8,9 @@ import HeaderDropdown from '@/components/HeaderDropdown';
 import { history } from '@/router/history';
 import { resolveOrganizationSwitchDestination } from '@/router/organizationSwitchDestination';
 import { authServiceSwitchOrganization } from '@/services/roncin/authService';
+import { getFormDraftScope } from './layout/formDraft';
 import { confirmIfAnyTabDirty } from './layout/tabCloseGuard';
+import { closeWorkspaceTabs } from './layout/workspaceTabs';
 
 export type OrganizationSwitcherProps = {
   onSwitchWorkspace: (
@@ -27,6 +29,10 @@ export default function OrganizationSwitcher({
   const currentUser = initialState?.currentUser;
   const organizations = currentUser?.organizations ?? [];
   const currentOrganization = currentUser?.currentOrganization;
+  const draftScope = getFormDraftScope(
+    currentUser?.id,
+    currentOrganization?.id,
+  );
 
   if (!currentOrganization || organizations.length < 2) {
     return null;
@@ -48,6 +54,7 @@ export default function OrganizationSwitcher({
         history.location,
         access({ currentUser: response.data }),
       );
+      closeWorkspaceTabs(draftScope);
       await onSwitchWorkspace(response.data, destination.path);
       if (destination.accessDenied) {
         message.info('当前组织无权访问该功能，已返回工作台');
@@ -79,6 +86,8 @@ export default function OrganizationSwitcher({
       () => {
         switchInProgressRef.current = false;
       },
+      'organization',
+      draftScope,
     );
   };
 

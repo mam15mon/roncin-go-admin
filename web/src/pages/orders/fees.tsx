@@ -30,7 +30,9 @@ import type { FeeBillTrackingView } from './components/fees/feeBillTracking';
 import { RECEIVABLE } from './components/fees/feeConstants';
 import type { FeeSideSummary } from './components/fees/feeSummary';
 import OrderFeeHeader from './components/fees/OrderFeeHeader';
-import OrderFeeTableTabs from './components/fees/OrderFeeTableTabs';
+import OrderFeeTableTabs, {
+  type OrderFeeDraftActions,
+} from './components/fees/OrderFeeTableTabs';
 import QuickAddFeeModal from './components/fees/QuickAddFeeModal';
 import QuickAddPartnerModal from './components/fees/QuickAddPartnerModal';
 import OrderPageHeader from './components/OrderPageHeader';
@@ -72,6 +74,9 @@ export default function OrderFeesPage() {
   // 费用表未保存草稿与整体重建令牌：确认丢弃草稿后递增，两表重建并重新加载。
   const [hasFeeDraft, setHasFeeDraft] = useState(false);
   const [feeReloadToken, setFeeReloadToken] = useState(0);
+  const feeDraftActionsRef = useRef<OrderFeeDraftActions | undefined>(
+    undefined,
+  );
   const [correctionCollapsed, setCorrectionCollapsed] = useState<boolean>();
 
   const receivableActionRef = useRef<ActionType | undefined>(undefined);
@@ -347,12 +352,13 @@ export default function OrderFeesPage() {
    */
   const refreshFeeWorkbench = () => {
     const run = () => {
+      feeDraftActionsRef.current?.discard();
       setFeeReloadToken((token) => token + 1);
       void loadData();
       refreshFeeBillTracking();
       void feeChangeNotice.rebaseline();
     };
-    if (!hasFeeDraft) {
+    if (!hasFeeDraft && !feeDraftActionsRef.current?.hasDraft()) {
       run();
       return;
     }
@@ -518,6 +524,8 @@ export default function OrderFeesPage() {
 
       {/* 3. 费用表格工作区 */}
       <OrderFeeTableTabs
+        key={`fee-table:${orderId}:${feeReloadToken}`}
+        draftActionsRef={feeDraftActionsRef}
         orderId={orderId || ''}
         receivableActionRef={receivableActionRef}
         payableActionRef={payableActionRef}

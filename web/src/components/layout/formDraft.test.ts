@@ -1,6 +1,7 @@
 import dayjs, { type Dayjs } from 'dayjs';
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
+  captureFormDraftSession,
   clearFormDraft,
   clearTabDrafts,
   getFormDraft,
@@ -8,6 +9,7 @@ import {
   getFormDraftScope,
   hasFormDraft,
   hasTabDraft,
+  prepareFormDraftClear,
   reviveFormDraft,
   saveFormDraft,
 } from './formDraft';
@@ -28,7 +30,7 @@ describe('formDraft', () => {
           draftScope,
         ),
       ).toBe(
-        'roncin:form-draft:user-1:org-1:/orders/sea-export:/orders/sea-export/new',
+        'roncin:tab-draft:user-1:org-1:%2Forders%2Fsea-export:/orders/sea-export/new',
       );
       expect(
         getFormDraftKey(
@@ -37,7 +39,7 @@ describe('formDraft', () => {
           draftScope,
         ),
       ).toBe(
-        'roncin:form-draft:user-1:org-1:/orders/sea-export:/orders/sea-export/123',
+        'roncin:tab-draft:user-1:org-1:%2Forders%2Fsea-export:/orders/sea-export/123',
       );
       expect(getFormDraftKey('/orders/sea-export', '/orders/new')).toBe('');
       expect(getFormDraftKey('/orders/sea-export', undefined, draftScope)).toBe(
@@ -113,18 +115,65 @@ describe('formDraft', () => {
   });
 
   describe('hasTabDraft and clearTabDrafts', () => {
-    it.each([
-      ['/orders/sea-export/new?sourceOrderId=order-1', true],
-      ['/orders/air-export/new#basic', true],
-      ['/orders/sea-export/order-1/hbl', true],
-      ['/orders/sea-export/order-1', false],
-      ['/orders/air-export/order-1', false],
-    ])('只识别仍支持的持久草稿：%s', (path, expected) => {
+    it('忽略旧格式草稿，支持当前页签的多个编辑地址', () => {
       const tabKey = '/orders/sea-export';
-      saveFormDraft(getFormDraftKey(tabKey, path, draftScope), {
-        note: '未提交',
-      });
-      expect(hasTabDraft(tabKey, draftScope)).toBe(expected);
+      const oldKey =
+        'roncin:form-draft:user-1:org-1:/orders/sea-export:/orders/sea-export/new';
+      sessionStorage.setItem(oldKey, '{"note":"旧格式"}');
+      expect(hasTabDraft(tabKey, draftScope)).toBe(false);
+
+      const key = getFormDraftKey(
+        tabKey,
+        '/orders/sea-export/order-1',
+        draftScope,
+      );
+      saveFormDraft(key, { note: '当前详情草稿' });
+      expect(hasTabDraft(tabKey, draftScope)).toBe(true);
+    });
+
+    it('确认关闭使旧实例的写入与清理失效，重开同一地址不受影响', () => {
+      const tabKey = '/partners/customers';
+      const key = getFormDraftKey(
+        tabKey,
+        '/partners/customers/new',
+        draftScope,
+      );
+      const oldSession = captureFormDraftSession(key);
+      saveFormDraft(key, { note: '待放弃' }, oldSession);
+
+      clearTabDrafts(tabKey, draftScope);
+      expect(saveFormDraft(key, { note: '迟到快照' }, oldSession)).toBe(false);
+      expect(hasFormDraft(key)).toBe(false);
+
+      const newSession = captureFormDraftSession(key);
+      saveFormDraft(key, { note: '重新编辑' }, newSession);
+      clearFormDraft(key, oldSession);
+      expect(getFormDraft(key)).toEqual({ note: '重新编辑' });
+    });
+
+    it('后台保存只清理原快照，保留后续编辑或重新打开的页签', () => {
+      const tabKey = '/partners/customers';
+      const key = getFormDraftKey(
+        tabKey,
+        '/partners/customers/new',
+        draftScope,
+      );
+      const session = captureFormDraftSession(key);
+      saveFormDraft(key, { note: '待提交' }, session);
+      const clearSubmitted = prepareFormDraftClear(key, session);
+      saveFormDraft(key, { note: '新编辑' }, session);
+      clearSubmitted();
+      expect(getFormDraft(key)).toEqual({ note: '新编辑' });
+
+      const clearLater = prepareFormDraftClear(key);
+      clearTabDrafts(tabKey, draftScope);
+      const reopened = captureFormDraftSession(key);
+      saveFormDraft(key, { note: '新编辑' }, reopened);
+      clearLater();
+      expect(getFormDraft(key)).toEqual({ note: '新编辑' });
+
+      prepareFormDraftClear(key, reopened)();
+      expect(hasFormDraft(key)).toBe(false);
     });
 
     it('detects and clears drafts belonging to a specific tabKey', () => {

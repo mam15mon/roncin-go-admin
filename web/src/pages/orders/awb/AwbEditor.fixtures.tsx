@@ -3,7 +3,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { App, ConfigProvider } from 'antd';
 import { createMemoryRouter, RouterProvider } from 'react-router';
-import { beforeEach, vi } from 'vitest';
+import { beforeEach, expect, vi } from 'vitest';
 import { OrderBusinessType } from '@/enums.generated';
 import { getOrderKindDefinitionByBusinessType } from '../order-kinds/registry';
 import AwbEditor from './AwbEditor';
@@ -23,6 +23,9 @@ const state = vi.hoisted(() => ({
   previewImpact: vi.fn(),
   saveMaster: vi.fn(),
   preview: vi.fn(),
+}));
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({ initialState: { currentUser: { id: 'user-1' } } }),
 }));
 vi.mock('@/app/access', () => ({
   useAccess: () => ({
@@ -64,8 +67,10 @@ vi.mock('./pdf/AwbPdfPreview', () => ({
 }));
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
+  sessionStorage.clear();
   vi.spyOn(document, 'hasFocus').mockReturnValue(true);
+  vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('visible');
   state.bundle = awbFixture();
   state.canUpdate = true;
   state.canOperate = true;
@@ -128,7 +133,9 @@ export function saveAwb() {
   fireEvent.click(screen.getByRole('button', { name: '保存正文' }));
 }
 export function outputAwb() {
-  fireEvent.click(screen.getByRole('button', { name: '预览 / 打印 / 下载' }));
+  const button = screen.getByText('预览 / 打印 / 下载').closest('button');
+  expect(button).toBeVisible();
+  fireEvent.click(button as HTMLButtonElement);
 }
 export function makeImportBundle() {
   state.bundle.master.businessType = 'AI';

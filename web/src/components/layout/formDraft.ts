@@ -14,7 +14,24 @@ const DATE_FIELD_NAMES = new Set([
 
 const ISO_DATE_PATTERN =
   /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?)?$/;
-const FORM_DRAFT_STORAGE_PREFIX = 'roncin:form-draft';
+const FORM_DRAFT_STORAGE_PREFIX = 'roncin:tab-draft';
+const draftSessions = new Map<string, object>();
+
+function getTabDraftPrefix(tabKey: string, scope: string): string {
+  return `${FORM_DRAFT_STORAGE_PREFIX}:${scope}:${encodeURIComponent(tabKey)}:`;
+}
+
+/** 捕获当前编辑实例，确认关闭后拒绝旧实例的迟到写入。 */
+export function captureFormDraftSession(draftKey: string): object | undefined {
+  if (!draftKey) return undefined;
+  const session = draftSessions.get(draftKey) ?? {};
+  draftSessions.set(draftKey, session);
+  return session;
+}
+
+function isCurrentDraftSession(draftKey: string, session?: object): boolean {
+  return !session || draftSessions.get(draftKey) === session;
+}
 
 /**
  * 递归还原草稿中的日期对象（反序列化后字符串还原为 Dayjs 实例）
@@ -45,6 +62,18 @@ export function reviveFormDraft<T>(value: T): T {
   return result as T;
 }
 
+/** 元数据保留接口原始格式，日期表单字段仍由正文还原。 */
+export function parseFormDraftMetadata<T>(
+  value?: string | null,
+): T | undefined {
+  if (!value) return undefined;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * 构造当前用户与组织的草稿命名空间，避免切换身份后复用其他上下文的表单数据。
  */
@@ -70,24 +99,33 @@ export function getFormDraftKey(
     return '';
   }
 
-  return `${FORM_DRAFT_STORAGE_PREFIX}:${draftScope}:${tabKey}:${pathname}`;
+  return `${getTabDraftPrefix(tabKey, draftScope)}${pathname}`;
 }
 
 /**
  * 将表单临时输入暂存至 sessionStorage
  */
-export function saveFormDraft(draftKey: string, values: unknown): void {
+export function saveFormDraft(
+  draftKey: string,
+  values: unknown,
+  session?: object,
+): boolean {
+  if (!draftKey || !values || !isCurrentDraftSession(draftKey, session)) {
+    return false;
+  }
   try {
-    if (typeof sessionStorage === 'undefined' || !draftKey || !values) return;
-    // 保留显式清空：省略 undefined 会在恢复合并 initialValues 时复活旧值。
+    // 保留显式清空，避免恢复时重新带入默认值。
     sessionStorage.setItem(
       draftKey,
       JSON.stringify(values, (_key, value) =>
         value === undefined ? null : value,
       ),
     );
+    return true;
   } catch {
-    // 忽略存储超限或受限环境错误
+    // 旧快照无法代表刚发生的编辑，实时守卫需要继续拦截。
+    clearFormDraft(draftKey, session);
+    return false;
   }
 }
 
@@ -124,60 +162,84 @@ export function hasFormDraft(draftKey: string): boolean {
  * 检查指定页签是否存在未提交的表单草稿
  */
 export function hasTabDraft(tabKey: string, draftScope?: string): boolean {
-  try {
-    if (typeof sessionStorage === 'undefined' || !tabKey || !draftScope) {
-      return false;
-    }
-    const prefix = `${FORM_DRAFT_STORAGE_PREFIX}:${draftScope}:${tabKey}:`;
-    for (let i = 0; i < sessionStorage.length; i++) {
-      const key = sessionStorage.key(i);
-      if (key?.startsWith(prefix)) {
-        const pathname = key.slice(prefix.length).split(/[?#]/, 1)[0];
-        // 主详情已退役持久草稿；仅现有新建与独立 HBL 编辑仍参与关闭判定。
-        if (
-          /^\/orders\/(sea-export|air-export)\/new$/.test(pathname) ||
-          /^\/orders\/sea-export\/[^/]+\/hbl$/.test(pathname)
-        ) {
-          return true;
-        }
-      }
-    }
-    return false;
-  } catch {
-    return false;
-  }
+  if (!tabKey || !draftScope) return false;
+  return tabDraftKeys(getTabDraftPrefix(tabKey, draftScope)).length > 0;
 }
 
-/**
- * 清除指定路径的草稿
- */
-export function clearFormDraft(draftKey: string): void {
+function tabDraftKeys(prefix: string): string[] {
+  const keys: string[] = [];
   try {
-    if (typeof sessionStorage === 'undefined' || !draftKey) return;
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const key = sessionStorage.key(i);
+      if (key?.startsWith(prefix)) keys.push(key);
+    }
+  } catch {
+    // 浏览器禁止存储时只使用表单的实时守卫。
+  }
+  return keys;
+}
+
+/** 清除指定路径的草稿。 */
+export function clearFormDraft(draftKey: string, session?: object): void {
+  if (!draftKey || !isCurrentDraftSession(draftKey, session)) return;
+  try {
     sessionStorage.removeItem(draftKey);
   } catch {
-    // 忽略
+    // 浏览器禁止存储。
   }
 }
 
-/**
- * 清除指定页签下的所有草稿（在页签确认关闭时调用）
- */
-export function clearTabDrafts(tabKey: string, draftScope?: string): void {
+/** 保存已确认但原页面已卸载时，只清理提交时的那份快照。 */
+export function prepareFormDraftClear(
+  draftKey: string,
+  session?: object,
+): () => void {
+  const capturedSession = session ?? captureFormDraftSession(draftKey);
+  let submitted: string | null = null;
   try {
-    if (typeof sessionStorage === 'undefined' || !tabKey || !draftScope) return;
-    const prefix = `${FORM_DRAFT_STORAGE_PREFIX}:${draftScope}:${tabKey}:`;
-    const keysToRemove: string[] = [];
-    for (let i = 0; i < sessionStorage.length; i++) {
-      const key = sessionStorage.key(i);
-      if (key?.startsWith(prefix)) {
-        keysToRemove.push(key);
-      }
-    }
-    for (const key of keysToRemove) {
-      sessionStorage.removeItem(key);
-    }
+    if (draftKey) submitted = sessionStorage.getItem(draftKey);
   } catch {
-    // 忽略
+    // 浏览器禁止存储。
   }
+
+  return () => {
+    if (
+      submitted === null ||
+      !isCurrentDraftSession(draftKey, capturedSession)
+    ) {
+      return;
+    }
+    try {
+      if (sessionStorage.getItem(draftKey) === submitted) {
+        clearFormDraft(draftKey, capturedSession);
+      }
+    } catch {
+      // 浏览器禁止存储。
+    }
+  };
+}
+
+/** 明确放弃一份编辑快照时，撤销旧实例的后续写入资格。 */
+export function discardFormDraft(draftKey: string, session?: object): void {
+  if (!draftKey || !isCurrentDraftSession(draftKey, session)) return;
+  clearFormDraft(draftKey, session);
+  draftSessions.delete(draftKey);
+}
+
+function discardDrafts(prefix: string): void {
+  for (const key of draftSessions.keys()) {
+    if (key.startsWith(prefix)) draftSessions.delete(key);
+  }
+  for (const key of tabDraftKeys(prefix)) clearFormDraft(key);
+}
+
+/** 确认关闭页签后，撤销旧编辑实例并清除其草稿。 */
+export function clearTabDrafts(tabKey: string, draftScope?: string): void {
+  if (tabKey && draftScope)
+    discardDrafts(getTabDraftPrefix(tabKey, draftScope));
+}
+
+/** 只清理已关闭工作区所属的草稿与实例。 */
+export function clearWorkspaceDrafts(draftScope: string): void {
+  discardDrafts(`${FORM_DRAFT_STORAGE_PREFIX}:${draftScope}:`);
 }

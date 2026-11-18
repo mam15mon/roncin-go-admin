@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { useLayoutEffect, useRef, useState } from 'react';
+import { prepareFormDraftClear } from '@/components/layout/formDraft';
 import {
   getRequestErrorMessage,
   getRequestErrorStatus,
@@ -57,6 +58,9 @@ export function useSeaOrderCreate(draftKey?: string) {
   ): Promise<string | undefined> => {
     if (inFlight.current || state.status === 'blocked') return undefined;
     if (pendingRef.current?.createdId) return pendingRef.current.createdId;
+    const clearSubmittedDraft = draftKey
+      ? prepareFormDraftClear(draftKey)
+      : undefined;
     const currentEpoch = epoch.current;
     const current = () => currentEpoch === epoch.current;
     const confirming = Boolean(pendingRef.current);
@@ -86,7 +90,13 @@ export function useSeaOrderCreate(draftKey?: string) {
     setState({ status: 'sending', pending });
     try {
       const response = await mutation.mutateAsync(pending.payload);
-      if (!current()) return undefined;
+      if (!current()) {
+        if (response?.success !== false && response?.data?.id) {
+          clearSubmittedDraft?.();
+          return response.data.id;
+        }
+        return undefined;
+      }
       if (!response?.data?.id || response.success === false) {
         setState({ status: 'unknown', pending });
         throw new Error(

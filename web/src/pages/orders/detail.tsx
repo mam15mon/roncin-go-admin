@@ -24,10 +24,15 @@ import React, {
 } from 'react';
 import { useParams } from 'react-router';
 import { useAccess } from '@/app/access';
+import {
+  getFormDraft,
+  getFormDraftKey,
+  parseFormDraftMetadata,
+  prepareFormDraftClear,
+} from '@/components/layout/formDraft';
 import { resolveTabKey } from '@/components/layout/routeUtils';
 import { isTabDirty } from '@/components/layout/tabCloseGuard';
 import { useModalOwnerSignal } from '@/components/layout/useModalOwnerSignal';
-import { useRouteLeaveGuard } from '@/components/layout/useRouteLeaveGuard';
 import { SectionCard } from '@/components/ui';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
 import type {
@@ -175,6 +180,17 @@ export default function OrderDetailPage() {
     loadData,
   } = useOrderDetailData(targetOrderId, definition);
 
+  const detailDraftPath = `/orders/${kind}/${orderId}`;
+  const detailDraftKey = getFormDraftKey(
+    resolveTabKey(detailDraftPath),
+    detailDraftPath,
+    draftScope,
+  );
+  const restoredDocuments = useMemo(() => {
+    const saved = getFormDraft<{ __draftMetadata?: string }>(detailDraftKey);
+    if (!saved?.__draftMetadata) return undefined;
+    return parseFormDraftMetadata<API.SeaOrderDocuments>(saved.__draftMetadata);
+  }, [detailDraftKey]);
   const [documentBaseline, setDocumentBaseline] = useState<{
     identity?: string;
     documents?: API.SeaOrderDocuments;
@@ -182,37 +198,46 @@ export default function OrderDetailPage() {
   const currentDocuments =
     documentBaseline?.identity === orderFormIdentity
       ? documentBaseline?.documents
-      : seaDocuments;
+      : (restoredDocuments ?? seaDocuments);
   useEffect(() => {
     if (seaDocuments && documentBaseline?.identity !== orderFormIdentity)
       setDocumentBaseline({
         identity: orderFormIdentity,
-        documents: seaDocuments,
+        documents: restoredDocuments ?? seaDocuments,
       });
-  }, [documentBaseline?.identity, orderFormIdentity, seaDocuments]);
+  }, [
+    documentBaseline?.identity,
+    orderFormIdentity,
+    seaDocuments,
+    restoredDocuments,
+  ]);
   const saveIdentityRef = useRef(orderFormIdentity);
   saveIdentityRef.current = orderFormIdentity;
-  const seaSave = useSeaOrderSave(orderFormIdentity, async (isCurrent) => {
-    const identity = orderFormIdentity;
-    const bundle = await loadData();
-    if (!isCurrent() || saveIdentityRef.current !== identity)
-      throw new Error('订单已切换');
-    if (!bundle?.order || !bundle.seaDocuments || !definition)
-      throw new Error('订单已保存，但最新数据读取失败，请重试读取');
-    setDocumentBaseline({ identity, documents: bundle.seaDocuments });
-    templateActionsRef.current?.resetTo({
-      id: bundle.order.id,
-      version: bundle.order.version,
-      ...definition.form.buildDetailInitialValues(
-        bundle.order,
-        bundle.shippingDocs,
-        bundle.personnel,
-      ),
-      ...seaDocumentFormValues(bundle.seaDocuments),
-    });
-    changeNotice.acceptSnapshot(bundle.order);
-    void refreshLockState();
-  });
+  const seaSave = useSeaOrderSave(
+    orderFormIdentity,
+    async (isCurrent) => {
+      const identity = orderFormIdentity;
+      const bundle = await loadData();
+      if (!isCurrent() || saveIdentityRef.current !== identity)
+        throw new Error('订单已切换');
+      if (!bundle?.order || !bundle.seaDocuments || !definition)
+        throw new Error('订单已保存，但最新数据读取失败，请重试读取');
+      setDocumentBaseline({ identity, documents: bundle.seaDocuments });
+      templateActionsRef.current?.resetTo({
+        id: bundle.order.id,
+        version: bundle.order.version,
+        ...definition.form.buildDetailInitialValues(
+          bundle.order,
+          bundle.shippingDocs,
+          bundle.personnel,
+        ),
+        ...seaDocumentFormValues(bundle.seaDocuments),
+      });
+      changeNotice.acceptSnapshot(bundle.order);
+      void refreshLockState();
+    },
+    detailDraftKey,
+  );
   const changeNotice = useOrderChangeNotice({
     identity: orderFormIdentity,
     scope: draftScope,
@@ -316,7 +341,7 @@ export default function OrderDetailPage() {
     }
   }, [order?.orderNo, order?.id, orderId, definition?.kind, definition?.title]);
 
-  // 详情只使用本次服务端快照，未保存输入不再持久化或跨挂载恢复。
+  // 未保存值和原始文档基线随仍打开的业务页签恢复。
   const initialValues = useMemo(
     () => ({
       ...(definition?.form.buildDetailInitialValues(
@@ -331,8 +356,6 @@ export default function OrderDetailPage() {
     }),
     [definition, order, shippingDocs, personnel, currentDocuments],
   );
-  const orderTabKey = resolveTabKey(`/orders/${kind}/${orderId}`);
-  useRouteLeaveGuard(orderTabKey, () => isTabDirty(orderTabKey));
 
   const resetEditableForm = () =>
     templateActionsRef.current?.resetTo({
@@ -825,6 +848,7 @@ export default function OrderDetailPage() {
       ? { ...submittedValues.airExport }
       : undefined;
     const submittedReason = submittedValues.airHouseChangeReason;
+    const clearSubmittedDraft = prepareFormDraftClear(detailDraftKey);
     setSaving(true);
     try {
       const expectedVersion =
@@ -842,7 +866,12 @@ export default function OrderDetailPage() {
         { id: orderId },
         { ...payload, idempotencyKey: updateIdempotencyKeyRef.current },
       );
-      if (!isCurrentSave() || !response) return false;
+      if (!response) return false;
+      if (!isCurrentSave()) {
+        if (response.success !== false && response.data?.id === orderId)
+          clearSubmittedDraft();
+        return false;
+      }
       if (!response.data?.id || response.success === false)
         throw new Error('保存订单失败，请重试');
       updateIdempotencyKeyRef.current = generateUUID();
@@ -1392,6 +1421,8 @@ export default function OrderDetailPage() {
                   : undefined
               }
               draftScope={draftScope}
+              draftPathname={detailDraftPath}
+              draftMetadata={currentDocuments}
               loading={false}
               readonly={effectiveReadonly}
               editingDisabled={

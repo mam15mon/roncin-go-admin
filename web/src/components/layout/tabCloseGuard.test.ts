@@ -1,12 +1,13 @@
 import { renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getFormDraftKey, getFormDraftScope } from './formDraft';
+import { getFormDraftKey, getFormDraftScope, saveFormDraft } from './formDraft';
 import {
   _clearAllTabCloseGuards,
   confirmIfAnyTabDirty,
   confirmIfTabsDirty,
   getAnyDirtyTabKey,
   getTabGuardMessage,
+  hasUnrecoverableTabChanges,
   isTabDepartureConfirmed,
   isTabDirty,
   registerTabCloseGuard,
@@ -106,6 +107,24 @@ describe('tabCloseGuard', () => {
     );
 
     expect(isTabDirty(tabKey, draftScope)).toBe(true);
+  });
+
+  it('可恢复的页面草稿只放行自身，仍保护同页签的临时编辑', () => {
+    const tabKey = '/partners/customers';
+    const key = getFormDraftKey(
+      tabKey,
+      '/partners/customers/create',
+      'user:org',
+    );
+    registerTabCloseGuard(tabKey, { draftKey: key, isDirty: () => true });
+    expect(hasUnrecoverableTabChanges(tabKey)).toBe(true);
+    saveFormDraft(key, { name: '未保存公司' });
+    expect(hasUnrecoverableTabChanges(tabKey)).toBe(false);
+
+    const closeModal = registerTabCloseGuard(tabKey, { isDirty: () => true });
+    expect(hasUnrecoverableTabChanges(tabKey)).toBe(true);
+    closeModal();
+    expect(hasUnrecoverableTabChanges(tabKey)).toBe(false);
   });
 
   it('返回默认提示文案，或自定义文案', () => {

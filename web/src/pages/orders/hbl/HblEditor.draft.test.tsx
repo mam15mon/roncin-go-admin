@@ -2,7 +2,7 @@ import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { getFormDraft, getFormDraftKey } from '@/components/layout/formDraft';
 import { isTabDirty } from '@/components/layout/tabCloseGuard';
-import { preview, renderEditor, save, state } from './HblEditor.fixtures';
+import { preview, renderEditor, state } from './HblEditor.fixtures';
 import type { HblFormValues } from './model';
 
 const scope = 'user-1:org-1';
@@ -47,7 +47,7 @@ describe('HBL 制作草稿与原始版本', () => {
     );
   });
 
-  it('旧草稿恢复不会借用最新HBL和关联版本，冲突响应保留输入与草稿', async () => {
+  it('旧草稿恢复保持原版本，已加载的新版本立即提示外部变动并保留输入', async () => {
     const first = renderEditor();
     fireEvent.change(screen.getByLabelText('发货人 (Shipper)'), {
       target: { value: '旧草稿内容' },
@@ -61,14 +61,11 @@ describe('HBL 制作草稿与原始版本', () => {
         houseBill: { ...state.bundle.documents.houseBill, version: '9' },
       },
     };
-    state.save.mockResolvedValueOnce(undefined);
     renderEditor();
-    await save();
-    expect(state.save.mock.calls[0][1]).toMatchObject({
-      expectedVersion: '3',
-      expectedLinkVersion: '2',
-      houseBill: { content: { shipperText: '旧草稿内容' } },
-    });
+    expect(
+      screen.getByText('这个订单已经发生变动，请重新刷新。'),
+    ).toBeInTheDocument();
+    expect(state.save).not.toHaveBeenCalled();
     expect(screen.getByLabelText('发货人 (Shipper)')).toHaveValue('旧草稿内容');
     expect(getFormDraft<HblFormValues>(draftKey)?.source).toMatchObject({
       houseVersion: '3',

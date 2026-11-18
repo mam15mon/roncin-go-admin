@@ -9,7 +9,11 @@ import {
 } from '@testing-library/react';
 import React from 'react';
 import { afterEach, expect, it } from 'vitest';
-import { getFormDraft, getFormDraftKey } from '@/components/layout/formDraft';
+import {
+  getFormDraft,
+  getFormDraftKey,
+  saveFormDraft,
+} from '@/components/layout/formDraft';
 import {
   _clearAllTabCloseGuards,
   isTabDirty,
@@ -128,4 +132,35 @@ it('用户显式程序带入作为首次修改立即存整表草稿，初始化�
   await act(async () => actionsRef.current?.resetTo({ reference: '同步值' }));
   expect(isTabDirty(identity.tabKey, identity.draftScope)).toBe(false);
   expect(getFormDraft(draftKey)).toBeNull();
+});
+
+it('只读重挂仍恢复已有草稿并显示输入，保持只读及关闭保护', () => {
+  saveFormDraft(draftKey, { customerId: '原未保存客户' });
+  const formRef: React.MutableRefObject<ProFormInstance | undefined> = {
+    current: undefined,
+  };
+  const actionsRef: React.MutableRefObject<
+    OrderFormTemplateActions<Record<string, unknown>> | undefined
+  > = { current: undefined };
+  render(
+    <OrderFormTemplate
+      {...identity}
+      readonly
+      formRef={formRef}
+      actionsRef={actionsRef}
+      initialValues={{ customerId: '最新服务端客户' }}
+      sections={[
+        {
+          key: 'entry',
+          title: '录入',
+          content: <ProFormText name="customerId" label="客户" />,
+        },
+      ]}
+    />,
+  );
+  expect(formRef.current?.getFieldValue('customerId')).toBe('原未保存客户');
+  expect(screen.getByText('原未保存客户')).toBeInTheDocument();
+  expect(isTabDirty(identity.tabKey, identity.draftScope)).toBe(true);
+  actionsRef.current?.applyValues({ customerId: '不允许的修改' });
+  expect(formRef.current?.getFieldValue('customerId')).toBe('原未保存客户');
 });

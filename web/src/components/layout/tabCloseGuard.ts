@@ -1,7 +1,8 @@
 import type { Modal } from 'antd';
 import { useEffect, useRef } from 'react';
 import { getAppFeedback } from '@/utils/appFeedback';
-import { hasTabDraft } from './formDraft';
+import { hasFormDraft, hasTabDraft } from './formDraft';
+import { getStoredWorkspaceTabKeys } from './workspaceTabs';
 
 type ConfirmModalFn = (props: Parameters<typeof Modal.confirm>[0]) => void;
 
@@ -30,6 +31,7 @@ function resolveConfirmFn(customConfirmModal?: ConfirmModalFn): ConfirmModalFn {
 export type TabCloseGuard = {
   isDirty: () => boolean;
   message?: string;
+  draftKey?: string;
 };
 
 const guards = new Map<string, Set<TabCloseGuard>>();
@@ -101,6 +103,13 @@ export function isTabDirty(tabKey: string, draftScope?: string): boolean {
   );
 }
 
+/** 站内离开只拦截尚无可恢复快照的编辑。 */
+export function hasUnrecoverableTabChanges(tabKey: string): boolean {
+  return [...(guards.get(tabKey) ?? [])].some(
+    (guard) => guard.isDirty() && !hasFormDraft(guard.draftKey ?? ''),
+  );
+}
+
 /**
  * 获取指定 tabKey 注册的提示文案，默认返回标准文案
  */
@@ -116,19 +125,16 @@ export function getTabGuardMessage(
   );
 }
 
-/**
- * 返回任意一个当前已注册且处于 dirty 状态的页签。
- *
- * 组织切换只需要拦截仍挂载的编辑表单；持久化草稿本身已按用户和组织隔离，
- * 不应为切换扫描全部 sessionStorage 草稿。
- */
-export function getAnyDirtyTabKey(): string | undefined {
+/** 当前挂载编辑和当前工作区后台页签均参与离开检查。 */
+export function getAnyDirtyTabKey(draftScope?: string): string | undefined {
   for (const [tabKey, tabGuards] of guards) {
     if ([...tabGuards].some((guard) => guard.isDirty())) {
       return tabKey;
     }
   }
-  return undefined;
+  return getStoredWorkspaceTabKeys(draftScope).find((tabKey) =>
+    hasTabDraft(tabKey, draftScope),
+  );
 }
 
 /**
@@ -142,8 +148,9 @@ export function confirmIfAnyTabDirty(
   customConfirmModal?: (props: Parameters<typeof Modal.confirm>[0]) => void,
   onCancel?: () => void,
   action: 'organization' | 'logout' = 'organization',
+  draftScope?: string,
 ): boolean {
-  const dirtyTabKey = getAnyDirtyTabKey();
+  const dirtyTabKey = getAnyDirtyTabKey(draftScope);
   if (!dirtyTabKey) {
     onConfirm();
     return true;
@@ -208,8 +215,9 @@ export function useTabCloseGuard(options: {
   isDirty: boolean | (() => boolean);
   message?: string;
   enabled?: boolean;
+  draftKey?: string;
 }) {
-  const { tabKey, isDirty, message, enabled = true } = options;
+  const { tabKey, isDirty, message, enabled = true, draftKey } = options;
   const isDirtyRef = useRef(isDirty);
   isDirtyRef.current = isDirty;
   const messageRef = useRef(message);
@@ -219,6 +227,7 @@ export function useTabCloseGuard(options: {
     if (!enabled || !tabKey) return;
 
     return registerTabCloseGuard(tabKey, {
+      draftKey,
       isDirty: () => {
         const check = isDirtyRef.current;
         return typeof check === 'function' ? check() : check;
@@ -227,7 +236,7 @@ export function useTabCloseGuard(options: {
         return messageRef.current;
       },
     });
-  }, [tabKey, enabled]);
+  }, [tabKey, enabled, draftKey]);
 }
 
 /**

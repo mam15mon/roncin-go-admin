@@ -14,9 +14,30 @@ import {
 setupSplitCargoTests();
 
 describe('拆票基线刷新与编辑保护', () => {
+  it('页签切出重挂后恢复分配及备注，并保留原拆票版本', async () => {
+    splitState.context = makeSplitContext(true);
+    const first = renderSplit();
+    await pageReady();
+    editCargoAllocation();
+    const placeholder =
+      '可填写本次拆票说明（将永久记录在不可变拆票事件历史中）';
+    fireEvent.change(screen.getByPlaceholderText(placeholder), {
+      target: { value: '跨页保留' },
+    });
+    first.unmount();
+    splitState.context = { ...splitState.context, orderVersion: '9' };
+    renderSplit();
+    await pageReady();
+    expect(screen.getByPlaceholderText(placeholder)).toHaveValue('跨页保留');
+    const { original } = getCargoAllocationRows();
+    expect(original.querySelector('input')).toHaveValue('60');
+    expect(await screen.findByText('拆票数据需要刷新')).toBeInTheDocument();
+    expect(splitServices.execute).not.toHaveBeenCalled();
+  });
+
   it('取消刷新保留编辑，确认刷新才重新采纳基线并清除编辑', async () => {
     splitState.context = makeSplitContext(true);
-    renderSplit();
+    const page = renderSplit();
     await pageReady();
     editCargoAllocation();
     const note = screen.getByPlaceholderText(
@@ -46,6 +67,17 @@ describe('拆票基线刷新与编辑保护', () => {
     await waitFor(() => expect(note).toHaveValue(''));
     const { original } = getCargoAllocationRows();
     expect(original.querySelector('input')).toHaveValue('100');
+    page.unmount();
+    renderSplit();
+    await pageReady();
+    expect(
+      screen.getByPlaceholderText(
+        '可填写本次拆票说明（将永久记录在不可变拆票事件历史中）',
+      ),
+    ).toHaveValue('');
+    expect(
+      getCargoAllocationRows().original.querySelector('input'),
+    ).toHaveValue('100');
   });
 
   it('后台重查发现变化只提示刷新，不替换分配输入或提交基线', async () => {

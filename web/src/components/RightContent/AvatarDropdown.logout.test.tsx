@@ -16,11 +16,17 @@ import {
   type InitialState,
 } from '@/app/initialStateContext';
 import {
+  getFormDraftKey,
+  hasFormDraft,
+  saveFormDraft,
+} from '@/components/layout/formDraft';
+import {
   _clearAllTabCloseGuards,
   getAnyDirtyTabKey,
   useTabCloseGuard,
 } from '@/components/layout/tabCloseGuard';
 import { useRouteLeaveGuard } from '@/components/layout/useRouteLeaveGuard';
+import { storeWorkspaceTabs } from '@/components/layout/workspaceTabs';
 import { bindRouter, history } from '@/router/history';
 import { AvatarDropdown } from './AvatarDropdown';
 
@@ -93,7 +99,7 @@ function Editor() {
 }
 
 let router: ReturnType<typeof createMemoryRouter> | undefined;
-function mountEditor() {
+function mountEditor(edit = true) {
   router = createMemoryRouter(
     [
       {
@@ -112,9 +118,11 @@ function mountEditor() {
       <RouterProvider router={router} />
     </Provider>,
   );
-  fireEvent.change(screen.getByLabelText('未保存订单输入'), {
-    target: { value: '未保存编号' },
-  });
+  if (edit) {
+    fireEvent.change(screen.getByLabelText('未保存订单输入'), {
+      target: { value: '未保存编号' },
+    });
+  }
   return view;
 }
 
@@ -132,6 +140,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   router?.dispose();
+  sessionStorage.clear();
   _clearAllTabCloseGuards();
   vi.restoreAllMocks();
 });
@@ -164,6 +173,26 @@ describe('主动退出登录的未保存保护', () => {
     expect(replace).toHaveBeenCalledExactlyOnceWith('/user/login');
     expect(screen.getByTestId('current-user')).toHaveTextContent('anonymous');
     expect(getAnyDirtyTabKey()).toBeUndefined();
+  });
+
+  it('后台草稿参与退出确认，成功只清当前组织的草稿', async () => {
+    mountEditor(false);
+    const scope = 'user-a:company-a';
+    const tabKey = '/partners/customers';
+    const path = '/partners/customers/create';
+    const draft = getFormDraftKey(tabKey, path, scope);
+    const otherDraft = getFormDraftKey(tabKey, path, 'user-a:company-b');
+    saveFormDraft(draft, { name: '后台编辑' });
+    saveFormDraft(otherDraft, { name: '另一工作区编辑' });
+    storeWorkspaceTabs(scope, [
+      { key: tabKey, path, title: '新建客户', closable: true },
+    ]);
+
+    const dialog = await requestLogout();
+    fireEvent.click(within(dialog).getByRole('button', { name: '放弃并离开' }));
+    expect(await screen.findByText('登录页面')).toBeInTheDocument();
+    expect(hasFormDraft(draft)).toBe(false);
+    expect(hasFormDraft(otherDraft)).toBe(true);
   });
 
   it.each(['reject', 'undefined', 'success:false'] as const)(

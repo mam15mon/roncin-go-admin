@@ -10,9 +10,10 @@ export function useUnsavedChangesGuard(
     identity?: unknown;
     tabKey?: string;
     message?: string;
+    draftKey?: string;
   } = {},
 ) {
-  const { enabled = true, identity, message } = options;
+  const { enabled = true, identity, message, draftKey } = options;
   const tabKey = options.tabKey ?? resolveTabKey(history.location.pathname);
   const dirty = useRef(false);
   const enabledRef = useRef(enabled);
@@ -32,6 +33,7 @@ export function useUnsavedChangesGuard(
   useTabCloseGuard({
     enabled,
     tabKey,
+    draftKey,
     isDirty: () => dirty.current,
     message,
   });

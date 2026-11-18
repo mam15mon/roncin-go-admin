@@ -1,3 +1,14 @@
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
+    initialState: {
+      currentUser: {
+        id: 'split-user',
+        currentOrganization: { id: 'split-org' },
+      },
+    },
+  }),
+}));
+
 import { renderWithClient } from '@root/tests/queryClientTestUtils';
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { App, ConfigProvider } from 'antd';
@@ -102,6 +113,8 @@ export function makeSplitContext(
 
 export function setupSplitCargoTests() {
   beforeEach(() => {
+    sessionStorage.clear();
+    window.history.replaceState({}, '', '/orders/sea-export/split-order/split');
     vi.clearAllMocks();
     splitState.context = makeSplitContext();
     splitState.cargoAccess = true;
@@ -175,7 +188,7 @@ export function setupSplitCargoTests() {
 export function renderSplit() {
   return renderWithClient(
     <ConfigProvider theme={{ token: { motion: false } }}>
-      <MemoryRouter>
+      <MemoryRouter initialEntries={['/orders/sea-export/split-order/split']}>
         <App>
           <SeaOrderSplitPage />
         </App>

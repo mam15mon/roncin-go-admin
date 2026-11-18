@@ -11,14 +11,25 @@ import {
   Suspense,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
 import { useLocation } from 'react-router';
+import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
+import {
+  captureFormDraftSession,
+  clearFormDraft,
+  getFormDraft,
+  getFormDraftKey,
+  getFormDraftScope,
+  parseFormDraftMetadata,
+  prepareFormDraftClear,
+  saveFormDraft,
+} from '@/components/layout/formDraft';
 import { resolveTabKey } from '@/components/layout/routeUtils';
 import { useTabCloseGuard } from '@/components/layout/tabCloseGuard';
-import { useRouteLeaveGuard } from '@/components/layout/useRouteLeaveGuard';
 import {
   GuardedModalForm,
   PageHeaderShell,
@@ -84,12 +95,41 @@ export default function AwbEditor({
   const location = useLocation();
   const [path] = useState(location.pathname);
   const [form] = Form.useForm<AwbFormValues>();
+  const { initialState } = useInitialState();
+  const scope = getFormDraftScope(
+    initialState?.currentUser?.id,
+    identity.organizationId,
+  );
+  const tabKey = resolveTabKey(path);
+  const draftKey = getFormDraftKey(tabKey, path, scope);
+  const draftSession = useMemo(
+    () => captureFormDraftSession(draftKey),
+    [draftKey],
+  );
+  const [savedDraft] = useState(() =>
+    getFormDraft<{ values: AwbFormValues; metadata: string }>(draftKey),
+  );
+  const serverBaseline =
+    identity.target === 'MAWB'
+      ? { master: initial.master, blockedReasons: initial.blockedReasons }
+      : initial;
+  const restoredBaseline =
+    parseFormDraftMetadata<AwbBundle>(savedDraft?.metadata) ?? serverBaseline;
   const [baseline, setBaseline] = useState(() =>
     structuredClone(
       identity.target === 'MAWB'
-        ? { master: initial.master, blockedReasons: initial.blockedReasons }
-        : initial,
+        ? {
+            master: restoredBaseline.master,
+            blockedReasons: restoredBaseline.blockedReasons,
+          }
+        : restoredBaseline,
     ),
+  );
+  const [savedOutputBaseline, setSavedOutputBaseline] =
+    useState(serverBaseline);
+  const [outputChanged, setOutputChanged] = useState(false);
+  const [restoredMismatch, setRestoredMismatch] = useState(
+    () => awbFingerprint(restoredBaseline) !== awbFingerprint(serverBaseline),
   );
   const [session, setSession] = useState(0);
   const [syncError, setSyncError] = useState(false);
@@ -134,11 +174,14 @@ export default function AwbEditor({
       form.getFieldValue('content') as API.AirWaybillContent | undefined,
     ) ?? {};
   const hasChanges = () =>
-    !sameAirWaybillContent(readContent(), awbContent(baseline, target));
-  const tabKey = resolveTabKey(location.pathname);
-  useRouteLeaveGuard(tabKey, hasChanges);
-  useTabCloseGuard({ tabKey, isDirty: hasChanges });
+    !sameAirWaybillContent(readContent(), awbContent(baseline, target)) ||
+    Boolean(form.getFieldValue('reason')?.trim());
+  useTabCloseGuard({ tabKey, draftKey, isDirty: hasChanges });
   const accept = (bundle: AwbBundle) => {
+    clearFormDraft(draftKey, draftSession);
+    setRestoredMismatch(false);
+    setSavedOutputBaseline(bundle);
+    setOutputChanged(false);
     setBaseline(structuredClone(bundle));
     form.resetFields();
     form.setFieldsValue({
@@ -232,24 +275,33 @@ export default function AwbEditor({
   });
   const busy =
     save.isPending || previewImpact.isPending || refreshing || checking;
-  const notice = useAwbChangeNotice(
+  const observedNotice = useAwbChangeNotice(
     baseline,
     identity,
     session,
     !busy && location.pathname === path,
+    savedOutputBaseline,
   );
+  const notice = {
+    ...observedNotice,
+    changed: restoredMismatch || observedNotice.changed,
+  };
   useEffect(() => {
     if (notice.changed || notice.checkError) setPreview(undefined);
   }, [notice.changed, notice.checkError]);
   const executeSave = async (values: AwbFormValues, confirmed?: Impact) => {
     if (!canUpdate || notice.changed || syncError) return false;
     const currentRevision = revision.current;
+    const clearSubmittedDraft = prepareFormDraftClear(draftKey, draftSession);
     try {
       const result = await save.mutateAsync({
         values: structuredClone(values),
         impact: confirmed,
       });
-      if (!alive.current) return false;
+      if (!alive.current) {
+        clearSubmittedDraft();
+        return true;
+      }
       if (revision.current !== currentRevision) {
         setSyncError(true);
         setImpact(undefined);
@@ -340,23 +392,51 @@ export default function AwbEditor({
       });
     else void refresh();
   };
+  const readOnlyOutput = !canUpdate;
+  const outputBaseline = readOnlyOutput ? savedOutputBaseline : baseline;
+  const outputInvalid =
+    outputChanged ||
+    (!readOnlyOutput && notice.changed) ||
+    (readOnlyOutput &&
+      Boolean(
+        observedNotice.observedSnapshot &&
+          awbFingerprint(observedNotice.observedSnapshot) !==
+            awbFingerprint(outputBaseline),
+      ));
+  useEffect(() => {
+    if (outputInvalid) setPreview(undefined);
+  }, [outputInvalid]);
   const output = async () => {
-    if (busy || syncError || notice.changed) return;
-    if (hasChanges()) {
+    if (busy || syncError || outputInvalid) return;
+    if (!readOnlyOutput && hasChanges()) {
       message.warning('请先保存正文后再输出。');
       return;
     }
     const currentRevision = revision.current;
     setChecking(true);
     try {
-      if (
+      if (readOnlyOutput) {
+        const current = await client.fetchQuery({
+          queryKey: ['air-orders', 'awb-output-check', { identity, session }],
+          queryFn: ({ signal }) => fetchAwbBundle(identity, signal),
+          staleTime: 0,
+          meta: { silent: true },
+        });
+        if (!alive.current || currentRevision !== revision.current) return;
+        if (awbFingerprint(current) !== awbFingerprint(outputBaseline)) {
+          setOutputChanged(true);
+          setPreview(undefined);
+          message.warning('这个航空运单已经发生变动，请重新刷新。');
+          return;
+        }
+      } else if (
         !(await notice.verifyCurrent()) ||
         !alive.current ||
         currentRevision !== revision.current ||
         hasChanges()
       )
         return;
-      setPreview(buildAwbPdfModel(baseline, target));
+      setPreview(buildAwbPdfModel(outputBaseline, target));
     } catch (error) {
       if (alive.current)
         message.error(
@@ -366,7 +446,7 @@ export default function AwbEditor({
       if (alive.current) setChecking(false);
     }
   };
-  const blockOutput = awbOutputBlockedReason(baseline, target);
+  const blockOutput = awbOutputBlockedReason(outputBaseline, target);
   const listPath = `/orders/${definition.kind}`;
   const self = target === 'HAWB' && baseline.master.businessType === 'AE';
   return (
@@ -404,7 +484,7 @@ export default function AwbEditor({
               : '按已保存的真实印发人输出归档文件；打印不会签发、放货、加电子签章或外发。'
           }
         />
-        {notice.changed && (
+        {(notice.changed || outputInvalid) && (
           <Alert
             type="warning"
             showIcon
@@ -440,10 +520,22 @@ export default function AwbEditor({
         <SectionCard title="航空运单印字正文">
           <ProForm<AwbFormValues>
             form={form}
-            initialValues={{ content: awbContent(initial, target) }}
+            initialValues={
+              savedDraft?.values ?? {
+                content: awbContent(restoredBaseline, target),
+              }
+            }
             submitter={false}
             onFinish={submit}
             onValuesChange={() => {
+              saveFormDraft(
+                draftKey,
+                {
+                  values: form.getFieldsValue(true),
+                  metadata: JSON.stringify(baseline),
+                },
+                draftSession,
+              );
               revision.current += 1;
               setImpact(undefined);
               setPreview(undefined);
@@ -481,7 +573,7 @@ export default function AwbEditor({
         <Button
           onClick={output}
           loading={checking}
-          disabled={busy || syncError || notice.changed || Boolean(blockOutput)}
+          disabled={busy || syncError || outputInvalid || Boolean(blockOutput)}
         >
           预览 / 打印 / 下载
         </Button>
@@ -522,13 +614,13 @@ export default function AwbEditor({
           </Typography.Paragraph>
         </GuardedModalForm>
       )}
-      {preview && !notice.changed && (
+      {preview && !outputInvalid && (
         <Suspense fallback={<Spin />}>
           <AwbPdfPreview
             open
             onClose={() => setPreview(undefined)}
             model={preview}
-            fingerprint={awbFingerprint(baseline)}
+            fingerprint={awbFingerprint(outputBaseline)}
           />
         </Suspense>
       )}

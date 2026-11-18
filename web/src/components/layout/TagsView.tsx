@@ -13,8 +13,9 @@ import {
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { Dropdown } from 'antd';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { useLocation } from 'react-router';
+import access from '@/access';
 import { useInitialState } from '@/app/AppProvider';
 import { useClearListQueries } from '@/components/ui/list-query-state';
 import { history } from '@/router/history';
@@ -26,19 +27,14 @@ import {
 } from './routeUtils';
 import { confirmIfTabsDirty } from './tabCloseGuard';
 
-export interface TagItem {
-  key: string;
-  path: string;
-  title: string;
-  closable: boolean;
-}
+import {
+  FIXED_TAB,
+  readWorkspaceTabs,
+  storeWorkspaceTabs,
+  type TagItem,
+} from './workspaceTabs';
 
-export const FIXED_TAB: TagItem = {
-  key: '/welcome',
-  path: '/welcome',
-  title: '工作台',
-  closable: false,
-};
+export { FIXED_TAB, type TagItem } from './workspaceTabs';
 
 /**
  * 判断路径是否无需加入多页签
@@ -109,74 +105,40 @@ export const TagsView: React.FC = () => {
   const fullPath = `${location.pathname}${location.search || ''}${location.hash || ''}`;
   const currentTabKey = resolveTabKey(currentPath);
 
-  const [tags, setTags] = useState<TagItem[]>(() => {
-    if (
-      currentPath &&
-      currentPath !== '/' &&
-      currentPath !== '/welcome' &&
-      !shouldIgnorePath(currentPath)
-    ) {
-      const initialKey = resolveTabKey(currentPath);
-      if (initialKey === '/welcome') {
-        return [FIXED_TAB];
-      }
-      return [
-        FIXED_TAB,
-        {
-          key: initialKey,
-          path: fullPath,
-          title: resolveWorkspaceTabTitle(currentPath),
-          closable: true,
-        },
-      ];
-    }
-    return [FIXED_TAB];
-  });
+  const [tags, setTags] = useState(() =>
+    updateCurrentTab(readWorkspaceTabs(draftScope, access(initialState))),
+  );
 
-  useEffect(() => {
+  function updateCurrentTab(previousTags: TagItem[]): TagItem[] {
     if (
+      !currentPath ||
       shouldIgnorePath(currentPath) ||
-      currentPath === '/' ||
-      currentPath === '/welcome'
+      currentTabKey === FIXED_TAB.key
     ) {
-      return;
+      return previousTags;
     }
+    const existingTag = previousTags.find((tag) => tag.key === currentTabKey);
+    const tag: TagItem = {
+      key: currentTabKey,
+      path: fullPath,
+      title:
+        existingTag?.path.split(/[?#]/, 1)[0] === currentPath
+          ? existingTag.title
+          : resolveWorkspaceTabTitle(currentPath),
+      closable: true,
+    };
+    return existingTag
+      ? previousTags.map((item) => (item.key === tag.key ? tag : item))
+      : [...previousTags, tag];
+  }
 
-    const tabKey = resolveTabKey(currentPath);
-    if (tabKey === '/welcome') {
-      return;
-    }
+  useLayoutEffect(() => {
+    setTags(updateCurrentTab);
+  }, [currentPath, currentTabKey, fullPath]);
 
-    setTags((prevTags) => {
-      const index = prevTags.findIndex((t) => t.key === tabKey);
-      if (index !== -1) {
-        const prevTag = prevTags[index];
-        const prevPathname = prevTag.path.split('?')[0].split('#')[0];
-        const title =
-          prevPathname === currentPath
-            ? prevTag.title
-            : resolveWorkspaceTabTitle(currentPath);
-
-        const updated = [...prevTags];
-        updated[index] = {
-          ...prevTag,
-          path: fullPath,
-          title,
-        };
-        return updated;
-      }
-
-      return [
-        ...prevTags,
-        {
-          key: tabKey,
-          path: fullPath,
-          title: resolveWorkspaceTabTitle(currentPath),
-          closable: true,
-        },
-      ];
-    });
-  }, [currentPath, fullPath]);
+  useLayoutEffect(() => {
+    storeWorkspaceTabs(draftScope, tags);
+  }, [draftScope, tags]);
 
   // 监听动态更新页签标题事件（如详情页加载完真实单号后更新 Tab 标题）
   useEffect(() => {
@@ -217,28 +179,43 @@ export const TagsView: React.FC = () => {
     history.push(tag.path);
   };
 
-  const executeCloseTag = (tag: TagItem) => {
-    clearQueries([tag.key]);
-    clearTabDrafts(tag.key, draftScope);
-    const nextPath = computeNextActivePath(tags, tag.key, currentTabKey);
-    setTags((prev) => prev.filter((t) => t.key !== tag.key));
+  const requestCloseTags = (
+    closingTags: TagItem[],
+    nextPath?: string | null,
+  ) => {
+    const closingKeys = closingTags.map((tag) => tag.key);
+    confirmIfTabsDirty(
+      closingKeys,
+      () => {
+        for (const key of closingKeys) clearTabDrafts(key, draftScope);
+        clearQueries(closingKeys);
+        const remainingTags = tags.filter(
+          (tag) => !closingKeys.includes(tag.key),
+        );
+        storeWorkspaceTabs(draftScope, remainingTags);
+        setTags((previous) =>
+          previous.filter((tag) => !closingKeys.includes(tag.key)),
+        );
+        if (nextPath && nextPath !== fullPath) return history.push(nextPath);
+        return undefined;
+      },
+      undefined,
+      draftScope,
+    );
+  };
 
-    if (nextPath && nextPath !== fullPath) {
-      return history.push(nextPath);
+  const closeTag = (tag: TagItem) => {
+    if (tag.closable) {
+      requestCloseTags(
+        [tag],
+        computeNextActivePath(tags, tag.key, currentTabKey),
+      );
     }
-    return undefined;
   };
 
   const handleClose = (e: React.MouseEvent, tag: TagItem) => {
     e.stopPropagation();
-    if (!tag.closable) return;
-
-    confirmIfTabsDirty(
-      [tag.key],
-      () => executeCloseTag(tag),
-      undefined,
-      draftScope,
-    );
+    closeTag(tag);
   };
 
   // 右键快捷菜单逻辑
@@ -268,65 +245,29 @@ export const TagsView: React.FC = () => {
         icon: <CloseOutlined />,
         label: '关闭标签页',
         disabled: !tag.closable,
-        onClick: () => {
-          confirmIfTabsDirty(
-            [tag.key],
-            () => executeCloseTag(tag),
-            undefined,
-            draftScope,
-          );
-        },
+        onClick: () => closeTag(tag),
       },
       {
         key: 'close-other',
         icon: <CloseCircleOutlined />,
         label: '关闭其他标签页',
         disabled: !hasOther,
-        onClick: () => {
-          const closingTags = tags.filter(
-            (t) => t.key !== FIXED_TAB.key && t.key !== tag.key,
-          );
-          confirmIfTabsDirty(
-            closingTags.map((t) => t.key),
-            () => {
-              clearQueries(closingTags.map((t) => t.key));
-              for (const t of closingTags) {
-                clearTabDrafts(t.key, draftScope);
-              }
-              if (tag.key === '/welcome') {
-                setTags([FIXED_TAB]);
-                return history.push('/welcome');
-              } else {
-                setTags([FIXED_TAB, tag]);
-                return history.push(tag.path);
-              }
-            },
-            undefined,
-            draftScope,
-          );
-        },
+        onClick: () =>
+          requestCloseTags(
+            tags.filter((item) => item.closable && item.key !== tag.key),
+            tag.path,
+          ),
       },
       {
         key: 'close-all',
         icon: <CloseCircleOutlined />,
         label: '关闭全部标签页',
         disabled: !tags.some((item) => item.closable),
-        onClick: () => {
-          const closingTags = tags.filter((item) => item.closable);
-          confirmIfTabsDirty(
-            closingTags.map((item) => item.key),
-            () => {
-              clearQueries(closingTags.map((item) => item.key));
-              for (const item of closingTags) {
-                clearTabDrafts(item.key, draftScope);
-              }
-              setTags([FIXED_TAB]);
-              return history.push(FIXED_TAB.path);
-            },
-            undefined,
-            draftScope,
-          );
-        },
+        onClick: () =>
+          requestCloseTags(
+            tags.filter((item) => item.closable),
+            FIXED_TAB.path,
+          ),
       },
       {
         key: 'close-right',
@@ -334,25 +275,12 @@ export const TagsView: React.FC = () => {
         label: '关闭右侧标签页',
         disabled: !hasRight,
         onClick: () => {
-          const closingTags = tags.slice(currentIndex + 1);
-          confirmIfTabsDirty(
-            closingTags.map((t) => t.key),
-            () => {
-              clearQueries(closingTags.map((t) => t.key));
-              for (const t of closingTags) {
-                clearTabDrafts(t.key, draftScope);
-              }
-              setTags((prev) => prev.slice(0, currentIndex + 1));
-              const activeIndex = tags.findIndex(
-                (t) => t.key === currentTabKey,
-              );
-              if (currentIndex < activeIndex) {
-                return history.push(tag.path);
-              }
-              return undefined;
-            },
-            undefined,
-            draftScope,
+          const closing = tags.slice(currentIndex + 1);
+          requestCloseTags(
+            closing,
+            closing.some((item) => item.key === currentTabKey)
+              ? tag.path
+              : null,
           );
         },
       },
@@ -362,25 +290,12 @@ export const TagsView: React.FC = () => {
         label: '关闭左侧标签页',
         disabled: !hasLeft,
         onClick: () => {
-          const closingTags = tags.slice(1, currentIndex);
-          confirmIfTabsDirty(
-            closingTags.map((t) => t.key),
-            () => {
-              clearQueries(closingTags.map((t) => t.key));
-              for (const t of closingTags) {
-                clearTabDrafts(t.key, draftScope);
-              }
-              setTags((prev) => [FIXED_TAB, ...prev.slice(currentIndex)]);
-              const activeIndex = tags.findIndex(
-                (t) => t.key === currentTabKey,
-              );
-              if (activeIndex > 0 && activeIndex < currentIndex) {
-                return history.push(tag.path);
-              }
-              return undefined;
-            },
-            undefined,
-            draftScope,
+          const closing = tags.slice(1, currentIndex);
+          requestCloseTags(
+            closing,
+            closing.some((item) => item.key === currentTabKey)
+              ? tag.path
+              : null,
           );
         },
       },

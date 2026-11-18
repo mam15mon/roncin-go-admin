@@ -12,10 +12,9 @@ import {
   clearFormDraft,
   getFormDraftKey,
   getFormDraftScope,
+  prepareFormDraftClear,
 } from '@/components/layout/formDraft';
 import { resolveTabKey } from '@/components/layout/routeUtils';
-import { isTabDirty } from '@/components/layout/tabCloseGuard';
-import { useRouteLeaveGuard } from '@/components/layout/useRouteLeaveGuard';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
 import type { OrderFormTemplateActions } from '@/components/ui/order-template/types';
 import { SeaDocumentStructure } from '@/enums.generated';
@@ -89,12 +88,6 @@ function NewOrderContent({
     initialState?.currentUser?.currentOrganization?.id,
   );
   // 取消/侧栏跳走等路由离开：有未保存输入先确认，确认放弃即清草稿；建单成功跳转不拦截。
-  const newTabKey = resolveTabKey(`/orders/${kind}/new`);
-  useRouteLeaveGuard(
-    newTabKey,
-    () => !navigatedRef.current && isTabDirty(newTabKey, draftScope),
-    draftScope,
-  );
 
   // 实例卸载即失效，覆盖 A→B→A 以及 StrictMode 的 setup/cleanup 往返。
   const instanceGenerationRef = useRef(0);
@@ -456,6 +449,13 @@ function NewOrderContent({
   }
 
   const handleFinish = async (values: CreateOrderFormValues) => {
+    const clearSubmittedDraft = prepareFormDraftClear(
+      getFormDraftKey(
+        resolveTabKey(`/orders/${kind}/new`),
+        sourceRequest.draftPathname,
+        draftScope,
+      ),
+    );
     const generation = instanceGenerationRef.current;
     const isCurrentInstance = () =>
       generation === instanceGenerationRef.current;
@@ -464,7 +464,9 @@ function NewOrderContent({
         const createdId = await seaCreate.submit(
           definition.form.buildCreatePayload(values),
         );
-        if (!createdId || !isCurrentInstance()) return false;
+        if (!createdId) return false;
+        clearSubmittedDraft();
+        if (!isCurrentInstance()) return true;
         completeSeaCreate(createdId);
         return true;
       } catch (error) {
@@ -483,8 +485,9 @@ function NewOrderContent({
         // 当前实例统一反馈写入错误，失效实例的迟到失败不触发全局通知。
         { skipErrorHandler: true },
       );
-      if (!isCurrentInstance() || !isWriteResponse(response, true))
-        return false;
+      if (!isWriteResponse(response, true)) return false;
+      if (response?.data?.id) clearSubmittedDraft();
+      if (!isCurrentInstance()) return Boolean(response?.data?.id);
       // 创建结果必须以服务端返回的订单 ID 为准；空响应或缺失 ID 时
       // 不提示成功、不跳转、不轮换幂等键，保留表单供同键重试确认，
       // 避免响应丢失时重复建单。
@@ -497,7 +500,8 @@ function NewOrderContent({
       }
       createIdempotencyKeyRef.current = generateUUID();
       message.success('创建订单成功');
-      // 建单成功后的跳转不经离开确认；草稿由模板在提交成功后清理。
+      // 先同步清除实时守卫与草稿，再交给全局路由守卫执行成功导航。
+      flushSync(() => actionsRef.current?.resetTo());
       navigatedRef.current = true;
       history.push(`/orders/${definition.kind}/${createdId}`);
       return true;

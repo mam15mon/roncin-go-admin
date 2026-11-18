@@ -126,9 +126,8 @@ const affectedOrderIds = preview.memberOrderIds ?? [];
   MBL 身份更新基线与正文草稿基线可能不同，须分别与远端 MBL 版本核对，不能只比较
   `seaMasterBillExpectedCandidateVersion` 而漏掉过期的 `seaMasterBillContentVersion`。
 
-- 详情须在完整单证加载后初始化表单，只保留当前挂载实例的内存输入与编辑基线；
-  不保存或恢复主详情持久草稿，忽略旧 storage 内容。组件晚到查询不得覆盖当前输入；
-  未保存关闭、路由离开、组织切换与浏览器离开继续使用[统一保护](./state-management.md#场景订单详情离开保护与可选持久草稿)。
+- 详情须在完整单证加载后初始化表单，依照[页签草稿契约](./state-management.md#场景tagsview-页签草稿与关闭保护)
+  恢复当前订单草稿中的输入与原单证基线。迟到查询只用于外部变动提醒，当前输入与基线继续保留。
 - 当前订单/工作区挂载的表单初值保持稳定，后续成功保存和显式刷新通过 `resetTo` 回填完整
   新快照；不能同时更换已挂载 ProForm 的 `initialValues`，避免异步初值警告与初始化语义混乱。
 - 统一保存时以规范化字段与加载基线比较，仅提交改过的单证。基线的运输条款、

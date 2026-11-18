@@ -47,7 +47,9 @@ describe('航空制作输出前复核', () => {
       screen.queryByRole('button', { name: '保存正文' }),
     ).not.toBeInTheDocument();
     outputAwb();
-    await screen.findByRole('dialog', { name: '航空PDF预览' });
+    expect(
+      (await screen.findByText('关闭预览')).closest('[role="dialog"]'),
+    ).toBeVisible();
   });
   it('MAWB无经营公司办理权不开放保存', () => {
     state.canOperate = false;
@@ -60,7 +62,7 @@ describe('航空制作输出前复核', () => {
     makeImportBundle();
     renderAwb('HAWB', { businessType: OrderBusinessType.BUSINESS_TYPE_AI });
     expect(
-      screen.getByRole('button', { name: '预览 / 打印 / 下载' }),
+      screen.getByText('预览 / 打印 / 下载').closest('button'),
     ).toBeDisabled();
     const input = await editRemarks('可维护的外部归档稿');
     expect(input).toBeEnabled();
@@ -84,6 +86,8 @@ describe('航空制作输出前复核', () => {
     );
     expect(state.preview).not.toHaveBeenCalled();
     outputAwb();
-    await screen.findByRole('dialog', { name: '航空PDF预览' });
+    expect(
+      (await screen.findByText('关闭预览')).closest('[role="dialog"]'),
+    ).toBeVisible();
   });
 });

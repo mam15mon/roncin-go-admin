@@ -59,6 +59,7 @@ function table() {
 }
 
 beforeEach(() => {
+  sessionStorage.clear();
   vi.mocked(orderFeeServiceListFees).mockResolvedValue({ data: [] });
   vi.mocked(orderFeeServiceResolveFeeExchangeRate).mockResolvedValue({
     exchangeRate: '1',

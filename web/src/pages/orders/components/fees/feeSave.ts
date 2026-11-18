@@ -224,6 +224,14 @@ export class SaveRequestKeyHolder {
     return this.current.key;
   }
 
+  snapshot(): { fingerprint: string; key: string } | undefined {
+    return this.current;
+  }
+
+  restore(value?: { fingerprint: string; key: string }) {
+    this.current = value;
+  }
+
   clear() {
     this.current = undefined;
   }

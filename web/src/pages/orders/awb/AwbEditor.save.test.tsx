@@ -1,5 +1,6 @@
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+import { getAnyDirtyTabKey } from '@/components/layout/tabCloseGuard';
 import {
   editRemarks,
   outputAwb,
@@ -10,6 +11,43 @@ import {
 import { savedHouseOrder } from './model.fixtures';
 
 describe('航空制作保存与输入保护', () => {
+  it('只编辑修改原因时也登记实时未保存保护', () => {
+    renderAwb('MAWB');
+    fireEvent.change(screen.getByLabelText('修改原因'), {
+      target: { value: '尚未提交的更正说明' },
+    });
+    expect(getAnyDirtyTabKey()).toBeTruthy();
+  });
+  it('切换后重挂恢复正文并立即提示已加载的外部变动', async () => {
+    const first = renderAwb();
+    await editRemarks('仍打开页签的草稿');
+    first.unmount();
+    state.bundle = {
+      ...state.bundle,
+      order: { ...state.bundle.order, version: '9' },
+      master: { ...state.bundle.master, version: '8' },
+    };
+    renderAwb();
+    fireEvent.click(screen.getByText('签发与备注'));
+    expect(screen.getByLabelText('单证备注')).toHaveValue('仍打开页签的草稿');
+    expect(
+      screen.getByText('这个航空运单已经发生变动，请重新刷新。'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '保存正文' })).toBeDisabled();
+    expect(state.save).not.toHaveBeenCalled();
+  });
+  it('MAWB同版本重挂只比较独立主单，不把来源订单误判为变化', async () => {
+    const first = renderAwb('MAWB');
+    await editRemarks('主单临时正文');
+    first.unmount();
+    renderAwb('MAWB');
+    fireEvent.click(screen.getByText('签发与备注'));
+    expect(screen.getByLabelText('单证备注')).toHaveValue('主单临时正文');
+    expect(
+      screen.queryByText('这个航空运单已经发生变动，请重新刷新。'),
+    ).toBeNull();
+    expect(screen.getByRole('button', { name: '保存正文' })).toBeEnabled();
+  });
   it('HAWB保存只提交明确正文和旧基线，独立保存后才可输出', async () => {
     state.save.mockImplementation(
       async (_params, payload: API.UpdateOrderRequest) => {

@@ -6,7 +6,7 @@ import {
   within,
 } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { hasFormDraft, saveFormDraft } from '@/components/layout/formDraft';
+import { hasFormDraft } from '@/components/layout/formDraft';
 import { orderErrorReasons } from '@/errorReasons.generated';
 import {
   advanceVersion,
@@ -49,12 +49,15 @@ describe('海运详情修改港口的版本与未保存输入', () => {
   );
 
   it('忽略遗留详情草稿，初始化仍使用服务端资料与版本', () => {
-    saveFormDraft(draftKey, {
-      version: '1',
-      seaMasterBillExpectedCandidateVersion: '2',
-      originLocationId: 'old-draft-port',
-      containerRequests: null,
-    });
+    sessionStorage.setItem(
+      'roncin:form-draft:user-1:org-1:/orders/sea-export/order-1:/orders/sea-export/order-1',
+      JSON.stringify({
+        version: '1',
+        seaMasterBillExpectedCandidateVersion: '2',
+        originLocationId: 'old-draft-port',
+        containerRequests: null,
+      }),
+    );
     renderDetail();
     expect(screen.getByLabelText('起运港')).toHaveValue('origin-old');
     expect(state.form?.getFieldsValue(true)).toMatchObject({
@@ -145,7 +148,7 @@ describe('海运详情修改港口的版本与未保存输入', () => {
     ).toBeInTheDocument();
     expect(getOrderUpdateMock()).not.toHaveBeenCalled();
     expect(screen.getByLabelText('起运港')).toHaveValue('draft-port');
-    expect(hasFormDraft(draftKey)).toBe(false);
+    expect(hasFormDraft(draftKey)).toBe(true);
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: '重置修改' }));
     });

@@ -6,6 +6,7 @@ import { TagsView } from '@/components/layout/TagsView';
 import { ListQueryStateProvider } from '@/components/ui/list-query-state';
 import { createQueryClient } from '@/utils/queryClient';
 import { activateWorkspaceRequestScope } from '@/utils/requestClient';
+import { getFormDraftScope } from './formDraft';
 import { getAnyDirtyTabKey } from './tabCloseGuard';
 
 export function getOrganizationWorkspaceKey(
@@ -25,7 +26,10 @@ export function OrganizationWorkspace({
   if (!user?.id || !user.currentOrganization?.id) return null;
 
   return (
-    <WorkspaceQueryProvider key={getOrganizationWorkspaceKey(user)}>
+    <WorkspaceQueryProvider
+      key={getOrganizationWorkspaceKey(user)}
+      draftScope={getFormDraftScope(user.id, user.currentOrganization.id)}
+    >
       {/* 业务确认框随工作区销毁；头部切换确认仍由根 App 持有。 */}
       <App component={false}>
         <ListQueryStateProvider enabled>
@@ -39,18 +43,24 @@ export function OrganizationWorkspace({
   );
 }
 
-function WorkspaceQueryProvider({ children }: { children: React.ReactNode }) {
+function WorkspaceQueryProvider({
+  children,
+  draftScope,
+}: {
+  children: React.ReactNode;
+  draftScope?: string;
+}) {
   const [client] = useState(createQueryClient);
 
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (!getAnyDirtyTabKey()) return;
+      if (!getAnyDirtyTabKey(draftScope)) return;
       event.preventDefault();
       event.returnValue = '';
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, []);
+  }, [draftScope]);
 
   useLayoutEffect(() => {
     const releaseRequests = activateWorkspaceRequestScope();
