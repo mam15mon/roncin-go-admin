@@ -226,11 +226,15 @@ message PartnerSettlementRuleInput {
     → 每个客户角色一条，账期 45、额度 30 万 CNY；非客户规则和停用规则已删除；唯一索引 `partner_settlement_rule_role_key` 存在，废弃列已删除。
   - **额度 0 不参与：** 同组额度 0 与 20 万 → 20 万；同组只有 0 或空 → 保留行原值。
   - **账期全空：** 同组账期都为空 → 结果为空。
-  - **守卫失败（三种）：** 启用客户规则的正额度缺币种；币种与公司本币不同；公司及上级都没有本币
+  - **守卫失败（两种）：** 启用客户规则的正额度缺币种；币种与公司本币不同
     → 迁移返回错误，`partner_settlement_rules` 的行数与各列取值都和迁移前一致（事务整体回滚）。
   - **守卫不误伤：** 只有停用客户规则或供应商规则币种异常 → 迁移成功，这些行被删除。
-  - **子公司继承本币：** 规则所属公司 `base_currency` 为空、上级公司为 CNY → 视为 CNY，守卫通过。
-    （实施时以 `organizations` 的 CHECK 约束为准，核对哪些公司类型允许 `base_currency` 为空，构造合法数据。）
+  - **部门继承所属公司本币：** 规则所属组织为部门（`base_currency` 为空），其上级公司为 CNY，额度币种 CNY → 守卫通过。
+    数据必须满足 `organizations` 的现行约束（`20260922100000_system_company_boundaries.sql`：
+    system / company 必须有本币且没有上级；department / team 必须有上级且没有本币）。
+  - **不测「公司及上级都没有本币」：** 现行约束保证公司一定有本币，这种数据在合法库里无法出现。
+    不要为了这个用例在测试里删除或绕过数据库约束。守卫 SQL 里对本币为空的判断仍然保留，
+    它与 Go 侧 `resolveOrganizationBaseCurrency` 遇到无本币时报错的口径一致，只是不单独写测试。
   - 空库完整迁移链可以执行。
   涉及 Schema 初始化的测试不能用 `t.Parallel()`；参考 `invoice_number_rule_migration_integration_test.go` 和 `migration_fixture_test.go`
   的「迁移到指定版本 → 构造数据 → 继续迁移」写法。
