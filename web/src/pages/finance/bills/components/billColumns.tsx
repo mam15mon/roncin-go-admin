@@ -1,8 +1,4 @@
-import {
-  CloseCircleOutlined,
-  EditOutlined,
-  EyeOutlined,
-} from '@ant-design/icons';
+import { CloseCircleOutlined, EyeOutlined } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { Space, Tag } from 'antd';
 import dayjs from 'dayjs';
@@ -22,14 +18,12 @@ interface GetFinanceBillColumnsParams {
     canUpdateFinanceBills?: boolean;
   };
   onOpenDetail: (bill: API.FinanceBill) => void;
-  onOpenEdit: (bill: API.FinanceBill) => void;
   onCancelBill: (bill: API.FinanceBill) => void;
 }
 
 export function getFinanceBillColumns({
   access,
   onOpenDetail,
-  onOpenEdit,
   onCancelBill,
 }: GetFinanceBillColumnsParams): ProColumns<API.FinanceBill>[] {
   return [
@@ -296,18 +290,11 @@ export function getFinanceBillColumns({
       title: '操作',
       valueType: 'option',
       fixed: 'right',
-      width: 170,
+      width: 120,
       render: (_, row) => [
         <a key="view" onClick={() => void onOpenDetail(row)}>
           <EyeOutlined /> 详情
         </a>,
-        access.canUpdateFinanceBills &&
-        access.canOperateOrganization(row.organizationId) &&
-        row.status === FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED ? (
-          <a key="edit" onClick={() => onOpenEdit(row)}>
-            <EditOutlined /> 编辑
-          </a>
-        ) : null,
         access.canUpdateFinanceBills &&
         access.canOperateOrganization(row.organizationId) &&
         row.status !== FinanceBillStatus.FINANCE_BILL_STATUS_CANCELLED ? (

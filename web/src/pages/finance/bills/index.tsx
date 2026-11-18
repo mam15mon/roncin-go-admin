@@ -488,7 +488,6 @@ export default function FinanceBillsPage() {
   const columns = getFinanceBillColumns({
     access,
     onOpenDetail: openDetail,
-    onOpenEdit: openEdit,
     onCancelBill: cancelBill,
   });
 
@@ -648,6 +647,12 @@ export default function FinanceBillsPage() {
         loading={detailLoading}
         detail={detail}
         onClose={() => setDetailId(undefined)}
+        canEdit={
+          access.canUpdateFinanceBills &&
+          access.canOperateOrganization(detail?.organizationId) &&
+          detail?.status === FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED
+        }
+        onEdit={openEdit}
         onRegistrationUpdated={() => {
           if (detail) void openDetail(detail);
           void actionRef.current?.reload();

@@ -52,14 +52,14 @@ vi.mock('@/features/master-data/currencies', () => ({
   fetchCurrencyOptions: vi.fn().mockResolvedValue([]),
 }));
 vi.mock('./components/billColumns', () => ({
-  getFinanceBillColumns: (p: {
-    onOpenEdit: (bill: API.FinanceBill) => void;
-  }) => {
-    state.openEdit = p.onOpenEdit;
-    return [];
+  getFinanceBillColumns: () => [],
+}));
+vi.mock('./components/BillDetailDrawer', () => ({
+  default: (p: { onEdit: (bill: API.FinanceBill) => void }) => {
+    state.openEdit = p.onEdit;
+    return null;
   },
 }));
-vi.mock('./components/BillDetailDrawer', () => ({ default: () => null }));
 vi.mock('./components/BillEditModal', () => ({
   default: (p: {
     open: boolean;

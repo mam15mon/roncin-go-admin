@@ -1,5 +1,5 @@
 import { renderWithApp } from '@root/tests/renderWithApp';
-import { act, screen } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { partnerServiceListPartnerAccounts } from '@/services/roncin/partnerService';
@@ -119,6 +119,34 @@ describe('BillDetailDrawer 账单详情', () => {
     expect(screen.getByText('CNY')).toBeInTheDocument();
     expect(screen.getByText('7.12345679')).toBeInTheDocument();
     expect(screen.getByText('712.35 CNY')).toBeInTheDocument();
+    await act(async () => {});
+  });
+
+  it('有编辑权限时详情内提供编辑账单信息入口，无权限则不显示', async () => {
+    const onEdit = vi.fn();
+    const detail = { id: 'bill-3', billNo: 'BILL-3', lines: [] };
+    const view = renderWithApp(
+      <BillDetailDrawer
+        open
+        loading={false}
+        onClose={vi.fn()}
+        detail={detail}
+        canEdit
+        onEdit={onEdit}
+      />,
+    );
+    fireEvent.click(screen.getByText('编辑账单信息'));
+    expect(onEdit).toHaveBeenCalledWith(detail);
+    view.rerender(
+      <BillDetailDrawer
+        open
+        loading={false}
+        onClose={vi.fn()}
+        detail={detail}
+        onEdit={onEdit}
+      />,
+    );
+    expect(screen.queryByText('编辑账单信息')).not.toBeInTheDocument();
     await act(async () => {});
   });
 });

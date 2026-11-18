@@ -117,7 +117,6 @@ describe('日常账单业务状态', () => {
     const columns = getFinanceBillColumns({
       access: { canOperateOrganization: () => true },
       onOpenDetail: () => {},
-      onOpenEdit: () => {},
       onCancelBill: () => {},
     });
     const column = columns.find((col) => col.dataIndex === 'status');

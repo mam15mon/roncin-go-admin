@@ -1,4 +1,5 @@
-import { Descriptions, Space, type TableColumnsType, Tag } from 'antd';
+import { EditOutlined } from '@ant-design/icons';
+import { Button, Descriptions, Space, type TableColumnsType, Tag } from 'antd';
 import React from 'react';
 import {
   DescriptionsDetailDrawer,
@@ -21,6 +22,9 @@ interface BillDetailDrawerProps {
   loading: boolean;
   detail?: API.FinanceBill;
   onClose: () => void;
+  /** 有编辑权限且账单可编辑时提供：修改对账抬头、账期、结算账户、预计开票和备注。 */
+  canEdit?: boolean;
+  onEdit?: (bill: API.FinanceBill) => void;
   /** 具备账单编辑权限时提供：在账单行上启用费用增删。 */
   invoiceExemptionActions?: BillInvoiceExemptionActions;
   onRegistrationUpdated?: () => void;
@@ -35,6 +39,8 @@ export default function BillDetailDrawer({
   loading,
   detail,
   onClose,
+  canEdit,
+  onEdit,
   feeMaintenance,
   invoiceExemptionActions,
   onRegistrationUpdated,
@@ -111,6 +117,17 @@ export default function BillDetailDrawer({
       loading={loading}
       column={3}
       onClose={onClose}
+      extra={(current) =>
+        canEdit && onEdit ? (
+          <Button
+            type="primary"
+            icon={<EditOutlined />}
+            onClick={() => onEdit(current)}
+          >
+            编辑账单信息
+          </Button>
+        ) : null
+      }
       descriptions={(detail) => (
         <>
           <Descriptions.Item label="状态">

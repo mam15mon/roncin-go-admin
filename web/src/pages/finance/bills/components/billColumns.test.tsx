@@ -17,7 +17,6 @@ describe('getFinanceBillColumns', () => {
       canUpdateFinanceBills: true,
     },
     onOpenDetail: () => {},
-    onOpenEdit: () => {},
     onCancelBill: () => {},
   });
 
@@ -38,7 +37,7 @@ describe('getFinanceBillColumns', () => {
     },
   );
 
-  it('当前公司的正常账单保留编辑与取消入口，不再提供确认', () => {
+  it('当前公司的正常账单列表只保留详情与取消，编辑移入详情', () => {
     const actions = columns.find((col) => col.valueType === 'option')
       ?.render as any;
     render(
@@ -47,7 +46,7 @@ describe('getFinanceBillColumns', () => {
         status: FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED,
       }),
     );
-    expect(screen.getByText('编辑')).toBeInTheDocument();
+    expect(screen.queryByText('编辑')).not.toBeInTheDocument();
     expect(screen.getByText('取消')).toBeInTheDocument();
     expect(screen.queryByText('确认')).not.toBeInTheDocument();
   });
@@ -101,7 +100,6 @@ describe('账单进度列', () => {
   const columns = getFinanceBillColumns({
     access: { canOperateOrganization: () => true },
     onOpenDetail: () => {},
-    onOpenEdit: () => {},
     onCancelBill: () => {},
   });
   const renderColumn = (title: string, row: API.FinanceBill) => {
