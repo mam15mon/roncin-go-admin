@@ -3053,6 +3053,8 @@ declare namespace API {
     /** 免票决定历史仅详情返回；有效决定 revoked_at 未设置。 */
     invoiceExemptions?: FinanceInvoiceExemption[];
     businessStatus?: number;
+    /** can_cancel 表示列表与详情读取时满足整账取消条件。操作者权限、版本及最新依赖在提交时复核。 */
+    canCancel?: boolean;
   };
 
   type FinanceBillBatch = {

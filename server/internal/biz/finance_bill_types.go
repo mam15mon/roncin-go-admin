@@ -89,6 +89,7 @@ type FinanceBill struct {
 	InvoiceProgress    FinanceBillInvoiceProgress
 	Completed          bool
 	BusinessStatus     FinanceBillBusinessStatus
+	CanCancel          bool
 	// FeeLockFacts 为阻止增删费用的有效财务事实类型，按固定顺序去重；非空即费用锁定。
 	FeeLockFacts []FinanceBillFeeLockFact
 	// InvoiceExemptions 仅详情提供免票决定历史，列表根据 FeeLockFacts 判断当前事实。

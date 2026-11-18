@@ -3,7 +3,6 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { Space, Tag } from 'antd';
 import dayjs from 'dayjs';
 import { statusTag } from '@/constants/statusMeta';
-import { FinanceBillStatus } from '@/enums.generated';
 import {
   billFeeLockFactLabels,
   billInvoiceProgressMeta,
@@ -290,7 +289,7 @@ export function getFinanceBillColumns({
         </a>,
         access.canUpdateFinanceBills &&
         access.canOperateOrganization(row.organizationId) &&
-        row.status !== FinanceBillStatus.FINANCE_BILL_STATUS_CANCELLED ? (
+        row.canCancel === true ? (
           <a
             key="cancel"
             style={{ color: '#ff4d4f' }}

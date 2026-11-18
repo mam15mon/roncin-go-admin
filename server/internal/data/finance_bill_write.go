@@ -22,6 +22,7 @@ import (
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	partneraccountent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
 
 func (r *financeBillRepo) Create(ctx context.Context, bill *biz.FinanceBill, audit *biz.AuditEvent) (*biz.FinanceBill, error) {
@@ -405,6 +406,32 @@ func entFeeBillPurpose(fee *ent.OrderFee) biz.FinanceBillPurpose {
 	return biz.FinanceBillNormal
 }
 
+func billNettingCancellationDependency() predicate.FinanceNettingAllocation {
+	return financenettingallocationent.Or(
+		financenettingallocationent.ActiveEQ(true),
+		financenettingallocationent.HasNettingWith(financenettingent.StatusEQ(financenettingent.StatusDRAFT)),
+	)
+}
+
+// loadCancellableBillIDs 批量投影取消入口，覆盖写入时检查的状态、依赖和来源费用。
+func loadCancellableBillIDs(ctx context.Context, client *ent.Client, billIDs []uuid.UUID) ([]uuid.UUID, error) {
+	return client.FinanceBill.Query().Where(
+		financebillent.IDIn(billIDs...),
+		financebillent.StatusIn(financebillent.StatusDRAFT, financebillent.StatusCONFIRMED),
+		financebillent.Not(financebillent.Or(
+			financebillent.HasInvoiceExemptionsWith(financeinvoiceexemption.RevokedAtIsNil()),
+			financebillent.HasInvoiceLinksWith(financeinvoicebillent.ActiveEQ(true)),
+			financebillent.HasVerificationAllocationsWith(verificationallocationent.ActiveEQ(true)),
+			financebillent.HasNettingAllocationsWith(billNettingCancellationDependency()),
+		)),
+		financebillent.HasLinesWith(financebilllineent.ActiveEQ(true)),
+		financebillent.Not(financebillent.HasLinesWith(
+			financebilllineent.ActiveEQ(true),
+			financebilllineent.Not(financebilllineent.HasOrderFeeWith(orderfeeent.SupersededByRequestIDIsNil())),
+		)),
+	).IDs(ctx)
+}
+
 // billCancellationDependencies 返回真实依赖与回退动作；整张账单释放占用后费用才回到未建账。
 func billCancellationDependencies(ctx context.Context, client *ent.Client, bill *ent.FinanceBill) error {
 	instructions := []string{}
@@ -445,7 +472,7 @@ func billCancellationDependencies(ctx context.Context, client *ent.Client, bill 
 		details = append(details, "verification:"+head.ID.String())
 		permissions = append(permissions, access.FinanceVerificationReverse)
 	}
-	nettings, err := client.FinanceNettingAllocation.Query().Where(financenettingallocationent.BillIDEQ(bill.ID), financenettingallocationent.Or(financenettingallocationent.ActiveEQ(true), financenettingallocationent.HasNettingWith(financenettingent.StatusEQ(financenettingent.StatusDRAFT)))).WithNetting().Order(financenettingallocationent.ByID()).All(ctx)
+	nettings, err := client.FinanceNettingAllocation.Query().Where(financenettingallocationent.BillIDEQ(bill.ID), billNettingCancellationDependency()).WithNetting().Order(financenettingallocationent.ByID()).All(ctx)
 	if err != nil {
 		return err
 	}

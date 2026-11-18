@@ -13479,6 +13479,9 @@ components:
                 businessStatus:
                     type: integer
                     format: enum
+                canCancel:
+                    type: boolean
+                    description: can_cancel 表示列表与详情读取时满足整账取消条件。操作者权限、版本及最新依赖在提交时复核。
         finance.v1.FinanceBillBatch:
             type: object
             properties:

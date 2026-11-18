@@ -14,11 +14,28 @@ import (
 	lineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	cashent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	numberent "github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 )
+
+func requireBillCancellationProjection(t *testing.T, data *Data, bill *ent.FinanceBill, want bool) {
+	t.Helper()
+	ctx := context.Background()
+	scope := []uuid.UUID{bill.OrganizationID}
+	repo := NewFinanceBillRepo(data)
+	detail, err := repo.Get(ctx, scope, bill.ID)
+	if err != nil || detail.CanCancel != want {
+		t.Fatalf("账单详情取消资格应为 %t: %+v / %v", want, detail, err)
+	}
+	result, err := repo.List(ctx, scope, biz.FinanceBillFilter{Page: 1, PageSize: 20, Keyword: bill.BillNo})
+	if err != nil || len(result.Items) != 1 || result.Items[0].ID != bill.ID || result.Items[0].CanCancel != want {
+		t.Fatalf("账单列表取消资格应为 %t: %+v / %v", want, result, err)
+	}
+}
 
 // requireBlockedBillCancellation 验证具体回退指引与失败零写入，而非只检查状态错误码。
 func requireBlockedBillCancellation(t *testing.T, data *Data, bill *ent.FinanceBill, actorID uuid.UUID, documentNo, action, permission string) {
 	t.Helper()
+	requireBillCancellationProjection(t, data, bill, false)
 	ctx := context.Background()
 	_, err := NewFinanceBillRepo(data).Cancel(ctx, []uuid.UUID{bill.OrganizationID}, bill.ID, actorID, bill.Version, "退回未建账", &biz.AuditEvent{Action: "finance.bill.cancel", Result: "success"})
 	problem := kratoserrors.FromError(err)
@@ -44,8 +61,9 @@ func cancelReleasedBillForTest(t *testing.T, data *Data, organizationID, billID,
 	if err != nil {
 		t.Fatal(err)
 	}
+	requireBillCancellationProjection(t, data, bill, true)
 	result, err := NewFinanceBillRepo(data).Cancel(context.Background(), []uuid.UUID{organizationID}, billID, actorID, bill.Version, "依赖已回退，整张取消", &biz.AuditEvent{Action: "finance.bill.cancel", Result: "success"})
-	if err != nil || result.Status != biz.FinanceBillCancelled {
+	if err != nil || result.Status != biz.FinanceBillCancelled || result.CanCancel {
 		t.Fatalf("完成回退后整账取消失败: %+v %v", result, err)
 	}
 	count, err := data.db.FinanceBillLine.Query().Where(lineent.BillIDEQ(billID), lineent.ActiveEQ(true)).Count(context.Background())
@@ -58,6 +76,16 @@ func TestFinanceBillCancellationDependenciesPostgres(t *testing.T) {
 	data, cleanup := getIntegrationData(t)
 	defer cleanup()
 	ctx := context.Background()
+
+	t.Run("已被更正替代的来源费用阻止取消", func(t *testing.T) {
+		f := newFinanceInvoicePostgresFixture(t, data)
+		original := correctionFinanceFee(t, f, "original", "100", nil, nil, orderfee.EconomicEffectINCREASE)
+		bill := correctionFinanceBill(t, f, "protected-rollback", billent.PurposeNORMAL, original)
+		requireBillCancellationProjection(t, data, bill, true)
+		correctionFinanceApprove(t, f, original)
+		requireBillCancellationProjection(t, data, bill, false)
+	})
+
 	// 草稿开票已退役：改为当前直登记的部分作废、足额红冲两个相邻回退路径。
 	for _, tc := range []struct {
 		name, amount string
@@ -100,9 +128,18 @@ func TestFinanceBillCancellationDependenciesPostgres(t *testing.T) {
 			t.Fatal(err)
 		}
 		bill := f.createConfirmedBill("rollback-verification")
+		invoiceUC := biz.NewFinanceInvoiceUsecase(NewFinanceInvoiceRepo(data), nil, nil, data)
+		scope := []uuid.UUID{f.organizationID}
+		if err := invoiceUC.SetBillInvoiceExemption(ctx, scope, f.actorID, bill.ID, bill.Version, "允许核销的测试免票", false); err != nil {
+			t.Fatal(err)
+		}
 		cash := correctionFinanceCash(t, f, "cash-"+f.suffix, "40", cashent.DirectionRECEIVABLE)
 		verification, err := correctionFinanceVerification(t, f, cash, bill, "40")
 		if err != nil {
+			t.Fatal(err)
+		}
+		bill = data.db.FinanceBill.GetX(ctx, bill.ID)
+		if err := invoiceUC.SetBillInvoiceExemption(ctx, scope, f.actorID, bill.ID, bill.Version, "单独核对核销依赖", true); err != nil {
 			t.Fatal(err)
 		}
 		bill, err = data.db.FinanceBill.Get(ctx, bill.ID)

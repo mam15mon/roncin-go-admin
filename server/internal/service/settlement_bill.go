@@ -548,6 +548,7 @@ func financeBillToAPI(item *biz.FinanceBill) *v1.FinanceBill {
 		Completed: item.Completed, FeesLocked: item.FeesLocked(), FeeLockFacts: financeBillFeeLockFactsToAPI(item.FeeLockFacts),
 		InvoiceExemptions: financeInvoiceExemptionsToAPI(item.InvoiceExemptions),
 		BusinessStatus:    financeBillBusinessStatusToAPI(item.BusinessStatus),
+		CanCancel:         item.CanCancel,
 	}
 }
 

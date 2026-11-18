@@ -3879,8 +3879,10 @@ type FinanceBill struct {
 	// 免票决定历史仅详情返回；有效决定 revoked_at 未设置。
 	InvoiceExemptions []*FinanceInvoiceExemption `protobuf:"bytes,60,rep,name=invoice_exemptions,json=invoiceExemptions,proto3" json:"invoice_exemptions,omitempty"`
 	BusinessStatus    FinanceBillBusinessStatus  `protobuf:"varint,61,opt,name=business_status,json=businessStatus,proto3,enum=finance.v1.FinanceBillBusinessStatus" json:"business_status,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	// can_cancel 表示列表与详情读取时满足整账取消条件。操作者权限、版本及最新依赖在提交时复核。
+	CanCancel     bool `protobuf:"varint,62,opt,name=can_cancel,json=canCancel,proto3" json:"can_cancel,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *FinanceBill) Reset() {
@@ -4331,6 +4333,13 @@ func (x *FinanceBill) GetBusinessStatus() FinanceBillBusinessStatus {
 		return x.BusinessStatus
 	}
 	return FinanceBillBusinessStatus_FINANCE_BILL_BUSINESS_STATUS_UNSPECIFIED
+}
+
+func (x *FinanceBill) GetCanCancel() bool {
+	if x != nil {
+		return x.CanCancel
+	}
+	return false
 }
 
 type SetBillInvoiceExemptionRequest struct {
@@ -22224,7 +22233,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"unit_price\x18\x12 \x01(\tR\tunitPrice\x12'\n" +
 	"\x0finvoiced_amount\x18\x13 \x01(\tR\x0einvoicedAmount\x12-\n" +
 	"\x12invoiceable_amount\x18\x14 \x01(\tR\x11invoiceableAmountB\v\n" +
-	"\t_tax_rate\"\xd6\x18\n" +
+	"\t_tax_rate\"\xf5\x18\n" +
 	"\vFinanceBill\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\abill_no\x18\x02 \x01(\tR\x06billNo\x12\x1c\n" +
@@ -22292,7 +22301,9 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"feesLocked\x12H\n" +
 	"\x0efee_lock_facts\x18; \x03(\x0e2\".finance.v1.FinanceBillFeeLockFactR\ffeeLockFacts\x12R\n" +
 	"\x12invoice_exemptions\x18< \x03(\v2#.finance.v1.FinanceInvoiceExemptionR\x11invoiceExemptions\x12N\n" +
-	"\x0fbusiness_status\x18= \x01(\x0e2%.finance.v1.FinanceBillBusinessStatusR\x0ebusinessStatusB\v\n" +
+	"\x0fbusiness_status\x18= \x01(\x0e2%.finance.v1.FinanceBillBusinessStatusR\x0ebusinessStatus\x12\x1d\n" +
+	"\n" +
+	"can_cancel\x18> \x01(\bR\tcanCancelB\v\n" +
 	"\t_due_dateB\a\n" +
 	"\x05_noteB\x0f\n" +
 	"\r_confirmed_atB\x0f\n" +

@@ -77,3 +77,21 @@ func TestBillBusinessStatusProjectionWire(t *testing.T) {
 		}
 	}
 }
+
+func TestBillCanCancelProjectionWire(t *testing.T) {
+	for _, canCancel := range []bool{true, false} {
+		item := financeBillToAPI(&biz.FinanceBill{ID: uuid.New(), CanCancel: canCancel})
+		wire, err := protojson.Marshal(item)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var body map[string]json.RawMessage
+		if err := json.Unmarshal(wire, &body); err != nil {
+			t.Fatal(err)
+		}
+		value, exists := body["canCancel"]
+		if exists != canCancel || (exists && string(value) != "true") {
+			t.Fatalf("取消资格为 %t 时 wire 不符: %s", canCancel, wire)
+		}
+	}
+}

@@ -32,6 +32,7 @@
 ## 账单日常列表范围
 
 - 账单管理页面固定通过 `FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED` 查询有效账单，已取消账单退出日常列表；「账单状态」多选消费 `FinanceBillBusinessStatus` 五态，不提供草稿／正常／取消的实体状态筛选或额外取消记录入口。
+- 操作列仅在服务端返回 `canCancel: true`、操作者有账单编辑权限且账单属于当前公司时显示「取消」。ProtoJSON 省略该布尔字段时按 false 处理。提交继续按最新版本和依赖校验。
 - 有效状态约束不受搜索、重置、页签恢复或筛选显示偏好影响；分页条数、顶部指标、底栏合计和当前页导出共用这一服务端查询范围，禁止分页后在前端过滤取消行。
 - 首屏「状态」只显示一个当前待办：未开票 → 部分开票 → 未核销 → 部分核销 → 已完成。页面与 CSV 只映射服务端 `businessStatus`，不再根据双进度或金额重算。未经完整投影的 `UNSPECIFIED` 不猜测；独立开票、结算进度列保留实际事实。
 - 五态多选通过 `ListBillsRequest.businessStatuses[]` 由服务端在分页／汇总前筛选；同字段 OR，与其他条件 AND。无选择表示全部有效账单，查询、重置、隐藏条件与页签恢复遵循既有筛选设置规则；不得只在当前页删行。共享文案见 `features/finance/bill-status`，页面和 CSV 继续经薄映射 `getBillProgressStatus` 消费同一元数据。

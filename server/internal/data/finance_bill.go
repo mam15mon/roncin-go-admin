@@ -347,7 +347,7 @@ func (r *financeBillRepo) enrichVerificationAmounts(ctx context.Context, bills [
 	return nil
 }
 
-// enrichFinanceBillProjection 在核销/对冲余额之上补齐列表与详情的进度投影与费用锁定事实。
+// enrichFinanceBillProjection 补齐列表与详情的余额、进度、费用锁定事实及取消资格。
 // 全部按账单 ID 批量聚合，查询次数与账单数量无关；口径与 SQL 筛选
 // （billSettlementProgressPredicate 等）及 biz.ResolveFinanceBillProgress 同源。
 func (r *financeBillRepo) enrichFinanceBillProjection(ctx context.Context, bills []*biz.FinanceBill, currentBusinessDate string) error {
@@ -369,7 +369,16 @@ func (r *financeBillRepo) enrichFinanceBillProjection(ctx context.Context, bills
 	if err != nil {
 		return err
 	}
+	cancellableIDs, err := loadCancellableBillIDs(ctx, client, ids)
+	if err != nil {
+		return err
+	}
+	cancellable := make(map[uuid.UUID]bool, len(cancellableIDs))
+	for _, id := range cancellableIDs {
+		cancellable[id] = true
+	}
 	for _, bill := range bills {
+		bill.CanCancel = cancellable[bill.ID]
 		settled := bill.VerifiedAmount.Add(bill.NettedAmount)
 		bill.FeeLockFacts = facts[bill.ID]
 		exempt := false

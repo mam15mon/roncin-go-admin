@@ -80,6 +80,7 @@ func TestFinanceInvoiceExemptionPostgres(t *testing.T) {
 		if err := billCancellationDependencies(ctx, data.db, bill); err == nil {
 			t.Fatal("免票决定未撤销时不得取消账单")
 		}
+		requireBillCancellationProjection(t, data, bill, false)
 		if err := uc.SetBillInvoiceExemption(ctx, scope, f.actorID, bill.ID, 2, "重复免票", false); !errors.Is(err, biz.ErrFinanceInvoiceExemptionConflict) {
 			t.Fatalf("不能覆盖现有有效决定: %v", err)
 		}
