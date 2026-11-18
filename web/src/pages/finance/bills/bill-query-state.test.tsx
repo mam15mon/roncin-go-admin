@@ -135,6 +135,13 @@ beforeEach(() => {
 });
 describe('账单查询恢复消费', () => {
   it('恢复日期、候选和分页时仍只查询有效账单，提交与重置不改变有效范围和当前公司', async () => {
+    window.localStorage.setItem(
+      'roncin:filter-settings:v1:finance:bills:user:workspace-org',
+      JSON.stringify({
+        visible: ['billDateRange', 'onlyUnsettled'],
+        hidden: [],
+      }),
+    );
     const { rerender } = render(
       <ListQueryStateProvider enabled>
         <Seed />
@@ -249,6 +256,8 @@ describe('账单查询恢复消费', () => {
     ).toMatchObject({
       keyword: '账单条件',
       businessStatuses: undefined,
+      billDateFrom: undefined,
+      onlyUnsettled: undefined,
       organizationId: 'workspace-org',
     });
     window.localStorage.clear();

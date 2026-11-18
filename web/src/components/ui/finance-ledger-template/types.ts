@@ -156,6 +156,9 @@ export interface FinanceLedgerTemplateProps<
   // 统一列设置表格标识（业务视图级）；提供时启用内置统一列设置浮层。
   columnSettingsKey?: string;
 
+  /** 无个人偏好时默认隐藏的列，仍可在列设置中开启。 */
+  columnSettingsDefaultHiddenKeys?: string[];
+
   /** 额外结构列 key（如费用台账「属性」列）：始终渲染，不进入设置列表。 */
   columnSettingsStructuralKeys?: string[];
 

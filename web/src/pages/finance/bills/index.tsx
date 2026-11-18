@@ -72,21 +72,34 @@ type BillSearchParams = {
   businessStatuses?: number[];
 };
 
-/** 筛选设置可选字段：默认全部可见。 */
+/** 首屏保留日常查账条件，其余条件可从筛选设置开启。 */
 const billFilterFields: FilterSettingsField[] = [
-  { name: 'keyword', label: '综合搜索' },
-  { name: 'direction', label: '账单属性' },
-  { name: 'businessStatuses', label: '账单状态' },
-  { name: 'billDateRange', label: '创建日期' },
-  { name: 'dueDateRange', label: '到期日期' },
-  { name: 'onlyUnsettled', label: '结清状态' },
-  { name: 'onlyOverdue', label: '逾期状态' },
-  { name: 'settlementProgress', label: '结算进度' },
-  { name: 'invoiceProgress', label: '开票进度' },
-  { name: 'completed', label: '完成状态' },
-  { name: 'settlementPartyId', label: '结算单位' },
-  { name: 'currency', label: '计价币种' },
-].map((field) => ({ ...field, defaultVisible: true }));
+  { name: 'keyword', label: '综合搜索', defaultVisible: true },
+  { name: 'direction', label: '账单属性', defaultVisible: true },
+  { name: 'businessStatuses', label: '账单状态', defaultVisible: true },
+  { name: 'dueDateRange', label: '到期日期', defaultVisible: true },
+  { name: 'settlementPartyId', label: '结算单位', defaultVisible: true },
+  { name: 'billDateRange', label: '创建日期', defaultVisible: false },
+  { name: 'onlyUnsettled', label: '结清状态', defaultVisible: false },
+  { name: 'onlyOverdue', label: '逾期状态', defaultVisible: false },
+  { name: 'settlementProgress', label: '结算进度', defaultVisible: false },
+  { name: 'invoiceProgress', label: '开票进度', defaultVisible: false },
+  { name: 'completed', label: '完成状态', defaultVisible: false },
+  { name: 'currency', label: '计价币种', defaultVisible: false },
+];
+
+const billDefaultHiddenColumns = [
+  'batchNo',
+  'statementTitle',
+  'exchangeRate',
+  'baseCurrencyAmount',
+  'verifiedAmount',
+  'settlementProgress',
+  'invoiceProgress',
+  'completed',
+  'billDate',
+  'createdAt',
+];
 
 export default function FinanceBillsPage() {
   const access = useAccess();
@@ -479,7 +492,7 @@ export default function FinanceBillsPage() {
     },
     {
       key: 'unv-bills',
-      title: '有效账单未核销折本币',
+      title: '有效账单待结算余额（本币）',
       value: formatBaseCurrencyAmounts('unverifiedBaseAmount'),
       valueColor: metricStats.amountsByBaseCurrency.some(
         (item) => Number(item.unverifiedBaseAmount ?? 0) > 0,
@@ -520,6 +533,7 @@ export default function FinanceBillsPage() {
         exportColumns={billExportColumns}
         columns={columns}
         columnSettingsKey="finance:bills"
+        columnSettingsDefaultHiddenKeys={billDefaultHiddenColumns}
         metricCards={metricCards}
         search={false}
         customSearch={

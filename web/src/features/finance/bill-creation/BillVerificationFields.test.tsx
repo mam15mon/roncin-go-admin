@@ -108,7 +108,12 @@ function renderFields(onFinish = vi.fn(), onEdit = vi.fn()) {
   );
 }
 
+function verificationSection() {
+  return screen.getByRole('button', { name: '同次核销（可选）' });
+}
+
 async function selectExistingCashflow() {
+  fireEvent.click(verificationSection());
   fireEvent.click(screen.getByRole('button', { name: /添加同次核销/ }));
   fireEvent.click(screen.getByRole('button', { name: /添加既有资金分配/ }));
   const select = screen.getByLabelText('既有资金流水');
@@ -129,6 +134,8 @@ describe('建账附带多笔核销输入', () => {
     const onFinish = vi.fn();
     const onEdit = vi.fn();
     renderFields(onFinish, onEdit);
+    expect(verificationSection()).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('button', { name: /添加同次核销/ })).toBeNull();
     await selectExistingCashflow();
     fireEvent.change(screen.getByLabelText('本次金额（CNY）'), {
       target: { value: '60' },
@@ -142,6 +149,7 @@ describe('建账附带多笔核销输入', () => {
     fireEvent.change(screen.getByLabelText('我方账户'), {
       target: { value: '公司收款账户' },
     });
+    fireEvent.click(verificationSection());
     fireEvent.click(screen.getByRole('button', { name: '保存本组' }));
     await waitFor(() => expect(onFinish).toHaveBeenCalledTimes(1));
     const values = onFinish.mock.calls[0][0] as WorkbenchFormValue;
@@ -162,6 +170,7 @@ describe('建账附带多笔核销输入', () => {
       }),
     );
     onEdit.mockClear();
+    fireEvent.click(verificationSection());
     fireEvent.click(screen.getAllByRole('button', { name: /移除核销/ })[1]);
     expect(screen.queryByText('第2笔核销')).not.toBeInTheDocument();
     expect(onEdit).toHaveBeenCalledTimes(1);
@@ -211,7 +220,15 @@ describe('建账附带多笔核销输入', () => {
         screen.getByRole('button', { name: /添加同次核销/ }),
       ).toBeDisabled(),
     );
+    fireEvent.click(verificationSection());
     fireEvent.click(screen.getByRole('button', { name: '保存本组' }));
+    await waitFor(() =>
+      expect(
+        screen.getByText('账单尚未开票，请先登记发票后核销'),
+      ).toBeInTheDocument(),
+    );
+    expect(finish).not.toHaveBeenCalled();
+    fireEvent.click(verificationSection());
     expect(
       await screen.findByText('账单尚未开票，请先登记发票后核销'),
     ).toBeVisible();
@@ -220,6 +237,7 @@ describe('建账附带多笔核销输入', () => {
     mocks.canInvoice = false;
     mocks.candidates.mockClear();
     renderFields(finish);
+    fireEvent.click(verificationSection());
     expect(screen.getByRole('button', { name: /添加同次核销/ })).toBeDisabled();
     expect(mocks.candidates).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: '保存本组' }));
@@ -235,6 +253,7 @@ describe('建账附带多笔核销输入', () => {
     mocks.canUse = true;
     mocks.canCashflow = false;
     renderFields();
+    fireEvent.click(verificationSection());
     fireEvent.click(screen.getByRole('button', { name: /添加同次核销/ }));
     expect(screen.queryByLabelText('补录差额收付款')).not.toBeInTheDocument();
     await waitFor(() => expect(mocks.candidates).toHaveBeenCalledTimes(1));

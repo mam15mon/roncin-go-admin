@@ -44,7 +44,7 @@ export type WorkbenchFormValue = {
   groups: Record<string, GroupFormValue>;
 };
 export type WorkbenchValidationError = {
-  errorFields?: { name?: (string | number)[] }[];
+  errorFields?: { name?: (string | number)[]; errors?: string[] }[];
 };
 
 export type RequestError = Error & {

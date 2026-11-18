@@ -56,7 +56,7 @@ export const cashflowExportColumns: CsvColumn<API.FinanceCashflow>[] = [
     value: (row) => csvAmount(row.verifiedAmount ?? '0'),
   },
   {
-    header: '未核销',
+    header: '待分配资金',
     kind: 'number',
     value: (row) => csvAmount(row.unverifiedAmount ?? '0'),
   },

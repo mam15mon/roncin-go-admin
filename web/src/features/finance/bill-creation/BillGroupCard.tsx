@@ -17,7 +17,7 @@ import type { NamePath } from 'antd/es/form/interface';
 import dayjs from 'dayjs';
 import React from 'react';
 import { useAccess } from '@/app/access';
-import { ResponsiveProTable as ProTable } from '@/components/ui';
+import { ResponsiveProTable as ProTable, SectionCard } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { InvoiceRegistrationEditor } from '@/features/finance/invoice-registration';
 import { currencyOptionsQueryOptions } from '@/features/master-data/currencies';
@@ -181,11 +181,7 @@ export default function BillGroupCard({
           </Form.Item>
         </Col>
       </Row>
-      <Card
-        size="small"
-        title="预计开票（仅作预计，不改变账单币种）"
-        style={{ marginBottom: 16 }}
-      >
+      <SectionCard title="预计开票（可选）" collapsible defaultCollapsed>
         <Row gutter={16}>
           <Col xs={24} md={8}>
             <Form.Item
@@ -267,13 +263,13 @@ export default function BillGroupCard({
             </Space>
           </Col>
         </Row>
-      </Card>
+      </SectionCard>
       {access.canCreateFinanceInvoices &&
         access.canOperateOrganization(organizationId) && (
-          <Card
-            size="small"
+          <SectionCard
             title="同次登记发票（可选）"
-            style={{ marginBottom: 16 }}
+            collapsible
+            defaultCollapsed
           >
             <InvoiceRegistrationEditor
               name={['groups', groupKey, 'invoices']}
@@ -296,7 +292,7 @@ export default function BillGroupCard({
                 },
               ]}
             />
-          </Card>
+          </SectionCard>
         )}
       <BillVerificationFields group={group} organizationId={organizationId} />
       <ProTable<API.FeeLedgerItem>

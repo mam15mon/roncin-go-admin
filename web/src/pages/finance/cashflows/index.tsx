@@ -243,7 +243,7 @@ export default function FinanceCashflowsPage() {
     },
     {
       key: 'unverified-cashflows',
-      title: '已确认流水未核销资金',
+      title: '已确认流水待分配资金',
       value: formatBaseCurrencyAmounts('unverifiedBaseAmount'),
       valueColor: '#fa8c16',
     },
@@ -397,7 +397,7 @@ export default function FinanceCashflowsPage() {
         `${formatAmount(r.verifiedAmount ?? '0')} ${r.currency}`,
     },
     {
-      title: '未核销',
+      title: '待分配资金',
       dataIndex: 'unverifiedAmount',
       width: 135,
       align: 'right',

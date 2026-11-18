@@ -465,7 +465,8 @@ export default function BillCreationWorkbench({
       values = await form.validateFields();
     } catch (errorInfo: unknown) {
       const { errorFields } = (errorInfo ?? {}) as WorkbenchValidationError;
-      const firstErrorField = errorFields?.[0]?.name;
+      const firstError = errorFields?.[0];
+      const firstErrorField = firstError?.name;
       if (
         Array.isArray(firstErrorField) &&
         firstErrorField[0] === 'groups' &&
@@ -473,7 +474,7 @@ export default function BillCreationWorkbench({
       ) {
         setActiveGroupKey(String(firstErrorField[1]));
       }
-      message.warning('请为每张拟生成账单补齐必填资料和结算账户');
+      message.warning(firstError?.errors?.[0] || '请检查账单资料后再生成');
       return;
     }
     let nextSubmission: BatchSubmission;

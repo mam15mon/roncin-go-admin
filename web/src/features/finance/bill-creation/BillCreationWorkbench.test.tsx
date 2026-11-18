@@ -352,6 +352,11 @@ describe('BillCreationWorkbench 预览触发边界', () => {
     await waitFor(() => expect(mocks.preview).toHaveBeenCalledTimes(3));
 
     // 预计开票币种变化触发预览。
+    const estimateSection = screen.getByRole('button', {
+      name: '预计开票（可选）',
+    });
+    expect(estimateSection).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(estimateSection);
     fireEvent.mouseDown(screen.getByLabelText('预计开票币种'));
     fireEvent.click(await screen.findByText('USD - 美元'));
     await waitFor(() => expect(mocks.preview).toHaveBeenCalledTimes(4));
@@ -386,6 +391,9 @@ describe('BillCreationWorkbench 预览触发边界', () => {
       </App>,
     );
 
+    fireEvent.click(
+      await screen.findByRole('button', { name: '预计开票（可选）' }),
+    );
     // 输入框预填值为去尾零后的变长小数，而非服务端 decimal 原串
     expect(await screen.findByDisplayValue('1')).toBeInTheDocument();
     // 等默认账户回填的防抖预览在用例内触发并收敛，避免溢出到后续用例

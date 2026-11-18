@@ -21,6 +21,7 @@ import {
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
 import { useAccess } from '@/app/access';
+import { SectionCard } from '@/components/ui';
 import { paymentMethodOptions } from '@/features/finance/cashflow-entry';
 import { settlementServiceListVerificationCashflowCandidates } from '@/services/roncin/settlementService';
 import { formatAmount } from '@/utils/format';
@@ -109,7 +110,7 @@ export default function BillVerificationFields({
   }, [chosenCashflows, query.data, group.currency]);
   if (!canUse) return null;
   return (
-    <Card size="small" title="同次核销" style={{ marginBottom: 16 }}>
+    <SectionCard title="同次核销（可选）" collapsible defaultCollapsed>
       <div style={{ textAlign: 'right', marginBottom: 8 }}>
         <Tooltip
           placement="topRight"
@@ -389,6 +390,6 @@ export default function BillVerificationFields({
           </>
         )}
       </Form.List>
-    </Card>
+    </SectionCard>
   );
 }

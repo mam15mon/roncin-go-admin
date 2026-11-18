@@ -176,7 +176,7 @@ export function getFinanceBillColumns({
         `${formatAmount(row.verifiedAmount ?? '0')} ${row.currency}`,
     },
     {
-      title: '未核销',
+      title: '待结算余额',
       dataIndex: 'unverifiedAmount',
       width: 140,
       align: 'right',

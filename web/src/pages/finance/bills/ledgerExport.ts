@@ -69,7 +69,7 @@ export const billExportColumns: CsvColumn<API.FinanceBill>[] = [
     value: (row) => csvAmount(row.verifiedAmount ?? '0'),
   },
   {
-    header: '未核销',
+    header: '待结算余额',
     kind: 'number',
     value: (row) => csvAmount(row.unverifiedAmount ?? '0'),
   },

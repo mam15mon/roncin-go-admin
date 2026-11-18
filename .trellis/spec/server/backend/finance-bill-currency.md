@@ -123,6 +123,7 @@ bill.base_currency_amount = bill.total_amount * bill.exchange_rate
 - 普通模式的附带金额解析错误属于组失败，按 `step/item_index/group_key` 定位；不能因其中一组非法金额在边界层提前拒绝其他合法组。非法原始意图也参与稳定摘要。F 边界在 Decimal 比较、转串及摘要前先约束指数和 `numeric(28,8)` 范围，拒绝超八位与巨大指数；非法原始金额只按原始字符串做 JSON 摘要，禁止展开。核销普通/差额路径的分配和合计均须为正且可无损保存为八位，禁止靠 `StringFixed(8)` 静默舍入。
 - NETTING 整体失败用冻结提交的分组快照将 `group_key` 映射为结算单位、方向、币种，再显示步骤与记录序号；页面不显示内部组摘要。
 - 前端复用共享发票编辑器，核销输入只作草稿；最终只调用批量创建 RPC。多行增删/改值沿用表单输入保护，搜索保留已选资金快照。
+- 建账资料默认折叠预计开票、同次登记发票、同次核销三个可选分节。折叠保留字段、输入和校验，提交失败提示首个具体校验错误并切到对应账单。
 
 定向验证覆盖多票多笔、无发票核销拒绝且无差额流水遗留、部分开票后核销、既有资金加差额、同键并发、第二步失败无遗留、缺权限、普通组隔离和 NETTING 整批回滚；另以真实数据库屏障验证同订单不同账单及不同订单共享资金的跨入口锁序，并验证九位金额整组回滚、合法八位原样保存。见 `finance_bill_composition*_integration_test.go`、`finance_verification_amount_test.go`、`settlement_bill_operations_test.go` 及 `BillVerificationFields.test.tsx`。
 - Web：没有分币种开关和账单币种编辑器；导航始终包含币种层；提交契约不携带目标币种。

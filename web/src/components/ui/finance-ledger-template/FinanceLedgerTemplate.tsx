@@ -75,6 +75,7 @@ export function FinanceLedgerTemplate<
   onAcceptedSnapshot,
   selectionScope = '',
   columnSettingsKey,
+  columnSettingsDefaultHiddenKeys,
   columnSettingsStructuralKeys,
   advancedSettings,
   advancedSettingsTitle,
@@ -134,6 +135,7 @@ export function FinanceLedgerTemplate<
   const columnSettings = useColumnSettings<ProColumns<T>>({
     tableKey: columnSettingsKey ?? 'finance-ledger:unset',
     columns,
+    defaultHiddenKeys: columnSettingsDefaultHiddenKeys,
     // 消费者的序号列（dataIndex: 'index'）属结构列，不进入设置。
     structuralKeys: ['index', ...(columnSettingsStructuralKeys ?? [])],
     advanced: advancedSettings,

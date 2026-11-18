@@ -160,6 +160,7 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
     const baseline = mocks.preview.mock.calls.length;
 
     // 请求 1：预计开票币种改为 USD，保持挂起。
+    fireEvent.click(screen.getByRole('button', { name: '预计开票（可选）' }));
     fireEvent.mouseDown(screen.getByLabelText('预计开票币种'));
     fireEvent.click(await screen.findByText('USD - 美元'));
     await waitFor(() =>

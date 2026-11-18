@@ -127,7 +127,7 @@ export default function BillEditModal({
     enabled: Boolean(
       requestIdentity && editing?.settlementPartyId && editing?.baseCurrency,
     ),
-    meta: { errorMessage: '账单往来单位及未核销余额加载失败' },
+    meta: { errorMessage: '账单往来单位及待结算余额加载失败' },
     queryFn: async ({ signal }) => {
       const settlementPartyId = editing?.settlementPartyId;
       const baseCurrency = editing?.baseCurrency;
@@ -152,7 +152,7 @@ export default function BillEditModal({
       ]);
       if (!partnerResponse?.data || partnerResponse.success === false)
         throw new Error('账单往来单位加载失败');
-      ensureListResponse(billsResponse, '账单未核销余额加载失败');
+      ensureListResponse(billsResponse, '账单待结算余额加载失败');
       const partner = partnerResponse.data;
       const customerRule = (partner.roles ?? []).find(
         (role) => role.type === PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
