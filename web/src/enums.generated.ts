@@ -133,6 +133,17 @@ export const FinanceBillStatus = {
 
 export type FinanceBillStatus = (typeof FinanceBillStatus)[keyof typeof FinanceBillStatus];
 
+export const FinanceBillBusinessStatus = {
+  FINANCE_BILL_BUSINESS_STATUS_UNSPECIFIED: 0,
+  FINANCE_BILL_BUSINESS_STATUS_UNINVOICED: 1,
+  FINANCE_BILL_BUSINESS_STATUS_PARTIALLY_INVOICED: 2,
+  FINANCE_BILL_BUSINESS_STATUS_UNVERIFIED: 3,
+  FINANCE_BILL_BUSINESS_STATUS_PARTIALLY_VERIFIED: 4,
+  FINANCE_BILL_BUSINESS_STATUS_COMPLETED: 5,
+} as const;
+
+export type FinanceBillBusinessStatus = (typeof FinanceBillBusinessStatus)[keyof typeof FinanceBillBusinessStatus];
+
 export const FinanceBillSettlementProgress = {
   FINANCE_BILL_SETTLEMENT_PROGRESS_UNSPECIFIED: 0,
   FINANCE_BILL_SETTLEMENT_PROGRESS_UNSETTLED: 1,

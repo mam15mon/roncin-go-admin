@@ -19,12 +19,13 @@ func TestFinanceBillCompositionVerificationPrecisionPostgres(t *testing.T) {
 	ctx := context.Background()
 	for _, amount := range []string{"0.12345678", "0.123456789", "0"} {
 		t.Run(amount, func(t *testing.T) {
-			f, operations, _ := compositionFixture(t, data)
+			f, operations, profile := compositionFixture(t, data)
 			fee := f.createBatchUnbilledFee("precision")
 			ledger := &feeLedgerPostgresFixture{financeBillPostgresFixture: f.financeBillPostgresFixture}
 			cash := ledger.createConfirmedCashflow("precision", "100", financeBillIntegrationDate)
 			uc := f.newUsecase(NewFinanceBillRepo(data))
 			input := f.buildBatchInput(t, uc, "precision-"+f.suffix, []uuid.UUID{fee}, biz.FinanceBillGroupingPolicy{Mode: "NORMAL"}, nil)
+			input.Groups[0].Invoices = []biz.FinanceBillBatchInvoiceInput{compositionInvoice(profile, fee, "PRECISION-"+f.suffix, 100)}
 			input.Groups[0].Verifications = []biz.FinanceBillBatchVerificationInput{{VerificationDate: financeBillIntegrationDate, Allocations: []biz.FinanceBillBatchVerificationAllocation{{CashflowID: cash.ID, Amount: decimal.RequireFromString(amount)}}}}
 			result, err := uc.CreateBatchWithOperations(ctx, f.organizationID, f.actorUserID, input, operations)
 			if err != nil {

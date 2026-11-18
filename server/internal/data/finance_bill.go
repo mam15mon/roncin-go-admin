@@ -95,6 +95,16 @@ func (r *financeBillRepo) List(ctx context.Context, organizationIDs []uuid.UUID,
 	if filter.Completed != nil {
 		predicates = append(predicates, billCompletedPredicate(*filter.Completed))
 	}
+	if len(filter.BusinessStatuses) > 0 {
+		statuses := make([]predicate.FinanceBill, 0, len(filter.BusinessStatuses))
+		for _, status := range filter.BusinessStatuses {
+			statuses = append(statuses, billBusinessStatusPredicate(status))
+		}
+		predicates = append(predicates, financebillent.Or(statuses...))
+	}
+	if filter.VerificationReady {
+		predicates = append(predicates, billVerificationReadyPredicate())
+	}
 	query := client.FinanceBill.Query().Where(predicates...)
 	matchedSummary, matchedErr := loadFinanceLedgerMatchedSummary(ctx, query.Clone().GroupBy(financebillent.FieldDirection, financebillent.FieldCurrency, financebillent.FieldBaseCurrency).Aggregate(financeLedgerMatchedAggregates(financebillent.FieldTotalAmount, financebillent.FieldBaseCurrencyAmount)...).Scan)
 	if matchedErr != nil {
@@ -367,6 +377,7 @@ func (r *financeBillRepo) enrichFinanceBillProjection(ctx context.Context, bills
 			exempt = exempt || fact == biz.FinanceBillFeeLockInvoiceExemption
 		}
 		bill.SettlementProgress, bill.InvoiceProgress, bill.Completed = biz.ResolveFinanceBillProgress(bill.Status, bill.TotalAmount, settled, invoiced[bill.ID].Round(8), exempt)
+		bill.BusinessStatus = biz.ResolveFinanceBillBusinessStatus(bill.Status, bill.SettlementProgress, bill.InvoiceProgress, bill.Completed, bill.VerifiedAmount)
 	}
 	return enrichInvoiceableBalances(ctx, client, bills, nil)
 }

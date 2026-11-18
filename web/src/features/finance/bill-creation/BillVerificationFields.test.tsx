@@ -1,6 +1,7 @@
 import { renderWithClient } from '@root/tests/queryClientTestUtils';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { Button, ConfigProvider, Form, Input } from 'antd';
+import dayjs from 'dayjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import BillVerificationFields from './BillVerificationFields';
 import {
@@ -12,9 +13,11 @@ const mocks = vi.hoisted(() => ({
   candidates: vi.fn(),
   canUse: true,
   canCashflow: true,
+  canInvoice: true,
 }));
 vi.mock('@/app/access', () => ({
   useAccess: () => ({
+    canCreateFinanceInvoices: mocks.canInvoice,
     canCreateFinanceVerifications: mocks.canUse,
     canCreateFinanceCashflows: mocks.canCashflow,
     canUpdateFinanceCashflows: mocks.canCashflow,
@@ -31,6 +34,7 @@ const group: API.BillBatchPreviewGroup = {
   settlementPartyId: 'party',
   currency: 'CNY',
   totalAmount: '100',
+  fees: [{ id: 'fee', totalAmount: '100' }],
 };
 const cashflow = {
   id: 'cash-1',
@@ -38,6 +42,20 @@ const cashflow = {
   flowNo: 'SK-001',
   unverifiedAmount: '60',
 };
+
+function InvoiceDraftActions() {
+  const form = Form.useFormInstance();
+  return (
+    <Button
+      onClick={() => form.setFieldValue(['groups', 'group', 'invoices'], [])}
+    >
+      移除全部发票
+    </Button>
+  );
+}
+function InvoiceDraftField() {
+  return null;
+}
 
 function renderFields(onFinish = vi.fn(), onEdit = vi.fn()) {
   return renderWithClient(
@@ -48,6 +66,24 @@ function renderFields(onFinish = vi.fn(), onEdit = vi.fn()) {
           groups: {
             group: {
               statementTitle: '保留的账单抬头',
+              invoices: [
+                {
+                  invoiceProfileId: 'profile',
+                  invoiceType: 'DIGITAL_NORMAL',
+                  taxInvoiceNo: 'TAX',
+                  invoiceDate: dayjs(),
+                  totalAmount: '20',
+                  allocations: [
+                    {
+                      billId: 'group',
+                      amount: '20',
+                      fees: [
+                        { orderFeeId: 'fee', amount: '20', taxAmount: '0' },
+                      ],
+                    },
+                  ],
+                },
+              ],
               verifications: [],
             },
           },
@@ -61,6 +97,10 @@ function renderFields(onFinish = vi.fn(), onEdit = vi.fn()) {
         >
           <Input />
         </Form.Item>
+        <Form.Item name={['groups', 'group', 'invoices']} hidden>
+          <InvoiceDraftField />
+        </Form.Item>
+        <InvoiceDraftActions />
         <BillVerificationFields group={group} organizationId="company" />
         <Button htmlType="submit">保存本组</Button>
       </Form>
@@ -81,6 +121,7 @@ describe('建账附带多笔核销输入', () => {
   beforeEach(() => {
     mocks.canUse = true;
     mocks.canCashflow = true;
+    mocks.canInvoice = true;
     mocks.candidates.mockReset().mockResolvedValue({ data: [cashflow] });
   });
 
@@ -154,6 +195,35 @@ describe('建账附带多笔核销输入', () => {
     );
     expect(screen.getByLabelText('本次金额（CNY）')).toHaveValue('35');
     await act(async () => {});
+  });
+
+  it('移除发票保留核销草稿并拒绝提交，无发票权限不提供新核销', async () => {
+    const finish = vi.fn();
+    const view = renderFields(finish);
+    await selectExistingCashflow();
+    fireEvent.change(screen.getByLabelText('本次金额（CNY）'), {
+      target: { value: '35' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '移除全部发票' }));
+    expect(screen.getByLabelText('本次金额（CNY）')).toHaveValue('35');
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: /添加同次核销/ }),
+      ).toBeDisabled(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: '保存本组' }));
+    expect(
+      await screen.findByText('账单尚未开票，请先登记发票后核销'),
+    ).toBeVisible();
+    expect(finish).not.toHaveBeenCalled();
+    view.unmount();
+    mocks.canInvoice = false;
+    mocks.candidates.mockClear();
+    renderFields(finish);
+    expect(screen.getByRole('button', { name: /添加同次核销/ })).toBeDisabled();
+    expect(mocks.candidates).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: '保存本组' }));
+    await waitFor(() => expect(finish).toHaveBeenCalledTimes(1));
   });
 
   it('无核销权限不加载候选，只有核销权限时不提供差额登记', async () => {

@@ -134,6 +134,7 @@ func TestFinanceBillCompositionAtomicPostgres(t *testing.T) {
 			switch scenario {
 			case "不登记发票先核销":
 				group.Invoices = nil
+				expectFailure = true
 			case "既有资金加差额":
 				ledger := &feeLedgerPostgresFixture{financeBillPostgresFixture: f.financeBillPostgresFixture}
 				cash := ledger.createConfirmedCashflow("existing", "60", financeBillIntegrationDate)
@@ -191,6 +192,9 @@ func TestFinanceBillCompositionAtomicPostgres(t *testing.T) {
 					if failure == nil || errors.FromError(failure).Metadata["step"] == "" {
 						t.Fatalf("应返回逐步骤失败: %v", failure)
 					}
+					if scenario == "不登记发票先核销" && !stderrors.Is(failure, biz.ErrVerificationInvoiceRequired) {
+						t.Fatalf("无票核销错误未保留: %v", failure)
+					}
 					if scenario == "某组失败不影响其他组" {
 						for key, item := range byKey {
 							if key != group.GroupKey && (item.Bill == nil || item.Err != nil) {
@@ -237,9 +241,6 @@ func TestFinanceBillCompositionAtomicPostgres(t *testing.T) {
 				return
 			}
 			wantInvoices := 2
-			if scenario == "不登记发票先核销" {
-				wantInvoices = 0
-			}
 			if invoiceCount != wantInvoices || cashCount != 2 || verificationCount != 2 {
 				t.Fatalf("组合事实数量不符: %d/%d/%d", invoiceCount, cashCount, verificationCount)
 			}

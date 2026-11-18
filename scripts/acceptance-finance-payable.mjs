@@ -379,6 +379,30 @@ const confirmedBill = confirmedBatchResponse.data?.bills?.[0];
 assert(confirmedBill?.status === 2, '应付账单确认失败');
 assert(confirmedBill.direction === 'PAYABLE', '确认账单时应付方向丢失');
 
+// 正向核销用例先建立真实发票事实，不使用已退役的无票核销前置。
+const invoiceProfileResponse = await request(`/api/v1/partners/${supplier.id}/invoice-profiles`, {
+  method: 'POST',
+  body: JSON.stringify({ partnerId: supplier.id, invoiceTitle: supplier.legalName,
+    taxpayerIdentificationNo: supplier.unifiedSocialCreditCode, defaultInvoiceType: 'DIGITAL_NORMAL', isDefault: true }),
+});
+const invoiceRule = rules.data?.find((item) => isEnumValue(item.documentType, 11, 'DOCUMENT_TYPE_INVOICE'));
+assert(invoiceRule?.id, '当前组织缺少发票编号规则');
+if (!invoiceRule.enabled) {
+  await request(`/api/v1/master-data/number-rules/${invoiceRule.id}`, {
+    method: 'PUT',
+    body: JSON.stringify({ id: invoiceRule.id, prefix: invoiceRule.prefix,
+      dateFormat: invoiceRule.dateFormat, sequenceLength: invoiceRule.sequenceLength,
+      resetPolicy: invoiceRule.resetPolicy, enabled: true }),
+  });
+}
+const invoiceBill = (await request(`/api/v1/finance/bills/${confirmedBill.id}`)).data;
+await request('/api/v1/finance/invoices/register', {
+  method: 'POST',
+  body: JSON.stringify({ idempotencyKey: `acc-ap-invoice-${stamp}`, records: [invoiceRegistrationForBills([invoiceBill], {
+    invoiceProfileId: invoiceProfileResponse.data.id, taxInvoiceNo: `ACC-AP-TAX-${stamp}`, invoiceDate: today,
+  })] }),
+});
+
 const wrongCashflowResponse = await request('/api/v1/finance/cashflows', {
   method: 'POST',
   body: JSON.stringify({
@@ -511,8 +535,8 @@ const [feesAfterVerification, billsAfterVerification, cashflowsAfterVerification
   ]);
 assert(
   feesAfterVerification.data?.find((item) => item.id === confirmedFee.id)
-    ?.financialProgress === 4,
-  '应付全额核销后费用财务进度不是 VERIFIED_UNINVOICED',
+    ?.financialProgress === 7,
+  '应付票齐且全额核销后费用财务进度不是 COMPLETED',
 );
 assert(
   billsAfterVerification.data?.find((item) => item.id === confirmedBill.id)
@@ -542,7 +566,7 @@ console.log(
       verificationNo: verification.verificationNo,
       verificationDirection: verification.direction,
       directionMismatchRejected: true,
-      financialProgress: 'VERIFIED_UNINVOICED',
+      financialProgress: 'COMPLETED',
     },
     null,
     2,

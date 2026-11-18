@@ -155,7 +155,7 @@ export default function BillCreationResultTable({
       : `批次 ${batch.batchNo || ''}：成功 ${succeededCount} 组，失败 ${failedCount} 组`;
   const subTitle =
     failedCount === 0
-      ? `已生成 ${succeededCount} 张账单${nettings.length ? `和 ${nettings.length} 张对冲结算单` : ''}，账单无需确认即可开票、收付款和核销。`
+      ? `已生成 ${succeededCount} 张账单${nettings.length ? `和 ${nettings.length} 张对冲结算单` : ''}，账单无需确认；核销前须登记发票或标记免票。`
       : '各组独立提交，失败组不影响已成功的账单；失败组的费用仍为未建账，可重试或返回调整后重新生成。';
 
   return (

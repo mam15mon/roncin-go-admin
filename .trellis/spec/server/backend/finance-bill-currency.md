@@ -124,7 +124,7 @@ bill.base_currency_amount = bill.total_amount * bill.exchange_rate
 - NETTING 整体失败用冻结提交的分组快照将 `group_key` 映射为结算单位、方向、币种，再显示步骤与记录序号；页面不显示内部组摘要。
 - 前端复用共享发票编辑器，核销输入只作草稿；最终只调用批量创建 RPC。多行增删/改值沿用表单输入保护，搜索保留已选资金快照。
 
-定向验证覆盖多票多笔、无发票先核销、既有资金加差额、同键并发、第二步失败无遗留、缺权限、普通组隔离和 NETTING 整批回滚；另以真实数据库屏障验证同订单不同账单及不同订单共享资金的跨入口锁序，并验证九位金额整组回滚、合法八位原样保存。见 `finance_bill_composition*_integration_test.go`、`finance_verification_amount_test.go`、`settlement_bill_operations_test.go` 及 `BillVerificationFields.test.tsx`。
+定向验证覆盖多票多笔、无发票核销拒绝且无差额流水遗留、部分开票后核销、既有资金加差额、同键并发、第二步失败无遗留、缺权限、普通组隔离和 NETTING 整批回滚；另以真实数据库屏障验证同订单不同账单及不同订单共享资金的跨入口锁序，并验证九位金额整组回滚、合法八位原样保存。见 `finance_bill_composition*_integration_test.go`、`finance_verification_amount_test.go`、`settlement_bill_operations_test.go` 及 `BillVerificationFields.test.tsx`。
 - Web：没有分币种开关和账单币种编辑器；导航始终包含币种层；提交契约不携带目标币种。
 
 ## 7. Wrong vs Correct
@@ -270,7 +270,7 @@ CreateBillBatch.groups[] = { group_key, group_token, fee_ids, ...叶子配置 }
 CreateBillBatch.results[] = { group_key, success, bill? | error? }
 UpdateBillFees = { id, expected_version, add_fee_ids, remove_fee_ids }
 SetBillInvoiceExemption / RevokeBillInvoiceExemption = { id, expected_version, reason }
-FinanceBill = { settlement_progress, invoice_progress, completed, fees_locked, fee_lock_facts, invoice_exemptions[] }
+FinanceBill = { settlement_progress, invoice_progress, completed, business_status, fees_locked, fee_lock_facts, invoice_exemptions[] }
 ```
 
 实际字段以Proto为准；批次头仅持有身份，费用数、账单数及base_totals按已有账单读取聚合。
@@ -315,3 +315,70 @@ FinanceBill = { settlement_progress, invoice_progress, completed, fees_locked, f
 ```
 
 该实现让同一账单混入多个费用币种，并额外制造默认币种、组合汇率、人工覆盖和审计分支。
+
+## 场景：账单五态筛选与核销开票前置
+
+### 1. 适用范围
+
+账单列表／详情／CSV、核销账单候选及新增核销（独立、差额资金、建账同次）。2026-11-18 用户明确要求限制完全未开票核销，替代此前允许先核销后开票的规则；不追溯改写既有账务，不限制普通对冲的办理顺序。
+
+### 2. 签名
+
+```proto
+// settlement.proto；具体字段编号和生成类型以源文件为准。
+enum FinanceBillBusinessStatus {
+  FINANCE_BILL_BUSINESS_STATUS_UNSPECIFIED = 0;
+  FINANCE_BILL_BUSINESS_STATUS_UNINVOICED = 1;
+  FINANCE_BILL_BUSINESS_STATUS_PARTIALLY_INVOICED = 2;
+  FINANCE_BILL_BUSINESS_STATUS_UNVERIFIED = 3;
+  FINANCE_BILL_BUSINESS_STATUS_PARTIALLY_VERIFIED = 4;
+  FINANCE_BILL_BUSINESS_STATUS_COMPLETED = 5;
+}
+// ListBillsRequest追加 repeated FinanceBillBusinessStatus business_statuses。
+// FinanceBill追加 FinanceBillBusinessStatus business_status，只读派生，不落库。
+```
+
+HTTP查询重复传 `businessStatuses`（例如 `businessStatuses=1&businessStatuses=2`）；前端消费生成客户端的数组属性，不手拼服务主机。
+
+### 3. 契约
+
+- 有效账单的当前待办以 `biz.ResolveFinanceBillBusinessStatus` 为纯Go真相：已完成优先；否则未开票／部分开票优先于核销待办；票齐或免票且未结清时，实际核销额为零显示未核销，结算为部分且实际核销非零显示部分核销。纯部分对冲不能冒充核销。非有效账单或未经完整进度投影返回UNSPECIFIED。
+- `business_status` 为读取投影；页面／导出只查共享元数据。原实体status、双进度和completed各自保持语义，不能以主状态替代原财务事实或权限。
+- 多选五态内部OR，与其他条件AND；未知或UNSPECIFIED输入显式拒绝。SQL在Count、LIMIT与聚合之前应用同源谓词，页面固定有效账单，公司范围不受筛选扩大。total、matchedSummary、顶部指标共享谓词；导出取官方onLoad采纳页，不自行循环全量。
+- 核销前置：开票进度PARTIAL、FULL或NOT_REQUIRED才具备办理资格。完全未开票且无有效免票时，候选查询在分页前排除，实际写入在现有账单行锁内复核最新有效发票分配／免票事实，返回409 `FINANCE_VERIFICATION_INVOICE_REQUIRED`：“账单尚未开票，请先登记发票后核销”。部分开票可核销，不新增按已开票额限制核销额度的旁路。
+- 既有事务与锁序继续适用；多账单任一无票整次回滚。差额流水与核销同事务失败不残留资金；建账同次先登记发票再核销，无票组失败不得留下部分账务。普通组独立和NETTING整批原子性保持。
+- 反核销用于解除分配，不因新前置阻断旧事实回退；幂等已成功同键回放不重复写入。撤销发票或免票后提交旧候选必须依据当前事实拒绝，不用旧投影绕过。
+- 建账表单无有效发票登记时明确提示并阻止同次核销提交；删除发票行仍保留核销草稿，不能静默丢弃用户输入或自动补发票。无开票权限仍能单纯建账。
+
+### 4. 校验与错误矩阵
+
+| 场景 | 必须结果 |
+| --- | --- |
+| 未开票＋部分开票多选 | 并集，与单位／方向等其他条件取交集，汇总同源 |
+| 非法或UNSPECIFIED筛选值 | 显式参数错误，不静默当全部 |
+| 票齐＋仅部分对冲＋无实际核销 | 主状态未核销，仍保留真实对冲金额 |
+| 完全未开票直接核销／混合多账单 | 409开票前置错误，所有分配和资金变化回滚 |
+| 部分开票、票齐、有效免票＋有剩余余额 | 在原有公司／权限／币种／余额条件下允许核销 |
+| 建账＋登记发票＋同次核销 | 按先票后核销顺序提交，任一步失败整体回滚 |
+| 无票建账＋差额资金核销 | 所属组失败，账单、资金、分配、占用无部分遗留 |
+| 旧候选对应发票／免票已撤销 | 保留表单输入，提交依据最新事实拒绝 |
+
+### 5. 正常／基准／错误场景
+
+- 正常：100元账单先登记20元发票，再核销40元，主状态仍为部分开票；核销额度仍按账单余额校验，不钳至20元。
+- 基准：无状态条件列全部有效账单；票齐并结清显示已完成，免票结清同样完成。
+- 错误：删除全部登记行后静默去掉核销草稿，或页面隐藏无票核销但直接API仍接受。
+
+### 6. 必需验证
+
+biz五态优先级与核销资格，service重复枚举HTTP绑定及ProtoJSON投影；真实PG对照投影与SQL匹配集合，覆盖单态、多态OR、其他条件AND、分页／汇总／公司／取消隔离、纯对冲与带符号核销。核销覆盖无票拒绝、部分票／票齐／免票成功、旧候选失效、多账单原子性、差额资金及同次建账失败回滚、幂等和反核销。前端覆盖多选请求、隐藏清值／恢复／重置、CSV服务端状态、建账删除发票后输入保护及提交阻断；相关入口是finance_bill_progress、finance_verification、finance_bill_composition的定向用例。隔离PG使用正式迁移，SKIP不算通过。
+
+### 7. 错误与正确对照
+
+```text
+错误：ProTable拿到一页后再filter业务状态，汇总仍来自未筛选全集。
+正确：businessStatuses传入ListBills，在共用SQL谓词中筛选，返回分页结果及完整同条件汇总。
+
+错误：根据TS可选businessStatus缺失回退前端重算，或仅前端判断可核销。
+正确：只映射服务端投影；候选服务端过滤，最终核销在原有账单锁内复核有效开票／免票。
+```

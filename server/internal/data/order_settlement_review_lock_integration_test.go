@@ -515,6 +515,7 @@ func TestSettlementDoesNotReviewOrLockOrdersPostgres(t *testing.T) {
 			}
 			a, b := create("A"), create("B")
 			billID := f.createReceivableBill([]*ent.Order{a, b}, "100")
+			addTestBillInvoice(t, data, data.db.FinanceBill.GetX(f.ctx, billID), "200", f.triggerUserID)
 			cashID := f.cashflowOrCreate()
 			if _, err := data.db.NumberRule.Create().SetOrganizationID(f.organizationID).SetDocumentType(numberruleent.DocumentTypeWriteOff).SetPrefix("WO-").SetDateFormat(numberruleent.DateFormatNone).SetSequenceLength(4).SetResetPolicy(numberruleent.ResetPolicyNever).SetEnabled(true).Save(f.ctx); err != nil {
 				t.Fatal(err)

@@ -152,6 +152,7 @@ func (r *verificationRepo) ListBillCandidates(ctx context.Context, organizationI
 		Page: filter.Page, PageSize: filter.PageSize, Keyword: filter.Keyword,
 		Direction: filter.Direction, Status: biz.FinanceBillConfirmed,
 		SettlementPartyID: &filter.SettlementPartyID, Currency: filter.Currency, OnlyUnsettled: true,
+		VerificationReady: true,
 	})
 }
 
@@ -252,6 +253,11 @@ func (r *verificationRepo) Create(ctx context.Context, org, actor uuid.UUID, v *
 		if e != nil {
 			return e
 		}
+		// 发票登记、撤销和免票变更同样先锁账单。锁内读取有效事实，不能信任候选快照。
+		invoiceFacts, invoiced, e := loadFinanceBillFeeLockFacts(ctx, tx.Client(), billIDs)
+		if e != nil {
+			return e
+		}
 		cm := map[uuid.UUID]*ent.FinanceCashflow{}
 		for _, x := range cashs {
 			cm[x.ID] = x
@@ -290,6 +296,18 @@ func (r *verificationRepo) Create(ctx context.Context, org, actor uuid.UUID, v *
 			c, b := cm[x.CashflowID], bm[x.BillID]
 			if c == nil || b == nil || c.Status != cash.StatusCONFIRMED || b.Status != bill.StatusCONFIRMED {
 				return biz.ErrVerificationBalance
+			}
+			billTotal, parseErr := decimalOf(b.TotalAmount)
+			if parseErr != nil {
+				return parseErr
+			}
+			exempt := false
+			for _, fact := range invoiceFacts[b.ID] {
+				exempt = exempt || fact == biz.FinanceBillFeeLockInvoiceExemption
+			}
+			_, invoiceProgress, _ := biz.ResolveFinanceBillProgress(biz.FinanceBillStatus(b.Status), billTotal, decimal.Zero, invoiced[b.ID].Round(8), exempt)
+			if !biz.CanVerifyFinanceBillInvoiceProgress(invoiceProgress) {
+				return biz.ErrVerificationInvoiceRequired
 			}
 			if c.Direction != cash.Direction(b.Direction) || c.SettlementPartyID != b.SettlementPartyID || c.Currency != b.Currency || c.BaseCurrency != b.BaseCurrency || c.BaseCurrency != v.BaseCurrency || biz.OrderFeeDirection(c.Direction) != v.Direction || c.Currency != v.Currency {
 				return biz.ErrVerificationMismatch

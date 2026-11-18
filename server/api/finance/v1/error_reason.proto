@@ -27,4 +27,6 @@ enum ErrorReason {
   ERROR_REASON_FINANCE_BILL_FEES_LOCKED = 15;
   // 增删费用后账单不得没有有效费用；释放全部费用须取消账单。
   ERROR_REASON_FINANCE_BILL_LAST_FEE = 16;
+  // 完全未开票且未免票的账单不能新增核销。
+  ERROR_REASON_FINANCE_VERIFICATION_INVOICE_REQUIRED = 17;
 }

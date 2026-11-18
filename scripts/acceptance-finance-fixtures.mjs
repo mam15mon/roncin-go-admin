@@ -258,6 +258,14 @@ export async function verifyCompositeFinanceWorkflow(request, { organizationId, 
   const invoice = (amount, index) => ({ invoiceProfileId, invoiceType: 'DIGITAL_NORMAL', taxInvoiceNo: `COMBO-TAX-${stamp}-${index}`, invoiceDate: activityDate, totalAmount: String(amount), fees: [{ orderFeeId: fee.id, amount: String(amount), taxAmount: index === 1 ? '1.23' : '4.56' }] });
   const verification = (amount) => ({ verificationDate: activityDate, allocations: [{ cashflowId: '', amount: String(amount) }], shortfallCashflow: { amount: String(amount), transactionDate: activityDate, ourAccount: `组合验收账户-${stamp}`, paymentMethod: 'BANK_TRANSFER' } });
   const baseGroup = { groupKey: group.groupKey, groupToken: group.groupToken, feeIds: [fee.id], settlementAccountId, statementTitle: '组合登记核销验收', invoices: [invoice(40, 1), invoice(60, 2)] };
+  const cashflowScope = `/api/v1/finance/cashflows?page=1&pageSize=1&settlementPartyId=${settlementPartyId}&currency=${currency}`;
+  const beforeNoInvoiceCashflows = await request(cashflowScope);
+  const noInvoice = await post('/api/v1/finance/bill-batches', { organizationId, groupingPolicy: common.groupingPolicy, idempotencyKey: `combo-no-invoice-${stamp}`, groups: [{ ...baseGroup, invoices: [], verifications: [verification(100)] }] });
+  assert(noInvoice.results?.[0].success !== true && noInvoice.results?.[0].error?.reason === 'FINANCE_VERIFICATION_INVOICE_REQUIRED', '无票组合核销必须返回开票前置错误');
+  const afterNoInvoice = (await request(`/api/v1/orders/${orderId}/fees`)).data.find((item) => item.id === fee.id);
+  assert(afterNoInvoice.hasActiveBill !== true, '无票核销失败不能遗留账单费用占用');
+  const noInvoiceCashflows = await request(cashflowScope);
+  assert(Number(noInvoiceCashflows.total ?? 0) === Number(beforeNoInvoiceCashflows.total ?? 0), '无票核销失败不能留下差额资金流水');
   const failed = await post('/api/v1/finance/bill-batches', { organizationId, groupingPolicy: common.groupingPolicy, idempotencyKey: `combo-fail-${stamp}`, groups: [{ ...baseGroup, verifications: [verification(40), verification(61)] }] });
   assert(failed.results?.[0].success !== true && failed.results?.[0].error?.items?.[0].step === 'VERIFICATION', '组合超额应定位核销失败');
   const afterFailure = (await request(`/api/v1/orders/${orderId}/fees`)).data.find((item) => item.id === fee.id);

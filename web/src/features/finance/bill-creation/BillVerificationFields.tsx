@@ -5,6 +5,7 @@ import {
 } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import {
+  Alert,
   Button,
   Card,
   Checkbox,
@@ -23,6 +24,10 @@ import { useAccess } from '@/app/access';
 import { paymentMethodOptions } from '@/features/finance/cashflow-entry';
 import { settlementServiceListVerificationCashflowCandidates } from '@/services/roncin/settlementService';
 import { formatAmount } from '@/utils/format';
+import {
+  type BillInvoiceDraft,
+  hasBillGroupInvoiceDraft,
+} from './billWorkbenchHelpers';
 
 const positiveDecimal = {
   pattern: /^(?:0|[1-9]\d{0,19})(?:\.\d{1,8})?$/,
@@ -38,6 +43,14 @@ export default function BillVerificationFields({
 }: Props) {
   const access = useAccess();
   const groupKey = group.groupKey ?? '';
+  const form = Form.useFormInstance();
+  const invoices = Form.useWatch(['groups', groupKey, 'invoices'], {
+    form,
+    preserve: true,
+  }) as BillInvoiceDraft[] | undefined;
+  const hasInvoice = Boolean(
+    access.canCreateFinanceInvoices && hasBillGroupInvoiceDraft(invoices),
+  );
   const canUse =
     access.canCreateFinanceVerifications &&
     access.canOperateOrganization(organizationId);
@@ -59,7 +72,9 @@ export default function BillVerificationFields({
       group.currency,
       keyword,
     ],
-    enabled: Boolean(canUse && group.settlementPartyId && group.currency),
+    enabled: Boolean(
+      canUse && hasInvoice && group.settlementPartyId && group.currency,
+    ),
     meta: { errorMessage: '加载本组核销资金候选失败' },
     queryFn: async () => {
       const response =
@@ -94,11 +109,7 @@ export default function BillVerificationFields({
   }, [chosenCashflows, query.data, group.currency]);
   if (!canUse) return null;
   return (
-    <Card
-      size="small"
-      title="同次核销（可不登记发票先核销）"
-      style={{ marginBottom: 16 }}
-    >
+    <Card size="small" title="同次核销" style={{ marginBottom: 16 }}>
       <div style={{ textAlign: 'right', marginBottom: 8 }}>
         <Tooltip
           placement="topRight"
@@ -109,8 +120,32 @@ export default function BillVerificationFields({
           </Button>
         </Tooltip>
       </div>
-      <Form.List name={['groups', groupKey, 'verifications']}>
-        {(fields, { add, remove }) => (
+      {!hasInvoice && (
+        <Alert
+          type="info"
+          showIcon
+          title="请先在本组登记发票，再添加同次核销。已有核销输入会保留，补齐发票后可继续提交。"
+          style={{ marginBottom: 12 }}
+        />
+      )}
+      <Form.List
+        name={['groups', groupKey, 'verifications']}
+        rules={[
+          {
+            validator: async (_, records) => {
+              if (
+                records?.length &&
+                (!access.canCreateFinanceInvoices ||
+                  !hasBillGroupInvoiceDraft(
+                    form.getFieldValue(['groups', groupKey, 'invoices']),
+                  ))
+              )
+                throw new Error('账单尚未开票，请先登记发票后核销');
+            },
+          },
+        ]}
+      >
+        {(fields, { add, remove }, { errors }) => (
           <>
             {fields.map((field) => (
               <Card
@@ -333,7 +368,9 @@ export default function BillVerificationFields({
                 )}
               </Card>
             ))}
+            <Form.ErrorList errors={errors} />
             <Button
+              disabled={!hasInvoice}
               icon={<PlusOutlined />}
               onClick={() =>
                 add({

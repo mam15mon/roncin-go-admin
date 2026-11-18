@@ -43,6 +43,9 @@ func (s *SettlementService) ListBills(ctx context.Context, request *v1.ListBills
 	if request.InvoiceProgress != nil {
 		filter.InvoiceProgress = biz.FinanceBillInvoiceProgress(strings.TrimPrefix(request.GetInvoiceProgress().String(), "FINANCE_BILL_INVOICE_PROGRESS_"))
 	}
+	for _, status := range request.GetBusinessStatuses() {
+		filter.BusinessStatuses = append(filter.BusinessStatuses, biz.FinanceBillBusinessStatus(strings.TrimPrefix(status.String(), "FINANCE_BILL_BUSINESS_STATUS_")))
+	}
 	if request.SettlementPartyId != nil && strings.TrimSpace(*request.SettlementPartyId) != "" {
 		id, err := uuid.Parse(strings.TrimSpace(*request.SettlementPartyId))
 		if err != nil {
@@ -544,7 +547,15 @@ func financeBillToAPI(item *biz.FinanceBill) *v1.FinanceBill {
 		SettlementProgress: financeBillSettlementProgressToAPI(item.SettlementProgress), InvoiceProgress: financeBillInvoiceProgressToAPI(item.InvoiceProgress),
 		Completed: item.Completed, FeesLocked: item.FeesLocked(), FeeLockFacts: financeBillFeeLockFactsToAPI(item.FeeLockFacts),
 		InvoiceExemptions: financeInvoiceExemptionsToAPI(item.InvoiceExemptions),
+		BusinessStatus:    financeBillBusinessStatusToAPI(item.BusinessStatus),
 	}
+}
+
+func financeBillBusinessStatusToAPI(value biz.FinanceBillBusinessStatus) v1.FinanceBillBusinessStatus {
+	if converted, exists := v1.FinanceBillBusinessStatus_value["FINANCE_BILL_BUSINESS_STATUS_"+string(value)]; exists {
+		return v1.FinanceBillBusinessStatus(converted)
+	}
+	return v1.FinanceBillBusinessStatus_FINANCE_BILL_BUSINESS_STATUS_UNSPECIFIED
 }
 
 // financeBillSettlementProgressToAPI 未经投影的账单（如建账响应）返回 UNSPECIFIED。

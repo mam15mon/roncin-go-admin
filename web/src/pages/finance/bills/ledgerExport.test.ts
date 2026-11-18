@@ -22,6 +22,7 @@ describe('bills 台账导出字段', () => {
       direction: 'RECEIVABLE',
       purpose: 'CORRECTION_REVERSAL',
       status: 2,
+      businessStatus: 4,
       billNo: 'B001',
       batchNo: 'BAT001',
       statementTitle: '对账抬头',

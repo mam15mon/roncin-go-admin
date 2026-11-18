@@ -226,6 +226,27 @@ export function normalizeBillBatchResponse(
   };
 }
 
+/** 新账单先有明确的发票登记草稿才可附带核销；完整分配仍由载荷和表单校验。 */
+export function hasBillGroupInvoiceDraft(
+  records?: BillInvoiceDraft[],
+): boolean {
+  return (records ?? []).some((record) => {
+    if (
+      !record.invoiceProfileId ||
+      !record.invoiceType ||
+      !record.taxInvoiceNo?.trim() ||
+      !record.invoiceDate
+    )
+      return false;
+    try {
+      const amount = new Decimal(record.totalAmount ?? '');
+      return amount.isFinite() && amount.gt(0) && amount.decimalPlaces() <= 8;
+    } catch {
+      return false;
+    }
+  });
+}
+
 /** 新账单组合只提交明确业务来源；尚未存在的账单身份由服务端内部填充。 */
 export function billGroupOperationPayload(
   group: API.BillBatchPreviewGroup,
@@ -300,6 +321,8 @@ export function billGroupOperationPayload(
       };
     },
   );
+  if (values.verifications?.length && !invoices.length)
+    throw new Error('账单尚未开票，请先登记发票后核销');
   const verifications = (values.verifications ?? []).map(
     (record, index): API.BillBatchVerificationInput => {
       if (!record.verificationDate)

@@ -23,6 +23,7 @@ import { useListQueryState } from '@/components/ui/list-query-state';
 import { FinanceBillStatus } from '@/enums.generated';
 import { BillCreationWorkbench } from '@/features/finance/bill-creation';
 import {
+  billBusinessStatusMeta,
   billInvoiceProgressMeta,
   billSettlementProgressMeta,
 } from '@/features/finance/bill-status';
@@ -68,12 +69,14 @@ type BillSearchParams = {
   settlementProgress?: number;
   invoiceProgress?: number;
   completed?: string;
+  businessStatuses?: number[];
 };
 
 /** 筛选设置可选字段：默认全部可见。 */
 const billFilterFields: FilterSettingsField[] = [
   { name: 'keyword', label: '综合搜索' },
   { name: 'direction', label: '账单属性' },
+  { name: 'businessStatuses', label: '账单状态' },
   { name: 'billDateRange', label: '创建日期' },
   { name: 'dueDateRange', label: '到期日期' },
   { name: 'onlyUnsettled', label: '结清状态' },
@@ -191,6 +194,17 @@ export default function FinanceBillsPage() {
         { label: '应收 (RECEIVABLE)', value: 'RECEIVABLE' },
         { label: '应付 (PAYABLE)', value: 'PAYABLE' },
       ],
+    },
+    {
+      name: 'businessStatuses',
+      label: '账单状态',
+      type: 'select',
+      placeholder: '全部状态',
+      options: Object.entries(billBusinessStatusMeta).map(([value, meta]) => ({
+        label: meta.text,
+        value: Number(value),
+      })),
+      fieldProps: { mode: 'multiple', maxTagCount: 'responsive' },
     },
     {
       name: 'billDateRange',
@@ -601,6 +615,9 @@ export default function FinanceBillsPage() {
                 searchParams.onlyUnsettled === 'true' ? true : undefined,
               onlyOverdue:
                 searchParams.onlyOverdue === 'true' ? true : undefined,
+              businessStatuses: searchParams.businessStatuses?.length
+                ? searchParams.businessStatuses
+                : undefined,
               settlementProgress: searchParams.settlementProgress,
               invoiceProgress: searchParams.invoiceProgress,
               completed:

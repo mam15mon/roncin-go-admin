@@ -19,7 +19,8 @@ func TestVerificationCandidatesSearchPaginationPostgres(t *testing.T) {
 		ctx := context.Background()
 		for index := range 205 {
 			key := fmt.Sprintf("page-%03d", index)
-			f.createConfirmedBill(key, "10", "2026-09-01")
+			bill := f.createConfirmedBill(key, "10", "2026-09-01")
+			addTestBillInvoice(t, data, bill, "10", f.actorID)
 			f.createConfirmedCashflow(key, "10", "2026-09-01")
 		}
 		if _, err := data.db.Partner.UpdateOneID(f.partnerID).SetCode("CAND-CODE-" + f.suffix).SetLegalName("青岛远航").SetNormalizedName("青岛远航").Save(ctx); err != nil {

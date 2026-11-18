@@ -78,6 +78,11 @@ func (uc *FinanceBillUsecase) List(ctx context.Context, organizationIDs []uuid.U
 	if filter.InvoiceProgress != "" && !ValidFinanceBillInvoiceProgress(filter.InvoiceProgress) {
 		return nil, ErrFinanceBillInvalidArgument
 	}
+	for _, status := range filter.BusinessStatuses {
+		if !ValidFinanceBillBusinessStatus(status) {
+			return nil, ErrFinanceBillInvalidArgument
+		}
+	}
 	if !validFinanceDateRange(filter.BillDateFrom, filter.BillDateTo) {
 		return nil, ErrFinanceBillInvalidArgument
 	}

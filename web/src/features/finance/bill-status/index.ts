@@ -1,5 +1,6 @@
 import type { StatusMeta } from '@/constants/statusMeta';
 import {
+  FinanceBillBusinessStatus,
   FinanceBillFeeLockFact,
   FinanceBillInvoiceProgress,
   FinanceBillSettlementProgress,
@@ -22,6 +23,30 @@ export const billStatusMeta: Record<number, StatusMeta> = {
   [FinanceBillStatus.FINANCE_BILL_STATUS_CANCELLED]: {
     text: '已取消',
     color: 'red',
+  },
+};
+
+/** 当前业务待办由服务端投影，筛选、列表与导出共用文案。 */
+export const billBusinessStatusMeta: Record<number, StatusMeta> = {
+  [FinanceBillBusinessStatus.FINANCE_BILL_BUSINESS_STATUS_UNINVOICED]: {
+    text: '未开票',
+    color: 'default',
+  },
+  [FinanceBillBusinessStatus.FINANCE_BILL_BUSINESS_STATUS_PARTIALLY_INVOICED]: {
+    text: '部分开票',
+    color: 'orange',
+  },
+  [FinanceBillBusinessStatus.FINANCE_BILL_BUSINESS_STATUS_UNVERIFIED]: {
+    text: '未核销',
+    color: 'default',
+  },
+  [FinanceBillBusinessStatus.FINANCE_BILL_BUSINESS_STATUS_PARTIALLY_VERIFIED]: {
+    text: '部分核销',
+    color: 'orange',
+  },
+  [FinanceBillBusinessStatus.FINANCE_BILL_BUSINESS_STATUS_COMPLETED]: {
+    text: '已完成',
+    color: 'success',
   },
 };
 

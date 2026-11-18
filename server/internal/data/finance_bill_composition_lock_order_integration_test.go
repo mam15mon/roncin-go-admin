@@ -51,7 +51,7 @@ func TestFinanceBillCompositionAndShortfallLockOrderPostgres(t *testing.T) {
 			name = "同订单不同账单"
 		}
 		t.Run(name, func(t *testing.T) {
-			f, operations, _ := compositionFixture(t, data)
+			f, operations, profile := compositionFixture(t, data)
 			ctx, cancel := context.WithTimeout(context.Background(), 12*time.Second)
 			defer cancel()
 			oldFee := f.createBatchUnbilledFee("old-bill")
@@ -70,7 +70,9 @@ func TestFinanceBillCompositionAndShortfallLockOrderPostgres(t *testing.T) {
 				t.Fatal(err)
 			}
 			newFee := f.createBatchUnbilledFee("new-bill")
+			addTestBillInvoice(t, data, data.db.FinanceBill.GetX(ctx, oldBill.ID), "100", f.actorUserID)
 			input := f.buildBatchInput(t, billUC, "parallel-batch-"+f.suffix, []uuid.UUID{newFee}, biz.FinanceBillGroupingPolicy{Mode: "NORMAL"}, nil)
+			input.Groups[0].Invoices = []biz.FinanceBillBatchInvoiceInput{compositionInvoice(profile, newFee, "LOCK-ORDER-"+f.suffix, 100)}
 			ledger := &feeLedgerPostgresFixture{financeBillPostgresFixture: f.financeBillPostgresFixture}
 			cash := ledger.createConfirmedCashflow("shared", "100", financeBillIntegrationDate)
 			input.Groups[0].Verifications = []biz.FinanceBillBatchVerificationInput{compositionShortfall(30)}

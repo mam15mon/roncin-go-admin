@@ -5,6 +5,7 @@ import { App } from 'antd';
 import dayjs from 'dayjs';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { appInitialStateContext } from '@/app/initialStateContext';
 import {
   ListQueryStateProvider,
   useListQueryState,
@@ -17,7 +18,22 @@ function render(ui: ReactNode) {
   const client = createTestQueryClient();
   return renderUI(ui, {
     wrapper: ({ children }) => (
-      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+      <QueryClientProvider client={client}>
+        <appInitialStateContext.Provider
+          value={
+            {
+              initialState: {
+                currentUser: {
+                  id: 'user',
+                  currentOrganization: { id: state.organizationId },
+                },
+              },
+            } as never
+          }
+        >
+          {children}
+        </appInitialStateContext.Provider>
+      </QueryClientProvider>
     ),
   });
 }
@@ -32,7 +48,11 @@ type LedgerProps = {
   request: (params: { current: number; pageSize: number }) => Promise<unknown>;
 };
 type FilterProps = {
-  items: { name: string }[];
+  items: {
+    name: string;
+    fieldProps?: { mode?: string };
+    options?: { label: string }[];
+  }[];
   initialLabels: Record<string, string>;
   onSearch: (v: Record<string, unknown>) => void;
   onReset: () => void;
@@ -93,6 +113,7 @@ function Seed() {
     {
       search: {
         keyword: '账单条件',
+        businessStatuses: [1, 2],
         status: FinanceBillStatus.FINANCE_BILL_STATUS_CANCELLED,
         settlementPartyId: 'party',
         billDateRange: [dayjs('2026-10-01'), dayjs('2026-10-12')],
@@ -108,6 +129,7 @@ function Seed() {
 }
 beforeEach(() => {
   vi.clearAllMocks();
+  window.localStorage.clear();
   state.organizationId = 'workspace-org';
   state.company = true;
 });
@@ -131,6 +153,18 @@ describe('账单查询恢复消费', () => {
     expect(state.search?.items.map((field) => field.name)).not.toContain(
       'status',
     );
+    expect(
+      state.search?.items.find((field) => field.name === 'businessStatuses'),
+    ).toMatchObject({
+      fieldProps: { mode: 'multiple' },
+      options: [
+        { label: '未开票' },
+        { label: '部分开票' },
+        { label: '未核销' },
+        { label: '部分核销' },
+        { label: '已完成' },
+      ],
+    });
     expect(state.ledger?.topBar).toBeUndefined();
     expect(state.ledger?.batchActions).toBeUndefined();
     expect(state.ledger?.pagination).toMatchObject({
@@ -148,6 +182,7 @@ describe('账单查询恢复消费', () => {
         page: 3,
         pageSize: 20,
         keyword: '账单条件',
+        businessStatuses: [1, 2],
         status: FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED,
         organizationId: 'workspace-org',
         billDateFrom: '2026-10-01',
@@ -156,7 +191,7 @@ describe('账单查询恢复消费', () => {
       { skipErrorHandler: true },
     );
     act(() => {
-      state.search?.onSearch({ keyword: '新的条件' });
+      state.search?.onSearch({ keyword: '新的条件', businessStatuses: [3, 4] });
     });
     await act(async () => {
       await state.ledger?.request({ current: 1, pageSize: 20 });
@@ -164,6 +199,7 @@ describe('账单查询恢复消费', () => {
     expect(settlementServiceListBills).toHaveBeenLastCalledWith(
       expect.objectContaining({
         keyword: '新的条件',
+        businessStatuses: [3, 4],
         status: FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED,
         page: 1,
         organizationId: 'workspace-org',
@@ -181,12 +217,43 @@ describe('账单查询恢复消费', () => {
     expect(settlementServiceListBills).toHaveBeenLastCalledWith(
       expect.objectContaining({
         keyword: undefined,
+        businessStatuses: undefined,
         status: FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED,
         organizationId: 'workspace-org',
       }),
       { skipErrorHandler: true },
     );
   });
+  it('恢复页签时剔除已隐藏五态条件，其他已提交条件仍生效', async () => {
+    window.localStorage.setItem(
+      'roncin:filter-settings:v1:finance:bills:user:workspace-org',
+      JSON.stringify({ visible: [], hidden: ['businessStatuses'] }),
+    );
+    const { rerender } = render(
+      <ListQueryStateProvider enabled>
+        <Seed />
+      </ListQueryStateProvider>,
+    );
+    rerender(
+      <ListQueryStateProvider enabled>
+        <App>
+          <FinanceBillsPage />
+        </App>
+      </ListQueryStateProvider>,
+    );
+    await act(async () => {
+      await state.ledger?.request({ current: 3, pageSize: 20 });
+    });
+    expect(
+      vi.mocked(settlementServiceListBills).mock.lastCall?.[0],
+    ).toMatchObject({
+      keyword: '账单条件',
+      businessStatuses: undefined,
+      organizationId: 'workspace-org',
+    });
+    window.localStorage.clear();
+  });
+
   it('当前公司尚未就绪时不发送无组织边界的列表查询', async () => {
     state.organizationId = undefined;
     render(

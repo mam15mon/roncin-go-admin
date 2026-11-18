@@ -87,6 +87,7 @@ func newVerificationPostgresFixture(t *testing.T, data *Data) *verificationPostg
 		t.Fatalf("创建测试已确认账单: %v", err)
 	}
 	fixture.billID = bill.ID
+	addTestBillInvoice(t, data, bill, "100", fixture.actorID)
 	cashflow, err := data.db.FinanceCashflow.Create().SetOrganizationID(fixture.organizationID).SetFlowNo("FLOW-" + fixture.suffix).SetIdempotencyKey("cashflow-verification-" + fixture.suffix).SetDirection(financecashflowent.DirectionRECEIVABLE).SetStatus(financecashflowent.StatusCONFIRMED).SetSettlementPartyID(fixture.partnerID).SetSettlementPartyName("账单事务测试客户-" + fixture.suffix).SetCurrency("USD").SetAmount("100.00000000").SetExchangeRate("7.25000000").SetExchangeRateSource(financecashflowent.ExchangeRateSourceSYSTEM).SetExchangeRateDate(financeBillIntegrationDate).SetBaseCurrency("CNY").SetBaseAmount("725.00000000").SetTransactionDate(financeBillIntegrationDate).SetOurAccount("测试账户").SetPaymentMethod("BANK_TRANSFER").SetVersion(1).Save(ctx)
 	if err != nil {
 		t.Fatalf("创建测试已确认资金流水: %v", err)

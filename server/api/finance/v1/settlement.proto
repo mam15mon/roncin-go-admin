@@ -204,6 +204,16 @@ enum FinanceBillStatus {
   FINANCE_BILL_STATUS_CANCELLED = 3;
 }
 
+// 账单当前业务待办：读取时按开票与实际核销进度推导，不持久化。
+enum FinanceBillBusinessStatus {
+  FINANCE_BILL_BUSINESS_STATUS_UNSPECIFIED = 0;
+  FINANCE_BILL_BUSINESS_STATUS_UNINVOICED = 1;
+  FINANCE_BILL_BUSINESS_STATUS_PARTIALLY_INVOICED = 2;
+  FINANCE_BILL_BUSINESS_STATUS_UNVERIFIED = 3;
+  FINANCE_BILL_BUSINESS_STATUS_PARTIALLY_VERIFIED = 4;
+  FINANCE_BILL_BUSINESS_STATUS_COMPLETED = 5;
+}
+
 // 账单结算进度：按有效核销与有效对冲的带符号净额与账单总额比较；零额账单视为已结清。
 enum FinanceBillSettlementProgress {
   FINANCE_BILL_SETTLEMENT_PROGRESS_UNSPECIFIED = 0;
@@ -516,6 +526,8 @@ message ListBillsRequest {
   optional FinanceBillSettlementProgress settlement_progress = 16;
   optional FinanceBillInvoiceProgress invoice_progress = 17;
   optional bool completed = 18;
+  // 多个业务状态取并集，与其他筛选条件取交集；不传表示不按业务状态筛选。
+  repeated FinanceBillBusinessStatus business_statuses = 19;
 }
 message ListBillCreationCandidatesRequest { string organization_id = 1 [(google.api.field_behavior) = REQUIRED]; int32 page = 2; int32 page_size = 3; optional string keyword = 4; optional string direction = 5; }
 message ListBillCreationCandidatesResponse { bool success = 1; int32 code = 2; string message = 3; repeated FeeLedgerItem data = 4; int64 total = 5; string trace_id = 6; }
@@ -664,6 +676,7 @@ message FinanceBill {
   repeated FinanceBillFeeLockFact fee_lock_facts = 59;
   // 免票决定历史仅详情返回；有效决定 revoked_at 未设置。
   repeated FinanceInvoiceExemption invoice_exemptions = 60;
+  FinanceBillBusinessStatus business_status = 61;
 }
 
 message SetBillInvoiceExemptionRequest {

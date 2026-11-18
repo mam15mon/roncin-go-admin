@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/google/uuid"
@@ -17,7 +18,7 @@ import (
 func TestVerificationShortfallAtomicPostgres(t *testing.T) {
 	data, cleanup := getIntegrationData(t)
 	defer cleanup()
-	for _, scenario := range []string{"成功及重试", "核销失败回滚流水", "差额与分配不符", "相同键修改流水内容", "相同键修改分配", "并发余额不足不增大差额", "相同幂等键并发"} {
+	for _, scenario := range []string{"成功及重试", "核销失败回滚流水", "未开票核销回滚差额", "差额与分配不符", "相同键修改流水内容", "相同键修改分配", "并发余额不足不增大差额", "相同幂等键并发"} {
 		t.Run(scenario, func(t *testing.T) {
 			fixture := newVerificationPostgresFixture(t, data)
 			settingID := fixture.createExchangeRateSetting("7.20000000")
@@ -37,6 +38,9 @@ func TestVerificationShortfallAtomicPostgres(t *testing.T) {
 			shortfall := biz.CreateFinanceCashflowInput{Direction: biz.OrderFeeReceivable, SettlementPartyID: fixture.partnerID, Currency: "USD", Amount: decimal.NewFromInt(40), TransactionDate: financeBillIntegrationDate, OurAccount: "差额账户", PaymentMethod: "BANK_TRANSFER"}
 			expectFailure := false
 			switch scenario {
+			case "未开票核销回滚差额":
+				removeTestBillInvoice(t, data, fixture.billID)
+				expectFailure = true
 			case "核销失败回滚流水":
 				usecase = fixture.newUsecase(&invalidAuditResultVerificationRepo{VerificationRepo: NewVerificationRepo(data)}, NewExchangeRateRepo(data))
 				expectFailure = true
@@ -86,6 +90,9 @@ func TestVerificationShortfallAtomicPostgres(t *testing.T) {
 			if expectFailure {
 				if err == nil {
 					t.Fatal("非法组合意外成功")
+				}
+				if scenario == "未开票核销回滚差额" && !errors.Is(err, biz.ErrVerificationInvoiceRequired) {
+					t.Fatalf("无票差额核销错误=%v", err)
 				}
 				cashCount, err := data.db.FinanceCashflow.Query().Where(cash.OrganizationIDEQ(fixture.organizationID)).Count(ctx)
 				if err != nil || cashCount != 1 {

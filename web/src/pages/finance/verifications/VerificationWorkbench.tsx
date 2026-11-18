@@ -804,6 +804,9 @@ export default function VerificationWorkbench({
           </Col>
           <Col span={12}>
             <Card size="small" title="待核销账单">
+              <Typography.Text type="secondary">
+                仅列出已登记发票（含部分开票）或无需发票且尚有余额的账单。
+              </Typography.Text>
               <div
                 style={{
                   display: 'flex',

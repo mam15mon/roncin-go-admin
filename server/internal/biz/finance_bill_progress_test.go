@@ -55,3 +55,58 @@ func TestFinanceBillListProgressFilterValidation(t *testing.T) {
 		t.Fatal("开票进度筛选值校验错误")
 	}
 }
+
+func TestResolveFinanceBillBusinessStatus(t *testing.T) {
+	cases := []struct {
+		name       string
+		status     FinanceBillStatus
+		invoice    FinanceBillInvoiceProgress
+		settlement FinanceBillSettlementProgress
+		done       bool
+		verified   string
+		want       FinanceBillBusinessStatus
+	}{
+		{"无票且未结", FinanceBillConfirmed, FinanceBillInvoiceNone, FinanceBillSettlementUnsettled, false, "0", FinanceBillBusinessUninvoiced},
+		{"历史先核销后开票", FinanceBillConfirmed, FinanceBillInvoiceNone, FinanceBillSettlementSettled, false, "100", FinanceBillBusinessUninvoiced},
+		{"部分票及部分核销优先补票", FinanceBillConfirmed, FinanceBillInvoicePartial, FinanceBillSettlementPartial, false, "40", FinanceBillBusinessPartiallyInvoiced},
+		{"部分票已结清仍需补票", FinanceBillConfirmed, FinanceBillInvoicePartial, FinanceBillSettlementSettled, false, "100", FinanceBillBusinessPartiallyInvoiced},
+		{"票齐尚未核销", FinanceBillConfirmed, FinanceBillInvoiceFull, FinanceBillSettlementUnsettled, false, "0", FinanceBillBusinessUnverified},
+		{"纯对冲不冒充核销", FinanceBillConfirmed, FinanceBillInvoiceFull, FinanceBillSettlementPartial, false, "0", FinanceBillBusinessUnverified},
+		{"票齐部分核销", FinanceBillConfirmed, FinanceBillInvoiceFull, FinanceBillSettlementPartial, false, "40", FinanceBillBusinessPartiallyVerified},
+		{"带符号核销", FinanceBillConfirmed, FinanceBillInvoiceFull, FinanceBillSettlementPartial, false, "-40", FinanceBillBusinessPartiallyVerified},
+		{"免票部分核销", FinanceBillConfirmed, FinanceBillInvoiceNotRequired, FinanceBillSettlementPartial, false, "40", FinanceBillBusinessPartiallyVerified},
+		{"票齐且结清", FinanceBillConfirmed, FinanceBillInvoiceFull, FinanceBillSettlementSettled, true, "100", FinanceBillBusinessCompleted},
+		{"零额或免票已结清", FinanceBillConfirmed, FinanceBillInvoiceNotRequired, FinanceBillSettlementSettled, true, "0", FinanceBillBusinessCompleted},
+		{"取消不提供业务待办", FinanceBillCancelled, FinanceBillInvoiceNone, FinanceBillSettlementUnsettled, false, "0", ""},
+		{"未经投影不猜测", FinanceBillConfirmed, "", "", false, "0", ""},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := ResolveFinanceBillBusinessStatus(tc.status, tc.settlement, tc.invoice, tc.done, decimal.RequireFromString(tc.verified))
+			if got != tc.want {
+				t.Fatalf("业务状态=%s，期望%s", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestVerificationInvoicePrerequisite(t *testing.T) {
+	for _, invoice := range []FinanceBillInvoiceProgress{FinanceBillInvoiceNotRequired, FinanceBillInvoicePartial, FinanceBillInvoiceFull} {
+		if !CanVerifyFinanceBillInvoiceProgress(invoice) {
+			t.Fatalf("%s应允许核销", invoice)
+		}
+	}
+	for _, invoice := range []FinanceBillInvoiceProgress{FinanceBillInvoiceNone, "", "UNKNOWN"} {
+		if CanVerifyFinanceBillInvoiceProgress(invoice) {
+			t.Fatalf("%s不能核销", invoice)
+		}
+	}
+	for _, status := range []FinanceBillBusinessStatus{FinanceBillBusinessUninvoiced, FinanceBillBusinessPartiallyInvoiced, FinanceBillBusinessUnverified, FinanceBillBusinessPartiallyVerified, FinanceBillBusinessCompleted} {
+		if !ValidFinanceBillBusinessStatus(status) {
+			t.Fatalf("合法状态%s被拒绝", status)
+		}
+	}
+	if ValidFinanceBillBusinessStatus("") || ValidFinanceBillBusinessStatus("UNSPECIFIED") || ValidFinanceBillBusinessStatus("UNKNOWN") {
+		t.Fatal("空或未知状态不得接受")
+	}
+}

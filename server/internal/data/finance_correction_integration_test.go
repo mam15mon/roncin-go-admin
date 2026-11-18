@@ -85,7 +85,7 @@ func correctionFinanceVerification(t *testing.T, f *financeInvoicePostgresFixtur
 
 func TestFinanceCorrectionMergedSettlementPostgres(t *testing.T) {
 	data, cleanup := getIntegrationData(t)
-	defer cleanup()
+	t.Cleanup(cleanup)
 	f := newFinanceInvoicePostgresFixture(t, data)
 	ctx := context.Background()
 	for _, kind := range []number.DocumentType{number.DocumentTypeNetting, number.DocumentTypeWriteOff} {
@@ -104,6 +104,7 @@ func TestFinanceCorrectionMergedSettlementPostgres(t *testing.T) {
 		t.Fatal(err)
 	}
 	old := correctionFinanceBill(t, f, "old", bill.PurposeNORMAL, a, b)
+	addTestBillInvoiceExemption(t, data, old, f.actorID)
 	c := correctionFinanceCash(t, f, "收400", "400", cash.DirectionRECEIVABLE)
 	v, err := correctionFinanceVerification(t, f, c, old, "400")
 	if err != nil {
@@ -114,6 +115,7 @@ func TestFinanceCorrectionMergedSettlementPostgres(t *testing.T) {
 	replacement := correctionFinanceFee(t, f, "替代A", "100", &a.ID, &r.ID, fee.EconomicEffectINCREASE)
 	reverseBill := correctionFinanceBill(t, f, "reverse", bill.PurposeCORRECTION_REVERSAL, rev)
 	newBill := correctionFinanceBill(t, f, "replacement", bill.PurposeNORMAL, replacement)
+	addTestBillInvoiceExemption(t, data, reverseBill, f.actorID)
 	if _, err := NewFinanceBillRepo(data).Cancel(ctx, []uuid.UUID{f.organizationID}, old.ID, f.actorID, old.Version, "取消", &biz.AuditEvent{Action: "test", Result: "success"}); err == nil {
 		t.Fatal("受保护原账不可取消")
 	}
@@ -324,7 +326,7 @@ func TestFinanceCorrectionInvoiceEconomicContentPostgres(t *testing.T) {
 
 func TestFinanceCorrectionSuccessiveCashCoveragePostgres(t *testing.T) {
 	data, cleanup := getIntegrationData(t)
-	defer cleanup()
+	t.Cleanup(cleanup)
 	f := newFinanceInvoicePostgresFixture(t, data)
 	ctx := context.Background()
 	for _, kind := range []number.DocumentType{number.DocumentTypeNetting, number.DocumentTypeWriteOff} {
@@ -334,6 +336,7 @@ func TestFinanceCorrectionSuccessiveCashCoveragePostgres(t *testing.T) {
 	}
 	a := correctionFinanceFee(t, f, "A", "1000", nil, nil, fee.EconomicEffectINCREASE)
 	old := correctionFinanceBill(t, f, "root", bill.PurposeNORMAL, a)
+	addTestBillInvoiceExemption(t, data, old, f.actorID)
 	cash500 := correctionFinanceCash(t, f, "收500", "500", cash.DirectionRECEIVABLE)
 	if _, err := correctionFinanceVerification(t, f, cash500, old, "500"); err != nil {
 		t.Fatal(err)

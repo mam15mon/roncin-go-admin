@@ -88,6 +88,7 @@ type FinanceBill struct {
 	SettlementProgress FinanceBillSettlementProgress
 	InvoiceProgress    FinanceBillInvoiceProgress
 	Completed          bool
+	BusinessStatus     FinanceBillBusinessStatus
 	// FeeLockFacts 为阻止增删费用的有效财务事实类型，按固定顺序去重；非空即费用锁定。
 	FeeLockFacts []FinanceBillFeeLockFact
 	// InvoiceExemptions 仅详情提供免票决定历史，列表根据 FeeLockFacts 判断当前事实。
@@ -153,6 +154,9 @@ type FinanceBillFilter struct {
 	SettlementProgress FinanceBillSettlementProgress
 	InvoiceProgress    FinanceBillInvoiceProgress
 	Completed          *bool
+	BusinessStatuses   []FinanceBillBusinessStatus
+	// VerificationReady 仅供核销候选复用列表，开票前置在分页与汇总之前过滤。
+	VerificationReady bool
 }
 
 type FinanceBillCreationCandidateFilter struct {

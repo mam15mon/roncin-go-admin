@@ -171,17 +171,22 @@ for (const kind of orderKinds) {
     const cashflow = (await post('/api/v1/finance/cashflows', { organizationId: companyA.id, direction, settlementPartyId: partner.id, currency: 'CNY', amount: bill.totalAmount,
       transactionDate, ourAccount: `HGJ-${kind.code}-${stamp}`, paymentMethod: 'BANK_TRANSFER', idempotencyKey: `hgj-cash-${kind.code}-${direction}-${stamp}` })).data;
     const confirmed = (await post(`/api/v1/finance/cashflows/${cashflow.id}/confirm`, { id: cashflow.id, expectedVersion: cashflow.version })).data;
-    // 先核销再发票/免票，证明没有新增先开票的强制前置。
-    const verification = (await post('/api/v1/finance/verifications', { allocations: [{ cashflowId: confirmed.id, billId: bill.id, amount: bill.totalAmount }], verificationDate: transactionDate,
-      idempotencyKey: `hgj-verify-${kind.code}-${direction}-${stamp}`, note: '先真实收付核销，后补发票适用事实' })).data;
-    bill = (await request(`/api/v1/finance/bills/${bill.id}`)).data;
-    assert.equal(Number(bill.unverifiedAmount), 0);
+    // 未开票不能核销；登记发票或明确免票后再办理资金分配。
+    const uninvoiced = await raw('/api/v1/finance/verifications', { method: 'POST', body: JSON.stringify({
+      allocations: [{ cashflowId: confirmed.id, billId: bill.id, amount: bill.totalAmount }], verificationDate: transactionDate,
+      idempotencyKey: `hgj-verify-no-invoice-${kind.code}-${direction}-${stamp}`,
+    }) });
+    assert.equal(uninvoiced.response.status, 409, `${kind.code}${direction}未开票核销被拒绝`);
+    assert.equal(uninvoiced.body.reason, 'FINANCE_VERIFICATION_INVOICE_REQUIRED');
     let invoiceId;
     if (direction === 'RECEIVABLE') {
       const registered = await post('/api/v1/finance/invoices/register', { idempotencyKey: `hgj-invoice-${kind.code}-${stamp}`, records: [invoiceRegistrationForBills([bill], { invoiceProfileId: profile.id, taxInvoiceNo: `HGJ-TAX-${kind.code}-${stamp}`, invoiceDate: transactionDate })] });
       invoiceId = registered.data[0].id;
     } else await post(`/api/v1/finance/bills/${bill.id}/invoice-exemption`, { id: bill.id, expectedVersion: bill.version, reason: '隔离验收：本笔应付按适用免票事实结清' });
+    const verification = (await post('/api/v1/finance/verifications', { allocations: [{ cashflowId: confirmed.id, billId: bill.id, amount: bill.totalAmount }], verificationDate: transactionDate,
+      idempotencyKey: `hgj-verify-${kind.code}-${direction}-${stamp}`, note: '具备发票或免票事实后办理真实收付核销' })).data;
     bill = (await request(`/api/v1/finance/bills/${bill.id}`)).data;
+    assert.equal(Number(bill.unverifiedAmount), 0);
     assert.equal(bill.completed, true, `${kind.code}${direction}账单核销与发票事实完成`);
     const agingAfter = await request(`/api/v1/finance/reports/aging?organizationId=${companyA.id}&direction=${direction}&keyword=${bill.billNo}&page=1&pageSize=200`);
     assert.equal(Number(agingAfter.total ?? 0), 0, `${kind.code}${direction}结清后不计当前账龄`);

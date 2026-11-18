@@ -1885,6 +1885,14 @@ paths:
                   in: query
                   schema:
                     type: boolean
+                - name: businessStatuses
+                  in: query
+                  description: 多个业务状态取并集，与其他筛选条件取交集；不传表示不按业务状态筛选。
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
             responses:
                 "200":
                     description: OK
@@ -13468,6 +13476,9 @@ components:
                     items:
                         $ref: '#/components/schemas/finance.v1.FinanceInvoiceExemption'
                     description: 免票决定历史仅详情返回；有效决定 revoked_at 未设置。
+                businessStatus:
+                    type: integer
+                    format: enum
         finance.v1.FinanceBillBatch:
             type: object
             properties:

@@ -35,7 +35,7 @@
 | [Sea Document Change History](./sea-document-change-history.md) | 海运提单改单、作废、模式切换、外部确认与不可变历史 | ✅ |
 | [财务只读报表](./finance-reports.md) | 经营双口径利润、真实收付、当前账龄、完整筛选聚合与独立导出 | ✅ |
 | [发票逐费登记与修订](./finance-invoice-registration.md) | 多票三层手税分配、原票经济快照、持久幂等、结算依赖与反向释放、正式迁移及一致读取 | ✅ |
-| [Finance Bill Currency](./finance-bill-currency.md) | 普通账单固定费用币种边界、账单日汇率、核销/对冲本位币口径与预计开票快照 | ✅ |
+| [Finance Bill Currency](./finance-bill-currency.md) | 普通账单固定币种、五态筛选、核销开票前置、原子建账与汇率快照 | ✅ |
 | [Exchange Rate Single Rate](./exchange-rate-single-rate.md) | 公司周汇率双轨点差：当周精确命中、权限与手工输入、跨组织原币记账 | ✅ |
 | [提成经济重算与已发事实保护](./finance-commission-lock.md) | 财务锁退役、普通费用与账单经济重算、差额调整及已发事实保护 | ✅ |
 | [Order Fee Review](./order-fee-review.md) | 统一人工审核锁、费用快照、逐费建账准入与锁后补审边界 | ✅ |

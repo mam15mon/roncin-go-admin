@@ -359,6 +359,9 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
     editRow.locator('td').nth(2).locator('.ant-select'),
     feeSetting.nameZh,
   );
+  // 等待费用项目选择写入行模型，再录金额，避免紧接着输入触发行预览时读取旧选择。
+  await expect(editRow.locator('td').nth(1)).toHaveText(feeSetting.feeCode);
+  await expect(editRow.locator('td').nth(2)).toContainText(feeSetting.nameZh);
   await editRow.getByPlaceholder('0.00').fill('125');
   const feeResponse = page.waitForResponse(
     (r) =>
@@ -374,6 +377,8 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
     path: testInfo.outputPath('01-fee.png'),
     fullPage: true,
   });
+  // 审核锁统一在订单详情办理，费用页只展示锁定状态。
+  await page.getByRole('button', { name: '返回订单详情' }).click();
   await page
     .getByRole('button', { name: /锁定订单$/ })
     .first()
@@ -390,6 +395,7 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
   ).toBeVisible();
   await lockDialog.getByRole('button', { name: '确认锁定' }).click();
   await expect(lockDialog).not.toBeVisible();
+  await page.goto(`/orders/${orderKind}/${order.id}/fees`);
   await expect(
     page.getByRole('button', { name: '新增应收费用' }),
   ).toBeDisabled();
@@ -407,7 +413,7 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
       r.url().endsWith('/finance/bill-batches/preview') &&
       r.request().method() === 'POST',
   );
-  await billDrawer.getByRole('button', { name: '刷新快照' }).click();
+  await billDrawer.getByRole('button', { name: '刷新账单' }).click();
   const billPreview = await (await billPreviewResponse).json();
   expect(billPreview.data[0].groupToken).toBeTruthy();
   expect(billPreview.data).toHaveLength(1);
@@ -498,6 +504,77 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
     .getByRole('button', { name: /确\s*定/ })
     .click();
   await expect(cashRow.getByText('已确认', { exact: true })).toBeVisible();
+  // 抬头属于基础资料；已有发票的明确分配和税额由真实页面提交。
+  await api(`/api/v1/partners/${customer.id}/invoice-profiles`, {
+    partnerId: customer.id,
+    invoiceTitle: customer.legalName,
+    taxpayerIdentificationNo: customer.unifiedSocialCreditCode,
+    registeredAddress: customer.registeredAddress,
+    defaultInvoiceType: 'DIGITAL_NORMAL',
+    isDefault: true,
+  });
+  await page.goto('/finance/bills');
+  const registeredBillRow = page.locator(
+    `.ant-table-row[data-row-key="${bill.id}"]`,
+  );
+  await registeredBillRow.getByText(bill.billNo, { exact: true }).click();
+  await page.getByRole('button', { name: '继续登记发票', exact: true }).click();
+  const invoiceDialog = page.getByRole('dialog', {
+    name: '登记已有发票',
+    exact: true,
+  });
+  // 唯一抬头、余额及逐费分配在打开时带入；这里只填写实际票面资料。
+  await expect(
+    invoiceDialog.getByLabel('开票抬头', { exact: true }),
+  ).toHaveCount(1);
+  await expect(
+    invoiceDialog.getByText(customer.legalName, { exact: false }),
+  ).toBeVisible();
+  await expect(
+    invoiceDialog.getByLabel('发票含税总额', { exact: true }),
+  ).toHaveValue('125');
+  await expect(
+    invoiceDialog.getByLabel('本次含税金额', { exact: true }),
+  ).toHaveValue('125');
+  await selectOption(
+    page,
+    invoiceDialog.getByLabel('发票类型', { exact: true }),
+    '纸质普票',
+  );
+  await invoiceDialog
+    .getByLabel('已有发票号码', { exact: true })
+    .fill(`UI-TAX-${stamp}`);
+  await invoiceDialog.getByLabel('本次登记税额', { exact: true }).fill('7.89');
+  const invoiceSaved = page.waitForResponse(
+    (response) =>
+      response.url().endsWith('/api/v1/finance/invoices/register') &&
+      response.request().method() === 'POST',
+  );
+  await invoiceDialog
+    .getByRole('button', { name: '保存登记', exact: true })
+    .click();
+  const invoiceSaveResponse = await invoiceSaved;
+  expect(invoiceSaveResponse.ok()).toBeTruthy();
+  const issuedInvoice = (await invoiceSaveResponse.json()).data[0];
+  expect(issuedInvoice.invoiceType).toBe('PAPER_NORMAL');
+  expect(issuedInvoice.taxInvoiceNo).toBe(`UI-TAX-${stamp}`);
+  expect(issuedInvoice.taxAmount).toBe('7.89000000');
+  expect(issuedInvoice.netAmount).toBe('117.11000000');
+  await expect(invoiceDialog).toBeHidden();
+  await expect(page.locator('.ant-notification-notice-error')).toHaveCount(0);
+  expect(
+    (await api(`/api/v1/finance/bills/${bill.id}`)).data.completed ?? false,
+  ).toBe(false);
+  const sourceAfterInvoice = (
+    await api(`/api/v1/orders/${order.id}/fees`)
+  ).data.find((item: { id: string }) => item.id === fee.id);
+  expect(sourceAfterInvoice.netAmount).toBe(fee.netAmount);
+  expect(sourceAfterInvoice.taxAmount).toBe(fee.taxAmount);
+  await page.screenshot({
+    path: testInfo.outputPath('04-invoice-registration.png'),
+    fullPage: true,
+  });
+
   await page.goto('/finance/verifications');
   await page.getByRole('button', { name: '新建核销' }).click();
   const verificationDialog = page.getByRole('dialog', {
@@ -624,79 +701,10 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
   ).data.find((item: { id: string }) => item.id === cashflow.id);
   expect(persistedCashflow).toBeTruthy();
   expect(persistedBill.verifiedAmount).toBe('125.00000000');
+  expect(persistedBill.completed).toBe(true);
   expect(persistedCashflow.verifiedAmount).toBe('125.00000000');
   expect(persistedCashflow.unverifiedAmount).toBe('0.00000000');
   expect(persisted.commissionAmount).toBe('12.50000000');
-  // 抬头属于基础资料；已有发票的明确分配和税额由真实页面提交。
-  await api(`/api/v1/partners/${customer.id}/invoice-profiles`, {
-    partnerId: customer.id,
-    invoiceTitle: customer.legalName,
-    taxpayerIdentificationNo: customer.unifiedSocialCreditCode,
-    registeredAddress: customer.registeredAddress,
-    defaultInvoiceType: 'DIGITAL_NORMAL',
-    isDefault: true,
-  });
-  await page.goto('/finance/bills');
-  const registeredBillRow = page.locator(
-    `.ant-table-row[data-row-key="${bill.id}"]`,
-  );
-  await registeredBillRow.getByText('详情', { exact: true }).click();
-  await page.getByRole('button', { name: '继续登记发票', exact: true }).click();
-  const invoiceDialog = page.getByRole('dialog', {
-    name: '登记已有发票',
-    exact: true,
-  });
-  // 唯一抬头、余额及逐费分配在打开时带入；这里只填写实际票面资料。
-  await expect(
-    invoiceDialog.getByLabel('开票抬头', { exact: true }),
-  ).toHaveCount(1);
-  await expect(
-    invoiceDialog.getByText(customer.legalName, { exact: false }),
-  ).toBeVisible();
-  await expect(
-    invoiceDialog.getByLabel('发票含税总额', { exact: true }),
-  ).toHaveValue('125');
-  await expect(
-    invoiceDialog.getByLabel('本次含税金额', { exact: true }),
-  ).toHaveValue('125');
-  await selectOption(
-    page,
-    invoiceDialog.getByLabel('发票类型', { exact: true }),
-    '纸质普票',
-  );
-  await invoiceDialog
-    .getByLabel('已有发票号码', { exact: true })
-    .fill(`UI-TAX-${stamp}`);
-  await invoiceDialog.getByLabel('本次登记税额', { exact: true }).fill('7.89');
-  const invoiceSaved = page.waitForResponse(
-    (response) =>
-      response.url().endsWith('/api/v1/finance/invoices/register') &&
-      response.request().method() === 'POST',
-  );
-  await invoiceDialog
-    .getByRole('button', { name: '保存登记', exact: true })
-    .click();
-  const invoiceSaveResponse = await invoiceSaved;
-  expect(invoiceSaveResponse.ok()).toBeTruthy();
-  const issuedInvoice = (await invoiceSaveResponse.json()).data[0];
-  expect(issuedInvoice.invoiceType).toBe('PAPER_NORMAL');
-  expect(issuedInvoice.taxInvoiceNo).toBe(`UI-TAX-${stamp}`);
-  expect(issuedInvoice.taxAmount).toBe('7.89000000');
-  expect(issuedInvoice.netAmount).toBe('117.11000000');
-  await expect(invoiceDialog).toBeHidden();
-  await expect(page.locator('.ant-notification-notice-error')).toHaveCount(0);
-  expect((await api(`/api/v1/finance/bills/${bill.id}`)).data.completed).toBe(
-    true,
-  );
-  const sourceAfterInvoice = (
-    await api(`/api/v1/orders/${order.id}/fees`)
-  ).data.find((item: { id: string }) => item.id === fee.id);
-  expect(sourceAfterInvoice.netAmount).toBe(fee.netAmount);
-  expect(sourceAfterInvoice.taxAmount).toBe(fee.taxAmount);
-  await page.screenshot({
-    path: testInfo.outputPath('04-invoice-registration.png'),
-    fullPage: true,
-  });
   if (isAirExport) {
     // 空运使用同一页面登记结果，再覆盖应付完整链路。
     const master = order.airExport.master;
@@ -798,6 +806,12 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
       FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED,
     );
     expect(payableBill.direction).toBe('PAYABLE');
+    // 本段验证应付核销，显式免票后再进入资金分配。
+    await api(`/api/v1/finance/bills/${payableBill.id}/invoice-exemption`, {
+      id: payableBill.id,
+      expectedVersion: payableBill.version,
+      reason: '页面验收应付核销免票',
+    });
     const payment = (
       await api('/api/v1/finance/cashflows', {
         organizationId,

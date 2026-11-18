@@ -3052,6 +3052,7 @@ declare namespace API {
     feeLockFacts?: number[];
     /** 免票决定历史仅详情返回；有效决定 revoked_at 未设置。 */
     invoiceExemptions?: FinanceInvoiceExemption[];
+    businessStatus?: number;
   };
 
   type FinanceBillBatch = {
@@ -8977,6 +8978,8 @@ declare namespace API {
     settlementProgress?: number;
     invoiceProgress?: number;
     completed?: boolean;
+    /** 多个业务状态取并集，与其他筛选条件取交集；不传表示不按业务状态筛选。 */
+    businessStatuses?: number[];
   };
 
   type SettlementServiceListCashflowsParams = {

@@ -88,6 +88,20 @@ describe('建账组合载荷与逐项失败回显', () => {
       billGroupOperationPayload({ ...group, totalAmount: '99' }, values()),
     ).toThrow('同次核销合计');
   });
+  it('未登记发票不能附带核销，部分发票允许核销超过开票额且不改变草稿', () => {
+    const input = values();
+    input.invoices = [];
+    expect(() => billGroupOperationPayload(group, input)).toThrow(
+      '账单尚未开票',
+    );
+    expect(input.verifications).toHaveLength(2);
+    const partialInvoice = values().invoices?.[0];
+    if (!partialInvoice) throw new Error('缺少发票夹具');
+    input.invoices = [partialInvoice];
+    expect(billGroupOperationPayload(group, input).verifications).toHaveLength(
+      2,
+    );
+  });
   it('逐条错误与NETTING整体失败位置使用中文记录序号', () => {
     const result = normalizeBillBatchResponse(
       {

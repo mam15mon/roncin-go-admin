@@ -645,6 +645,7 @@ func TestVerificationCreationCandidatesBeyondSettledLimitPostgres(t *testing.T) 
 			t.Fatalf("创建已结清候选账单失败: %v", err)
 		}
 		openBill := fixture.createConfirmedBill("cand-open", settledAmount, openDate)
+		addTestBillInvoice(t, data, openBill, settledAmount, fixture.actorID)
 
 		// 单张支撑流水的 ACTIVE 核销单把 201 张账单全部结清。
 		billSupportCashflow := fixture.createConfirmedCashflow("cand-bill-support", "2010", settledDate)

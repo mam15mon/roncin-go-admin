@@ -46,6 +46,8 @@ const (
 	ErrorReason_ERROR_REASON_FINANCE_BILL_FEES_LOCKED ErrorReason = 15
 	// 增删费用后账单不得没有有效费用；释放全部费用须取消账单。
 	ErrorReason_ERROR_REASON_FINANCE_BILL_LAST_FEE ErrorReason = 16
+	// 完全未开票且未免票的账单不能新增核销。
+	ErrorReason_ERROR_REASON_FINANCE_VERIFICATION_INVOICE_REQUIRED ErrorReason = 17
 )
 
 // Enum value maps for ErrorReason.
@@ -68,6 +70,7 @@ var (
 		14: "ERROR_REASON_FINANCE_COMMISSION_ADJUSTMENT_CANCEL_NOT_ALLOWED",
 		15: "ERROR_REASON_FINANCE_BILL_FEES_LOCKED",
 		16: "ERROR_REASON_FINANCE_BILL_LAST_FEE",
+		17: "ERROR_REASON_FINANCE_VERIFICATION_INVOICE_REQUIRED",
 	}
 	ErrorReason_value = map[string]int32{
 		"ERROR_REASON_FINANCE_UNSPECIFIED":                               0,
@@ -87,6 +90,7 @@ var (
 		"ERROR_REASON_FINANCE_COMMISSION_ADJUSTMENT_CANCEL_NOT_ALLOWED":  14,
 		"ERROR_REASON_FINANCE_BILL_FEES_LOCKED":                          15,
 		"ERROR_REASON_FINANCE_BILL_LAST_FEE":                             16,
+		"ERROR_REASON_FINANCE_VERIFICATION_INVOICE_REQUIRED":             17,
 	}
 )
 
@@ -122,7 +126,7 @@ var File_finance_v1_error_reason_proto protoreflect.FileDescriptor
 const file_finance_v1_error_reason_proto_rawDesc = "" +
 	"\n" +
 	"\x1dfinance/v1/error_reason.proto\x12\n" +
-	"finance.v1*\xee\x06\n" +
+	"finance.v1*\xa6\a\n" +
 	"\vErrorReason\x12$\n" +
 	" ERROR_REASON_FINANCE_UNSPECIFIED\x10\x00\x12*\n" +
 	"&ERROR_REASON_FEE_EXCHANGE_RATE_MISSING\x10\x01\x12)\n" +
@@ -141,7 +145,8 @@ const file_finance_v1_error_reason_proto_rawDesc = "" +
 	"*ERROR_REASON_PARTNER_CREDIT_LIMIT_EXCEEDED\x10\r\x12A\n" +
 	"=ERROR_REASON_FINANCE_COMMISSION_ADJUSTMENT_CANCEL_NOT_ALLOWED\x10\x0e\x12)\n" +
 	"%ERROR_REASON_FINANCE_BILL_FEES_LOCKED\x10\x0f\x12&\n" +
-	"\"ERROR_REASON_FINANCE_BILL_LAST_FEE\x10\x10B<Z:github.com/roncin/roncin-go-admin/server/api/finance/v1;v1b\x06proto3"
+	"\"ERROR_REASON_FINANCE_BILL_LAST_FEE\x10\x10\x126\n" +
+	"2ERROR_REASON_FINANCE_VERIFICATION_INVOICE_REQUIRED\x10\x11B<Z:github.com/roncin/roncin-go-admin/server/api/finance/v1;v1b\x06proto3"
 
 var (
 	file_finance_v1_error_reason_proto_rawDescOnce sync.Once

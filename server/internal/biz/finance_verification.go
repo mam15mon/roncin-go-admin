@@ -13,12 +13,13 @@ import (
 )
 
 var (
-	ErrVerificationNotFound    = errors.NotFound("FINANCE_VERIFICATION_NOT_FOUND", "核销记录不存在")
-	ErrVerificationInvalid     = errors.BadRequest("FINANCE_VERIFICATION_INVALID", "核销参数不合法")
-	ErrVerificationBalance     = errors.Conflict("FINANCE_VERIFICATION_BALANCE", "核销金额超过资金或账单未核销余额")
-	ErrVerificationMismatch    = errors.BadRequest("FINANCE_VERIFICATION_MISMATCH", "核销双方方向、结算单位或币种不一致")
-	ErrVerificationTransition  = errors.Conflict("FINANCE_VERIFICATION_TRANSITION", "当前核销状态不允许该操作")
-	ErrVerificationIdempotency = errors.Conflict("FINANCE_VERIFICATION_IDEMPOTENCY", "幂等键已用于不同的核销请求")
+	ErrVerificationNotFound        = errors.NotFound("FINANCE_VERIFICATION_NOT_FOUND", "核销记录不存在")
+	ErrVerificationInvalid         = errors.BadRequest("FINANCE_VERIFICATION_INVALID", "核销参数不合法")
+	ErrVerificationBalance         = errors.Conflict("FINANCE_VERIFICATION_BALANCE", "核销金额超过资金或账单未核销余额")
+	ErrVerificationMismatch        = errors.BadRequest("FINANCE_VERIFICATION_MISMATCH", "核销双方方向、结算单位或币种不一致")
+	ErrVerificationTransition      = errors.Conflict("FINANCE_VERIFICATION_TRANSITION", "当前核销状态不允许该操作")
+	ErrVerificationIdempotency     = errors.Conflict("FINANCE_VERIFICATION_IDEMPOTENCY", "幂等键已用于不同的核销请求")
+	ErrVerificationInvoiceRequired = errors.Conflict("FINANCE_VERIFICATION_INVOICE_REQUIRED", "账单尚未开票，请先登记发票后核销")
 )
 
 type VerificationStatus string
