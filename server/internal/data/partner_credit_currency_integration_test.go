@@ -34,9 +34,9 @@ func TestPartnerCreditCurrencyPostgres(t *testing.T) {
 			}
 			f.baseCurrency = baseCurrency
 			partnerID, roleID := f.newCreditPartner("币种客户")
-			settlementCurrency := "USD"
+			foreignCurrency := "USD"
 			if baseCurrency == "USD" {
-				settlementCurrency = "CNY"
+				foreignCurrency = "CNY"
 			}
 			amount := int64(100000)
 			input := &biz.PartnerSettlementRule{CreditLimitMinor: &amount, CreditCurrency: &baseCurrency}
@@ -45,7 +45,7 @@ func TestPartnerCreditCurrencyPostgres(t *testing.T) {
 			}
 			repo := NewPartnerSettlementRuleRepo(data)
 			invalid := *input
-			invalid.CreditCurrency = &settlementCurrency
+			invalid.CreditCurrency = &foreignCurrency
 			if _, err := repo.Create(ctx, f.organizationID, partnerID, biz.PartnerRoleCustomer, &invalid, audit()); err != biz.ErrPartnerCreditCurrencyMismatch {
 				t.Fatalf("外币额度必须拒绝，实际 %v", err)
 			}
@@ -101,13 +101,13 @@ func TestPartnerCreditCurrencyPostgres(t *testing.T) {
 				t.Fatalf("本币欠款2000超过本币额度1000: %+v %v", summaries, err)
 			}
 			// 唯一约定的异常币种必须显式报错，维护入口仍可读取原值。
-			if err := data.db.PartnerSettlementRule.UpdateOneID(created.ID).SetCreditCurrency(settlementCurrency).Exec(ctx); err != nil {
+			if err := data.db.PartnerSettlementRule.UpdateOneID(created.ID).SetCreditCurrency(foreignCurrency).Exec(ctx); err != nil {
 				t.Fatal(err)
 			}
 			if _, err := f.repo.GetPartnerCreditSummaries(ctx, f.organizationID, []uuid.UUID{partnerID}); err != biz.ErrPartnerCreditCurrencyMismatch {
 				t.Fatalf("异常币种不可参与比较: %v", err)
 			}
-			if items, err := repo.List(ctx, f.organizationID, partnerID, biz.PartnerRoleCustomer); err != nil || len(items) != 1 || items[0].CreditCurrency == nil || *items[0].CreditCurrency != settlementCurrency {
+			if items, err := repo.List(ctx, f.organizationID, partnerID, biz.PartnerRoleCustomer); err != nil || len(items) != 1 || items[0].CreditCurrency == nil || *items[0].CreditCurrency != foreignCurrency {
 				t.Fatalf("管理入口须保留异常原值: %+v %v", items, err)
 			}
 			if err := data.db.PartnerSettlementRule.UpdateOneID(created.ID).ClearCreditCurrency().Exec(ctx); err != nil {
