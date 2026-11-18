@@ -2,7 +2,7 @@ import { EditOutlined } from '@ant-design/icons';
 import { Button, Descriptions, Space, type TableColumnsType, Tag } from 'antd';
 import React from 'react';
 import {
-  DescriptionsDetailDrawer,
+  DescriptionsDetailModal,
   DItem,
   ResponsiveTable as Table,
 } from '@/components/ui';
@@ -17,7 +17,7 @@ import BillInvoiceExemptionSection, {
 } from './BillInvoiceExemptionSection';
 import BillInvoiceRegistrationSection from './BillInvoiceRegistrationSection';
 
-interface BillDetailDrawerProps {
+interface BillDetailModalProps {
   open: boolean;
   loading: boolean;
   detail?: API.FinanceBill;
@@ -34,7 +34,7 @@ interface BillDetailDrawerProps {
   };
 }
 
-export default function BillDetailDrawer({
+export default function BillDetailModal({
   open,
   loading,
   detail,
@@ -44,7 +44,7 @@ export default function BillDetailDrawer({
   feeMaintenance,
   invoiceExemptionActions,
   onRegistrationUpdated,
-}: BillDetailDrawerProps) {
+}: BillDetailModalProps) {
   const lineColumns: TableColumnsType<API.FinanceBillLine> = [
     { title: '订单编号', dataIndex: 'orderNo', width: 150 },
     { title: '费用代码', dataIndex: 'feeCode', width: 100 },
@@ -109,15 +109,14 @@ export default function BillDetailDrawer({
   });
 
   return (
-    <DescriptionsDetailDrawer
+    <DescriptionsDetailModal
       title={(current) => `账单详情 ${current?.billNo || ''}`}
       open={open}
       detail={detail}
-      size={1020}
       loading={loading}
       column={3}
       onClose={onClose}
-      extra={(current) =>
+      footer={(current) =>
         canEdit && onEdit ? (
           <Button
             type="primary"
@@ -303,6 +302,6 @@ export default function BillDetailDrawer({
           />
         </>
       )}
-    </DescriptionsDetailDrawer>
+    </DescriptionsDetailModal>
   );
 }

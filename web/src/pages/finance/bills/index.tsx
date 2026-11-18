@@ -48,7 +48,7 @@ import {
 import { getErrorMessage } from '@/utils/errorMessage';
 import { formatAmount, trimDecimal } from '@/utils/format';
 import { makeVersionActions } from '@/utils/versionActions';
-import BillDetailDrawer from './components/BillDetailDrawer';
+import BillDetailModal from './components/BillDetailModal';
 import BillEditModal from './components/BillEditModal';
 import { getFinanceBillColumns } from './components/billColumns';
 import type { BillFormValues } from './components/billConstants';
@@ -642,7 +642,7 @@ export default function FinanceBillsPage() {
         onCreated={() => reload()}
       />
 
-      <BillDetailDrawer
+      <BillDetailModal
         open={detailOpen}
         loading={detailLoading}
         detail={detail}

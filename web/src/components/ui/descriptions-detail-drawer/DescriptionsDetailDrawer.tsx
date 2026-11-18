@@ -1,8 +1,11 @@
 import {
+  Button,
   Descriptions,
   type DescriptionsProps,
   Drawer,
   type DrawerProps,
+  Modal,
+  Space,
 } from 'antd';
 import {
   Children,
@@ -100,5 +103,58 @@ export function DescriptionsDetailDrawer<T>({
 export function DItem({ children, ...props }: DItemProps) {
   return (
     <Descriptions.Item {...props}>{detailContent(children)}</Descriptions.Item>
+  );
+}
+
+export type DescriptionsDetailModalProps<T> = Omit<
+  DescriptionsDetailDrawerProps<T>,
+  'size' | 'extra'
+> & {
+  width?: number;
+  /** 弹窗底部操作区；默认只有「关闭」。 */
+  footer?: ReactNode | ((detail: T) => ReactNode);
+};
+
+/** 只读详情弹窗外壳，字段与明细由调用方提供；内容超高时在弹窗内滚动。 */
+export function DescriptionsDetailModal<T>({
+  open,
+  detail,
+  loading = false,
+  title,
+  width = 1200,
+  column = 2,
+  footer,
+  descriptions,
+  children,
+  onClose,
+}: DescriptionsDetailModalProps<T>) {
+  const extraFooter =
+    typeof footer === 'function' ? (detail ? footer(detail) : null) : footer;
+  return (
+    <Modal
+      title={typeof title === 'function' ? title(detail) : title}
+      open={open}
+      width={width}
+      loading={loading}
+      destroyOnHidden
+      mask={{ closable: false }}
+      styles={{ body: { maxHeight: '70vh', overflowY: 'auto' } }}
+      footer={
+        <Space>
+          <Button onClick={onClose}>关闭</Button>
+          {extraFooter}
+        </Space>
+      }
+      onCancel={onClose}
+    >
+      {detail ? (
+        <>
+          <Descriptions bordered size="small" column={column}>
+            {resolveDescriptionItems(descriptions(detail))}
+          </Descriptions>
+          {children?.(detail)}
+        </>
+      ) : null}
+    </Modal>
   );
 }

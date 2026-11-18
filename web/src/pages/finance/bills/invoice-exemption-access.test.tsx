@@ -34,7 +34,7 @@ vi.mock('@/features/finance/bill-creation', () => ({
   BillCreationWorkbench: () => null,
 }));
 vi.mock('./components/BillEditModal', () => ({ default: () => null }));
-vi.mock('./components/BillDetailDrawer', () => ({
+vi.mock('./components/BillDetailModal', () => ({
   default: (props: NonNullable<typeof state.drawer>) => {
     state.drawer = props;
     return null;

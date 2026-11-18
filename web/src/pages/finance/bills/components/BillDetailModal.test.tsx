@@ -3,13 +3,13 @@ import { act, fireEvent, screen } from '@testing-library/react';
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { partnerServiceListPartnerAccounts } from '@/services/roncin/partnerService';
-import BillDetailDrawer from './BillDetailDrawer';
+import BillDetailModal from './BillDetailModal';
 
 vi.mock('@/services/roncin/partnerService', () => ({
   partnerServiceListPartnerAccounts: vi.fn(),
 }));
 
-describe('BillDetailDrawer 账单详情', () => {
+describe('BillDetailModal 账单详情', () => {
   it('采纳费用变更响应后显示新的创建日期，首次创建时间不代替业务日期', async () => {
     const detail: API.FinanceBill = {
       id: 'bill-date',
@@ -21,7 +21,7 @@ describe('BillDetailDrawer 账单详情', () => {
     };
     const onClose = vi.fn();
     const { rerender } = renderWithApp(
-      <BillDetailDrawer
+      <BillDetailModal
         open
         loading={false}
         onClose={onClose}
@@ -30,7 +30,7 @@ describe('BillDetailDrawer 账单详情', () => {
     );
     expect(screen.getByText('2026-11-16')).toBeInTheDocument();
     rerender(
-      <BillDetailDrawer
+      <BillDetailModal
         open
         loading={false}
         onClose={onClose}
@@ -46,7 +46,7 @@ describe('BillDetailDrawer 账单详情', () => {
 
   it('只读明细只展示有效费用，不显示已释放行及关联状态列', async () => {
     renderWithApp(
-      <BillDetailDrawer
+      <BillDetailModal
         open
         loading={false}
         onClose={vi.fn()}
@@ -71,7 +71,7 @@ describe('BillDetailDrawer 账单详情', () => {
 
   it('只展示账单 DTO 固化的账户快照，不请求往来单位账户主数据', async () => {
     renderWithApp(
-      <BillDetailDrawer
+      <BillDetailModal
         open
         loading={false}
         onClose={vi.fn()}
@@ -100,7 +100,7 @@ describe('BillDetailDrawer 账单详情', () => {
 
   it('展示固化的预计开票币种、预计开票汇率和预计开票金额', async () => {
     renderWithApp(
-      <BillDetailDrawer
+      <BillDetailModal
         open
         loading={false}
         onClose={vi.fn()}
@@ -126,7 +126,7 @@ describe('BillDetailDrawer 账单详情', () => {
     const onEdit = vi.fn();
     const detail = { id: 'bill-3', billNo: 'BILL-3', lines: [] };
     const view = renderWithApp(
-      <BillDetailDrawer
+      <BillDetailModal
         open
         loading={false}
         onClose={vi.fn()}
@@ -138,7 +138,7 @@ describe('BillDetailDrawer 账单详情', () => {
     fireEvent.click(screen.getByText('编辑账单信息'));
     expect(onEdit).toHaveBeenCalledWith(detail);
     view.rerender(
-      <BillDetailDrawer
+      <BillDetailModal
         open
         loading={false}
         onClose={vi.fn()}

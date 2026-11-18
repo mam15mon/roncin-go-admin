@@ -54,7 +54,7 @@ vi.mock('@/features/master-data/currencies', () => ({
 vi.mock('./components/billColumns', () => ({
   getFinanceBillColumns: () => [],
 }));
-vi.mock('./components/BillDetailDrawer', () => ({
+vi.mock('./components/BillDetailModal', () => ({
   default: (p: { onEdit: (bill: API.FinanceBill) => void }) => {
     state.openEdit = p.onEdit;
     return null;

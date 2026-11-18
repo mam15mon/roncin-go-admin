@@ -76,7 +76,7 @@ vi.mock('@/features/master-data/currencies', () => ({
   fetchCurrencyOptions: vi.fn().mockResolvedValue([]),
 }));
 vi.mock('./components/BillEditModal', () => ({ default: () => null }));
-vi.mock('./components/BillDetailDrawer', () => ({ default: () => null }));
+vi.mock('./components/BillDetailModal', () => ({ default: () => null }));
 vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceListBills: vi
     .fn()
