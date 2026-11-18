@@ -45,3 +45,26 @@
 ### Next Steps
 
 - 随正常迁移流程应用20261117100000_retire_order_shipment_mode.sql；基线既有测试问题留档待后续处理
+
+
+## Session 219: 账单五态筛选与无票核销限制交付
+<!-- trellis-session: v=2 fp=68cd8bf42f01eb70 -->
+
+**Date**: 2026-11-18
+**Task**: 账单五态筛选与无票核销限制交付
+**Branch**: `codex/bill-business-status-alignment`
+
+### Summary
+
+完成账单五态服务端投影与多选筛选，列表、详情、汇总、CSV同源；候选及锁内禁止完全未开票核销，部分票和免票仍可，建账同次输入保护与原子回滚一致。相关PG专项、类型检查、独立审查、真实应收应付与USD/EUR API闭环、浏览器多选和完整海运财务E2E通过。check:fast服务端通过，前端20例失败已在修改前基线4文件复现；全data PG扫描有范围外旧夹具失败并15分钟超时，均未宣称全量通过。临时隔离运行区、服务和凭据缓存已清理。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `1c054567` | feat(finance): 对齐账单五态筛选并限制无票核销 |
+| `89d37d68` | fix(finance): 同步账单详情五态并完成流程验收 |
+
+### Status
+
+[OK] **Completed**
