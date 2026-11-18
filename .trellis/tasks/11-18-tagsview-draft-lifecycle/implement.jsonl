@@ -1,0 +1,2 @@
+{"file":".trellis/spec/web/frontend/state-management.md","reason":"表单状态、路由保护、提交基线和异步请求约定"}
+{"file":".trellis/spec/web/frontend/organization-switch.md","reason":"工作区隔离、切换组织的确认和请求失败行为"}
