@@ -8,3 +8,5 @@
 {"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "optional 字段 NULL/0/N 的 wire 形态"}
 {"file": ".trellis/spec/web/frontend/state-management.md", "reason": "主档表单加载、dirty 与保存契约"}
 {"file": ".trellis/spec/domain/glossary.md", "reason": "新增或改写收款约定词条"}
+{"file": ".trellis/tasks/11-18-customer-payment-terms/research/preflight-inventory.sql", "reason": "迁移前只读盘点脚本，守卫口径与 E 段一致"}
+{"file": ".trellis/tasks/11-18-customer-payment-terms/research/preflight-result-2026-11-18.md", "reason": "规划时开发库盘点快照，仅供参考"}

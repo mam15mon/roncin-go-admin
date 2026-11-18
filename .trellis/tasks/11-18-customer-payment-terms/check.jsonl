@@ -3,3 +3,4 @@
 {"file": ".trellis/spec/server/backend/partner-aggregate-consistency.md", "reason": "核对权限边界未被破坏"}
 {"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "前端质量检查清单"}
 {"file": ".trellis/spec/domain/glossary.md", "reason": "核对收款约定词条"}
+{"file": ".trellis/tasks/11-18-customer-payment-terms/research/preflight-inventory.sql", "reason": "核对迁移守卫与盘点口径一致"}

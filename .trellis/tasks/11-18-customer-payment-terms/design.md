@@ -35,6 +35,33 @@ index.Fields("partner_role_id").Unique().StorageKey("partner_settlement_rule_rol
 按 `server/migrations/README.md` 的要求，不使用 `IF EXISTS`。顺序如下：
 
 ```sql
+-- 0. 额度币种守卫：启用的客户规则中，正额度必须带公司生效本币（沿 parent_id 向上找第一个非空 base_currency）。
+--    有异常就整体失败，不做任何修改。口径与 data/finance_bill_credit.go 的 partnerCreditSummaries 一致。
+DO $$
+DECLARE bad_count bigint;
+BEGIN
+  WITH RECURSIVE chain AS (
+    SELECT o.id AS org_id, o.parent_id, o.base_currency, 0 AS depth FROM "organizations" o
+    UNION ALL
+    SELECT c.org_id, p.parent_id, p.base_currency, c.depth + 1
+    FROM chain c JOIN "organizations" p ON p.id = c.parent_id
+    WHERE c.base_currency IS NULL
+  ), org_base AS (
+    SELECT DISTINCT ON (org_id) org_id, base_currency
+    FROM chain ORDER BY org_id, (base_currency IS NULL), depth
+  )
+  SELECT count(*) INTO bad_count
+  FROM "partner_settlement_rules" r
+  JOIN "partner_roles" pr ON pr.id = r.partner_role_id
+  JOIN "partners" p ON p.id = pr.partner_id
+  LEFT JOIN org_base ob ON ob.org_id = p.organization_id
+  WHERE pr.role_type = 'customer' AND r.is_active AND r.credit_limit_minor > 0
+    AND (ob.base_currency IS NULL OR r.credit_currency IS NULL OR r.credit_currency <> ob.base_currency);
+  IF bad_count > 0 THEN
+    RAISE EXCEPTION '收款约定迁移中止：% 条启用的客户结算规则的信用额度缺少币种或不是公司本币，请先在客户档案中修正额度后再迁移', bad_count;
+  END IF;
+END $$;
+
 -- 1. 非客户角色不再有收款约定
 DELETE FROM "partner_settlement_rules" r
 USING "partner_roles" pr
@@ -43,10 +70,13 @@ WHERE r."partner_role_id" = pr."id" AND pr."role_type" <> 'customer';
 -- 2. 停用规则不再生效
 DELETE FROM "partner_settlement_rules" WHERE "is_active" = false;
 
--- 3. 同一客户角色有多条启用规则：保留最近更新的一条，账期和额度取组内最大值（与当前建账实际取值一致）
---    额度最大的那一行的 credit_currency 随额度一起保留。
---    建议写法：用窗口函数算出每组的保留行、MAX(payment_terms_days)、额度最大行的 (credit_limit_minor, credit_currency)，
---    先 UPDATE 保留行，再 DELETE 其余行。排序键：updated_at DESC, id DESC。
+-- 3. 同一客户角色有多条启用规则（此时已只剩启用的客户规则）：保留 updated_at DESC, id DESC 排第一的行。
+--    - payment_terms_days = 组内非空值的 MAX；全空则为 NULL（MAX 天然如此）。
+--    - 额度：只在组内存在 credit_limit_minor > 0 时改写，取最大正额度那一行的 (credit_limit_minor, credit_currency)
+--      （同额时按 updated_at DESC, id DESC 取第一行）；组内没有正额度时，保留行的额度与币种保持原值。
+--      额度 0 不参与取最大值，这与 partnerCreditSummaries 只认 > 0 的口径一致。
+--    写法：用 CTE + 窗口函数算出每组 keep_id、merged_terms、best_credit_row，
+--    先 UPDATE 保留行（只更新 count(*) > 1 的组），再 DELETE 同组其他行。
 
 -- 4. 删除旧索引与废弃列
 DROP INDEX "partner_settlement_rule_key";
@@ -61,6 +91,11 @@ CREATE UNIQUE INDEX "partner_settlement_rule_role_key" ON "partner_settlement_ru
 ```
 
 说明：
+- 第 0 步守卫的对象和现在建账时的报错对象完全一致：启用的客户规则，并且额度大于 0。
+  停用规则和非客户规则即使币种异常，也不会被现有业务读取，所以不拦截，直接在第 1、2 步删除。
+  守卫保证第 3 步取「最大额度」时比较的都是同一种本币，不会把异币额度合并进去，
+  也不会把本该报错的记录在合并时悄悄删掉。
+- 守卫的 SQL 与 `research/preflight-inventory.sql` 的 E 段口径相同。两边要一起维护：只读盘点先把异常列给用户看，守卫在迁移时兜底。
 - 第 3 步的「取最大值」只是为了让迁移后客户的实际约定和迁移前建账时的实际取值一致，
   不是对旧行为的长期兼容。迁移之后，系统里不会再有多条规则的概念。
 - 额度为空且账期为空的行可以保留，它表示「未约定」，不需要专门清理。
@@ -186,9 +221,19 @@ message PartnerSettlementRuleInput {
   - 把账期从 30 改为「未约定」后，数据库里为 NULL；
   - `partnerCreditSummaries`：账期和额度直接取唯一一条。
 - **迁移集成测试**（参考 `invoice_number_rule_migration_integration_test.go`、`migration_fixture_test.go`）：
-  先执行到本迁移之前的版本，构造数据：供应商规则、停用规则、同一客户两条启用规则（15 天 / 10 万、45 天 / 30 万），
-  再执行本迁移，断言每个客户角色一条、账期 45、额度 30 万、币种正确；非客户规则和停用规则都已删除；唯一索引存在。
-  另外验证空库完整迁移链可以执行。涉及 Schema 初始化的测试不能用 `t.Parallel()`。
+  在隔离的 PostgreSQL 上先执行到本迁移之前的版本，再构造数据、执行本迁移。用例：
+  - **合并与删除：** 供应商规则、停用客户规则、同一客户两条启用规则（15 天 / 10 万 CNY、45 天 / 30 万 CNY）
+    → 每个客户角色一条，账期 45、额度 30 万 CNY；非客户规则和停用规则已删除；唯一索引 `partner_settlement_rule_role_key` 存在，废弃列已删除。
+  - **额度 0 不参与：** 同组额度 0 与 20 万 → 20 万；同组只有 0 或空 → 保留行原值。
+  - **账期全空：** 同组账期都为空 → 结果为空。
+  - **守卫失败（三种）：** 启用客户规则的正额度缺币种；币种与公司本币不同；公司及上级都没有本币
+    → 迁移返回错误，`partner_settlement_rules` 的行数与各列取值都和迁移前一致（事务整体回滚）。
+  - **守卫不误伤：** 只有停用客户规则或供应商规则币种异常 → 迁移成功，这些行被删除。
+  - **子公司继承本币：** 规则所属公司 `base_currency` 为空、上级公司为 CNY → 视为 CNY，守卫通过。
+    （实施时以 `organizations` 的 CHECK 约束为准，核对哪些公司类型允许 `base_currency` 为空，构造合法数据。）
+  - 空库完整迁移链可以执行。
+  涉及 Schema 初始化的测试不能用 `t.Parallel()`；参考 `invoice_number_rule_migration_integration_test.go` 和 `migration_fixture_test.go`
+  的「迁移到指定版本 → 构造数据 → 继续迁移」写法。
 - `TestMigrationManifestCoversEntSchema` 通过。
 - 现有结算规则、主档、建账预览、信用额度的测试同步删除废弃字段。
 

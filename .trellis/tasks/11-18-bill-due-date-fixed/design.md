@@ -5,6 +5,8 @@
 | 层 | 文件 | 改动 |
 |---|---|---|
 | Biz | `server/internal/biz/finance_bill_fees.go` | `UpdateFees` 的刷新回调不再改日期、不再重取汇率 |
+| Biz | `server/internal/biz/finance_bill.go` | 未受保护账单的 `Update` 不再经 `buildFixedCurrencyFinanceBill` 重新取汇率 |
+| Web | `web/src/features/finance/bill-creation/BillTermsCreditWarnings.tsx` | 散客现结预警改为按最终到期日判断 |
 | Data | `server/internal/data/finance_bill_fees.go` | 原则上不改；`refresh` 参数是否保留见 §2.2 |
 | Web | `web/src/features/finance/bill-creation/BillGroupCard.tsx`、`BillCreationWorkbench.tsx`、`billWorkbenchHelpers.ts` | 到期结果展示与「调整到期日」 |
 | Web | `web/src/pages/finance/bills/components/BillEditModal.tsx`、`web/src/pages/finance/bills/index.tsx` | 编辑时展示、调整并如实提交到期设置 |
@@ -52,7 +54,29 @@ func(lockedCtx context.Context, bill *FinanceBill) error {
 - `Update`（编辑账单）仍沿用当前 `bill_date`，不推进日期。
 - 锁序、锁定事实（发票、核销、对冲、免票）拒绝增删、版本号、审计、提成经济重算不变。
 
-### 2.4 错误目录
+### 2.4 编辑账单沿用已保存汇率（`FinanceBillUsecase.Update`，未受保护分支）
+
+现状：未受保护分支约 390 行构造 `FinanceBillBatchPreviewGroup`，调用
+`buildFixedCurrencyFinanceBill(txCtx, orgID, group, input.BillDate)`。该函数内部
+`ResolveRate`（`finance_bill_batch.go` 约 371 行）会重新查汇率，再把 `rebuilt` 的汇率四项和金额写回 `input`。
+
+改为：
+- 不再调用 `buildFixedCurrencyFinanceBill`，也不调用任何汇率解析。
+- 用 `current`（锁内重读的账单）作为基础：复制一份账单对象，汇率四项保持 `current` 的值，
+  有效行沿用 `current.Lines` 中 `Active` 的行（行 ID 不变），预计开票配置使用本次 `input` 的值，
+  然后调用现有的 `RecomputeFinanceBillAmounts(bill, activeLines)`。它会按 `bill.ExchangeRate` 重算头、行本币金额
+  （结果与原值一致），并按新的预计开票配置重算预计开票金额。
+- 结果写回 `input` 的方式不变（汇率四项、金额、行、预计开票三项），仓储 `Update` 签名不变。
+- 保留现有的锁内复核：`validateLockedFinanceBillSourceFees`、结算账户校验（`HydrateBillSettlementAccounts`）、
+  `ValidateBillCurrencies`。来源费用的原币金额等事实没变，所以重算后的金额与原值相同；
+  如果发生了变化，复核本来就会拒绝。
+- 受保护分支本来就直接沿用 `current` 的汇率和金额，不需要改。
+- 实施时检查 `buildFixedCurrencyFinanceBill` 是否还有其他调用方（批量预览、建账会用到），
+  只是不在 `Update` 中使用它，不要删除这个函数。
+
+这样整个系统统一为一个规则：**账单汇率只在建账时确定，之后的编辑和增减费用都不会改变它。**
+
+### 2.5 错误目录
 
 删除 `FINANCE_BILL_DUE_DATE_BEFORE_CREATION`（目前是在 biz 里内联的 `errors.BadRequest`，
 没有进入错误目录；全仓检索确认前端没有按 reason 判断它）。
@@ -105,7 +129,22 @@ type DueMode = 'terms' | 'date';
   - 现有黄色提示文案保持不变。
 - 「创建日期」提示改为「建账时由系统记录，之后不再变化」。
 
-### 3.4 `BillFeeMaintenance`
+### 3.4 散客现结预警（`BillTermsCreditWarnings`）
+
+现状：`hasCasualTermsWarning = isCasual && direction==='RECEIVABLE' && paymentTermsDays > 0`。
+选「指定日期」时只提交 `dueDate`，`paymentTermsDays` 为空，会绕过预警。
+
+改为按**最终到期日**判断：
+- 组件入参从 `paymentTermsDays` 改为 `billDate` + `effectiveDueDate`（由 §3.1 的同一个纯函数算出：
+  按天数时为 `billDate + N`，指定日期时为所选日期，未约定时为空）。
+- 条件：散客 && 应收 && `effectiveDueDate` 存在 && `effectiveDueDate > billDate`（按 `YYYY-MM-DD` 字符串比较即可）。
+- 文案：`该客户为单次合作散客，建议现结；当前到期日为 {effectiveDueDate}（账单日后 {N} 天），请注意资金回款风险`。
+  N 由两个纯日期相减得出。
+- 建账卡片 `BillGroupCard` 和编辑弹窗 `BillEditModal` 两个调用点同步改。只提醒，不拦截提交，服务端不加校验
+  （沿用 `partner-casual-contract.md` 的「刻意的商业弹性」口径）。
+- 建账卡片里账期输入下方那行「建议现结」小字，统一由上面的预警表达，不再重复显示。
+
+### 3.5 `BillFeeMaintenance`
 
 在增减费用区域加一行次要说明：「增减费用不会改变到期日和账单汇率」。
 
@@ -121,6 +160,12 @@ type DueMode = 'terms' | 'date';
   - 移除费用、同时增删费用，结论相同。
   - 原有的锁定事实、版本冲突、最后一笔、零写入断言保留。
 - `finance_bill_correction_scope_integration_test.go` 如果调用了带 `refresh` 的仓储签名，同步调整。
+- 编辑账单沿用汇率（真实 PostgreSQL，放在现有账单更新集成测试旁边）：
+  - 建账后修改该账单所用的汇率设置（改汇率值），再只改到期日 → 保存成功，汇率四项和头、行本币金额不变；
+  - 建账后停用或删除该汇率设置，再只改备注 → 保存成功，结果同上（以前可能因为查不到汇率而失败）；
+  - 改预计开票币种和汇率 → 预计开票金额更新，账单汇率与本币金额不变；
+  - 受保护账单的现有断言保持通过。
+- 现有断言「编辑会按账单日期重新取汇率」的单测（如 `finance_bill_exchange_rate_test.go` 中的 Update 用例），按新口径改写。
 
 ### 前端
 - 到期展示纯函数：四种显示各一例，另覆盖账期为 0 和缺少账单日期的情况。
@@ -129,6 +174,8 @@ type DueMode = 'terms' | 'date';
 - `BillEditModal`：
   - 「指定日期、无账期」的账单不做修改直接保存，载荷带原 `dueDate`；
   - 受保护且有账期 → 调整入口禁用；受保护且无账期 → 可以改日期。
+- `BillTermsCreditWarnings`：散客应收 + 账期 10 天 → 预警；散客应收 + 指定晚于账单日期的日期 → 预警；
+  散客应收 + 指定日期等于账单日期 → 不预警；正式客户 → 不预警；散客应付 → 不预警。
 - 现有测试中的文案断言（「增减费用会更新创建日期」）同步更新。
 
 ## 5. 回滚
